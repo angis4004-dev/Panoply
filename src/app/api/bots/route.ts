@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     const bots = await TradingBotModel.find({ userId }).lean();
 
     // Transform to match frontend format
-    const formattedBots = bots.map((bot: any) => ({
+    const formattedBots = bots.map((bot) => ({
       id: bot._id.toString(),
       type: bot.type,
       pair: bot.pair,

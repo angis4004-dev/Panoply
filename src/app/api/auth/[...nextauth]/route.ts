@@ -26,7 +26,7 @@ const authOptions = {
           await updateUser(existingUser.id, {
             name: user.name ?? existingUser.name,
             email: user.email ?? existingUser.email,
-            image: user.image ?? (existingUser as any).image,
+            image: user.image ?? existingUser.image,
             googleId: profile?.sub,
           });
         } else {
@@ -63,9 +63,9 @@ const authOptions = {
               name: dbUser.name,
               role: dbUser.role,
               // We don't have picture in AuthUser, but we can keep it in the token if needed.
-              picture: (dbUser as any).image,
+              picture: dbUser.image,
               // We'll store the createdAt from the user (when the user was created)
-              createdAt: (dbUser as any).createdAt,
+              createdAt: dbUser.createdAt,
             };
           }
         }

@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     const models = await MLModelModel.find().lean();
 
     // Transform to match frontend format
-    const formattedModels = models.map((model: any) => ({
+    const formattedModels = models.map((model) => ({
       id: model._id.toString(),
       name: model.name,
       scope: model.scope,

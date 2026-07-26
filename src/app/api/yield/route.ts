@@ -14,12 +14,12 @@ export async function GET() {
     const yields = await YieldOpportunityModel.find().lean();
 
     // Transform to match frontend format
-    const formattedYields = yields.map((yieldOp: any) => ({
+    const formattedYields = yields.map((yieldOp) => ({
       id: yieldOp._id.toString(),
       protocol: yieldOp.protocol,
       chain: yieldOp.chain,
       apy: yieldOp.apr30d, // Using 30d APR as APY for simplicity
-      tvl: `$${Math.round(yieldOp.tvl / 1000000)}M`, // Format as $XM
+      tvl: 'N/A', // Placeholder - schema has no TVL field yet
       change24h: 0, // Placeholder - would need to calculate from historical data
       risk: yieldOp.riskLevel,
       audit: 'CertiK', // Placeholder

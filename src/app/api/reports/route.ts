@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     const reports = await ReportModel.find({ userId }).sort({ date: -1 }).lean();
 
     // Transform to match frontend format
-    const formattedReports = reports.map((report: any) => ({
+    const formattedReports = reports.map((report) => ({
       id: report._id.toString(),
       title: report.title,
       description: report.description,

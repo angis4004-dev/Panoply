@@ -94,7 +94,13 @@ export async function getSessionFromRequest(request: Request): Promise<SessionDa
       const decoded = (await decode({
         token: nextAuthToken,
         secret: SESSION_SECRET,
-      })) as any;
+      })) as {
+        id: string;
+        email: string;
+        name: string;
+        role: 'Admin' | 'Trader';
+        createdAt: string;
+      } | null;
       if (decoded) {
         // Map the decoded token to the SessionData shape expected by the rest of the app
         return {

@@ -7,7 +7,7 @@
 const COINGECKO_API_URL = 'https://api.coingecko.com/api/v3';
 
 // Cache for storing fetched data to reduce API calls
-const cache = new Map<string, { data: any; timestamp: number }>();
+const cache = new Map<string, { data: unknown; timestamp: number }>();
 const CACHE_TTL = 60000; // 1 minute (reduced for more frequent updates as requested)
 
 /**
@@ -22,7 +22,7 @@ async function fetchFromCoingecko<T>(
   // Check if we have cached data that's still fresh
   const cached = cache.get(cacheKey);
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-    return cached.data;
+    return cached.data as T;
   }
 
   // Build query string
@@ -57,7 +57,7 @@ async function fetchFromCoingecko<T>(
 
     // Return cached data if available, even if expired
     if (cached) {
-      return cached.data;
+      return cached.data as T;
     }
 
     throw error;
@@ -128,7 +128,11 @@ export async function getMarketChart(
   total_volumes?: [number, number][];
 }> {
   try {
-    const data = await fetchFromCoingecko<any>(`/coins/${coinId}/market_chart`, {
+    const data = await fetchFromCoingecko<{
+      prices: [number, number][];
+      market_caps?: [number, number][];
+      total_volumes?: [number, number][];
+    }>(`/coins/${coinId}/market_chart`, {
       vs_currency: 'usd',
       days: days.toString(),
     });
@@ -140,15 +144,29 @@ export async function getMarketChart(
   }
 }
 
+export interface CoinMarketData {
+  id: string;
+  symbol: string;
+  name: string;
+  image: string;
+  current_price: number;
+  market_cap: number;
+  market_cap_rank: number;
+  total_volume: number;
+  price_change_percentage_1h_in_currency?: number;
+  price_change_percentage_24h: number;
+  price_change_percentage_7d_in_currency?: number;
+}
+
 /**
  * Get market data (price, volume, change) for cryptocurrencies
  */
 export async function getCoinMarketData(
   ids: string[],
   vsCurrency = 'usd'
-): Promise<Record<string, any>> {
+): Promise<Record<string, CoinMarketData>> {
   try {
-    const data = await fetchFromCoingecko<any>(`/coins/markets`, {
+    const data = await fetchFromCoingecko<CoinMarketData[]>(`/coins/markets`, {
       vs_currency: vsCurrency,
       ids: ids.join(','),
       order: 'market_cap_desc',
@@ -159,8 +177,8 @@ export async function getCoinMarketData(
     });
 
     // Convert array to object for easier lookup
-    const result: Record<string, any> = {};
-    data.forEach((coin: any) => {
+    const result: Record<string, CoinMarketData> = {};
+    data.forEach((coin) => {
       result[coin.id] = coin;
     });
 

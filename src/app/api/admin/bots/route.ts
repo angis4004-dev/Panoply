@@ -3,6 +3,11 @@ import { getUserModel, connectToDatabase } from '@/lib/mongo';
 import { TradingBotModel } from '@/lib/models/TradingBot';
 import { verifyAdminAccess } from '@/lib/auth-middleware';
 
+interface PopulatedUserRef {
+  name?: string;
+  email?: string;
+}
+
 export async function GET(request: NextRequest) {
   // Verify admin access
   const authResponse = await verifyAdminAccess(request);
@@ -18,11 +23,14 @@ export async function GET(request: NextRequest) {
     const bots = await TradingBotModel.find().populate('userId', 'name email').lean();
 
     // Transform to match frontend format
-    const formattedBots = bots.map((bot: any) => ({
+    const formattedBots = bots.map((bot) => ({
       id: bot._id.toString(),
       type: bot.type,
       pair: bot.pair,
-      user: bot.userId ? bot.userId.name || bot.userId.email : 'Unknown',
+      user: bot.userId
+        ? (bot.userId as unknown as PopulatedUserRef).name ||
+          (bot.userId as unknown as PopulatedUserRef).email
+        : 'Unknown',
       confidence: bot.confidence,
       status: bot.status,
       pnl: bot.pnl || '+0.0%',
@@ -113,7 +121,8 @@ export async function POST(request: NextRequest) {
       type: populatedBot.type,
       pair: populatedBot.pair,
       user: populatedBot.userId
-        ? (populatedBot.userId as any).name || (populatedBot.userId as any).email
+        ? (populatedBot.userId as unknown as PopulatedUserRef).name ||
+          (populatedBot.userId as unknown as PopulatedUserRef).email
         : 'Unknown',
       confidence: populatedBot.confidence,
       status: populatedBot.status,

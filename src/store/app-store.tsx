@@ -1,29 +1,57 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect } from 'react';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth, type AuthUser } from '@/context/AuthContext';
+
+export interface Bot {
+  id: string;
+  type: string;
+  pair: string;
+  confidence: number;
+  status: string;
+  pnl: string;
+  active?: boolean;
+}
+
+export interface Toast {
+  id: number;
+  message: string;
+  type: string;
+}
+
+export interface Report {
+  id: string;
+  title: string;
+  description: string;
+  type: string;
+  status: string;
+  date: string;
+  metrics?: Record<string, unknown>;
+  holdings?: unknown[];
+  recommendations?: string[];
+}
 
 interface AppStoreState {
-  user: any | null;
+  user: AuthUser | null;
   botModalOpen: boolean;
-  bots: any[];
-  toasts: any[];
-  reports: any[];
-  vaults: any[];
-  yields: any[];
+  bots: Bot[];
+  toasts: Toast[];
+  reports: Report[];
+  vaults: unknown[];
+  yields: unknown[];
   tab: string;
   reportsLoading: boolean;
 }
 
 interface AppStoreActions {
   setBotModalOpen: (open: boolean) => void;
-  addBot: (bot: any) => void;
+  addBot: (bot: Bot) => void;
   addToast: (message: string, type?: string) => void;
   setTab: (tab: string) => void;
-  addReport: (report: any) => void;
+  addReport: (report: Partial<Report>) => Promise<Report>;
   toggleBot: (botId: string) => void;
   deleteBot: (botId: string) => void;
-  removeToast: (toast: any) => void;
+  removeToast: (toastId: number) => void;
   fetchReports: () => Promise<void>;
 }
 
@@ -72,7 +100,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
         throw new Error(`Failed to fetch reports: ${response.status}`);
       }
 
-      const reportsData = await response.json();
+      const reportsData: Report[] = await response.json();
       setState((prev) => ({ ...prev, reports: reportsData, reportsLoading: false }));
     } catch (err) {
       console.error('Error fetching reports:', err);
@@ -81,7 +109,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Add a report via API
-  const addReport = async (report: any) => {
+  const addReport = async (report: Partial<Report>): Promise<Report> => {
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:4028'}/api/reports`,
@@ -98,7 +126,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
         throw new Error(`Failed to create report: ${response.status}`);
       }
 
-      const newReport = await response.json();
+      const newReport: Report = await response.json();
       setState((prev) => ({ ...prev, reports: [newReport, ...prev.reports] }));
       return newReport;
     } catch (err) {
@@ -118,7 +146,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     setState((prev) => ({ ...prev, botModalOpen: open }));
   };
 
-  const addBot = (bot: any) => {
+  const addBot = (bot: Bot) => {
     setState((prev) => ({ ...prev, bots: [...prev.bots, bot] }));
   };
 
@@ -145,10 +173,10 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     }));
   };
 
-  const removeToast = (toast: any) => {
+  const removeToast = (toastId: number) => {
     setState((prev) => ({
       ...prev,
-      toasts: prev.toasts.filter((t) => t.id !== toast.id),
+      toasts: prev.toasts.filter((t) => t.id !== toastId),
     }));
   };
 

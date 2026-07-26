@@ -81,9 +81,9 @@ export default function PortfolioBuilderTab() {
       } else {
         throw new Error('Invalid response from server');
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error generating report:', error);
-      addToast(error.message || 'Failed to generate report', 'error');
+      addToast(error instanceof Error ? error.message : 'Failed to generate report', 'error');
     }
   };
 

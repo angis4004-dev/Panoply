@@ -4,6 +4,16 @@ import { connectToDatabase } from '@/lib/mongo';
 import { VaultModel } from '@/lib/models/Vault';
 import { UserVaultInvestmentModel } from '@/lib/models/UserVaultInvestment';
 
+interface PopulatedVaultRef {
+  _id: { toString(): string };
+  name: string;
+  strategy: string;
+  riskLevel: 'Low' | 'Medium' | 'High';
+  managerScore: number;
+  aum: string;
+  apr: number;
+}
+
 export async function GET(request: NextRequest) {
   try {
     // Get session to identify the current user
@@ -25,19 +35,22 @@ export async function GET(request: NextRequest) {
       .lean();
 
     // Transform to match frontend format
-    const formattedInvestments = userInvestments.map((inv: any) => ({
-      id: inv._id.toString(),
-      vaultId: inv.vaultId._id.toString(),
-      vaultName: inv.vaultId.name,
-      strategy: inv.vaultId.strategy,
-      riskLevel: inv.vaultId.riskLevel,
-      managerScore: inv.vaultId.managerScore,
-      tvl: inv.vaultId.aum,
-      apy: inv.vaultId.apr,
-      investedAmount: inv.amount,
-      vaultTokens: inv.share,
-      investedAt: inv.investedAt,
-    }));
+    const formattedInvestments = userInvestments.map((inv) => {
+      const vault = inv.vaultId as unknown as PopulatedVaultRef;
+      return {
+        id: inv._id.toString(),
+        vaultId: vault._id.toString(),
+        vaultName: vault.name,
+        strategy: vault.strategy,
+        riskLevel: vault.riskLevel,
+        managerScore: vault.managerScore,
+        tvl: vault.aum,
+        apy: vault.apr,
+        investedAmount: inv.amount,
+        vaultTokens: inv.share,
+        investedAt: inv.investedAt,
+      };
+    });
 
     return NextResponse.json(formattedInvestments);
   } catch (error) {

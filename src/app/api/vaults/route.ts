@@ -14,7 +14,7 @@ export async function GET() {
     const vaults = await VaultModel.find().lean();
 
     // Transform to match frontend format
-    const formattedVaults = vaults.map((vault: any) => ({
+    const formattedVaults = vaults.map((vault) => ({
       id: vault._id.toString(),
       name: vault.name,
       strategy: vault.strategy,
