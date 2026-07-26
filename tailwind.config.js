@@ -85,7 +85,10 @@ module.exports = {
       },
       fontSize: {
         'display-lg': ['48px', { lineHeight: '56px', letterSpacing: '-0.02em', fontWeight: '700' }],
-        'headline-lg': ['32px', { lineHeight: '40px', letterSpacing: '-0.01em', fontWeight: '600' }],
+        'headline-lg': [
+          '32px',
+          { lineHeight: '40px', letterSpacing: '-0.01em', fontWeight: '600' },
+        ],
         'headline-lg-mobile': ['24px', { lineHeight: '32px', fontWeight: '600' }],
         'body-lg': ['18px', { lineHeight: '28px', fontWeight: '400' }],
         'body-sm': ['14px', { lineHeight: '20px', fontWeight: '400' }],

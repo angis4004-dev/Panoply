@@ -9,26 +9,18 @@ export async function GET(request: NextRequest) {
     // Get session to identify the current user
     const session = await getSessionFromRequest(request);
     if (!session) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const userId = session.user.id;
 
     const connection = await connectToDatabase();
     if (!connection) {
-      return NextResponse.json(
-        { error: 'Database connection unavailable' },
-        { status: 503 }
-      );
+      return NextResponse.json({ error: 'Database connection unavailable' }, { status: 503 });
     }
 
     // Find reports for the specific user, sorted by date descending (newest first)
-    const reports = await ReportModel.find({ userId })
-      .sort({ date: -1 })
-      .lean();
+    const reports = await ReportModel.find({ userId }).sort({ date: -1 }).lean();
 
     // Transform to match frontend format
     const formattedReports = reports.map((report: any) => ({
@@ -40,16 +32,13 @@ export async function GET(request: NextRequest) {
       date: report.date.toISOString(),
       metrics: report.metrics,
       holdings: report.holdings,
-      recommendations: report.recommendations
+      recommendations: report.recommendations,
     }));
 
     return NextResponse.json(formattedReports);
   } catch (error) {
     console.error('Error fetching user reports:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch reports' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch reports' }, { status: 500 });
   }
 }
 
@@ -59,10 +48,7 @@ export async function POST(request: NextRequest) {
     // Get session to identify the current user
     const session = await getSessionFromRequest(request);
     if (!session) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Parse request body
@@ -72,10 +58,7 @@ export async function POST(request: NextRequest) {
     const requiredFields = ['title', 'description', 'type'];
     for (const field of requiredFields) {
       if (!(field in body)) {
-        return NextResponse.json(
-          { error: `Missing required field: ${field}` },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: `Missing required field: ${field}` }, { status: 400 });
       }
     }
 
@@ -101,10 +84,7 @@ export async function POST(request: NextRequest) {
 
     const connection = await connectToDatabase();
     if (!connection) {
-      return NextResponse.json(
-        { error: 'Database connection unavailable' },
-        { status: 503 }
-      );
+      return NextResponse.json({ error: 'Database connection unavailable' }, { status: 503 });
     }
 
     // Create new report for the user
@@ -117,28 +97,28 @@ export async function POST(request: NextRequest) {
       date: new Date(body.date || Date.now()),
       metrics: body.metrics || {},
       holdings: body.holdings || [],
-      recommendations: body.recommendations || []
+      recommendations: body.recommendations || [],
     });
 
     const savedReport = await newReport.save();
 
     // Return the created report in frontend format
-    return NextResponse.json({
-      id: savedReport._id.toString(),
-      title: savedReport.title,
-      description: savedReport.description,
-      type: savedReport.type,
-      status: savedReport.status,
-      date: savedReport.date.toISOString(),
-      metrics: savedReport.metrics,
-      holdings: savedReport.holdings,
-      recommendations: savedReport.recommendations
-    }, { status: 201 });
+    return NextResponse.json(
+      {
+        id: savedReport._id.toString(),
+        title: savedReport.title,
+        description: savedReport.description,
+        type: savedReport.type,
+        status: savedReport.status,
+        date: savedReport.date.toISOString(),
+        metrics: savedReport.metrics,
+        holdings: savedReport.holdings,
+        recommendations: savedReport.recommendations,
+      },
+      { status: 201 }
+    );
   } catch (error) {
     console.error('Error creating report:', error);
-    return NextResponse.json(
-      { error: 'Failed to create report' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to create report' }, { status: 500 });
   }
 }

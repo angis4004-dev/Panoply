@@ -114,8 +114,7 @@ export default function PnLAreaChart() {
               // Remove duplicates (same date can have multiple entries)
               .filter(
                 (item, index, self) =>
-                  index ===
-                  self.findIndex((t) => t.date === item.date && t.value === item.value)
+                  index === self.findIndex((t) => t.date === item.date && t.value === item.value)
               );
 
             setData(processedData);
@@ -143,7 +142,10 @@ export default function PnLAreaChart() {
 
     // Refetch every 5 minutes to keep data reasonably fresh
     const interval = setInterval(fetchChartData, 300000);
-    return () => clearInterval(interval);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, []);
 
   if (loading && data.length === 0) {

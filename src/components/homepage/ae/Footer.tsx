@@ -13,7 +13,7 @@ import {
   GitBranch,
   X,
   Mail,
-  Gamepad2
+  Gamepad2,
 } from 'lucide-react';
 
 export default function Footer() {
@@ -26,9 +26,7 @@ export default function Footer() {
             <div className="h-8 w-8 bg-primary/10 rounded-lg flex items-center justify-center">
               <Shield className="h-4 w-4 text-primary" />
             </div>
-            <span className="text-xl font-bold text-primary">
-              Aegis
-            </span>
+            <span className="text-xl font-bold text-primary">Aegis</span>
             <p className="text-sm text-foreground/60 text-center">
               AI-powered DeFi portfolio management platform
             </p>
@@ -52,19 +50,34 @@ export default function Footer() {
               <a href="#" className="text-foreground/60 hover:text-foreground transition-colors">
                 Features
               </a>
-              <Link href="/dashboard/ai" className="text-foreground/60 hover:text-foreground transition-colors">
+              <Link
+                href="/dashboard/ai"
+                className="text-foreground/60 hover:text-foreground transition-colors"
+              >
                 AI Command Center
               </Link>
-              <Link href="/dashboard/bots" className="text-foreground/60 hover:text-foreground transition-colors">
+              <Link
+                href="/dashboard/bots"
+                className="text-foreground/60 hover:text-foreground transition-colors"
+              >
                 Trading Bots
               </Link>
-              <Link href="/dashboard/vaults" className="text-foreground/60 hover:text-foreground transition-colors">
+              <Link
+                href="/dashboard/vaults"
+                className="text-foreground/60 hover:text-foreground transition-colors"
+              >
                 Vault Discovery
               </Link>
-              <Link href="/dashboard/yield" className="text-foreground/60 hover:text-foreground transition-colors">
+              <Link
+                href="/dashboard/yield"
+                className="text-foreground/60 hover:text-foreground transition-colors"
+              >
                 Yield Intelligence
               </Link>
-              <Link href="/dashboard/builder" className="text-foreground/60 hover:text-foreground transition-colors">
+              <Link
+                href="/dashboard/builder"
+                className="text-foreground/60 hover:text-foreground transition-colors"
+              >
                 Portfolio Builder
               </Link>
             </nav>

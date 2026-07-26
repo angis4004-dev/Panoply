@@ -13,7 +13,10 @@ export default function FinalCTA() {
         <p className="text-xl text-foreground/80 mb-8">
           Enter the future of AI-powered portfolio management.
         </p>
-        <Link href="/sign-up-login-screen" className="inline-flex items-center px-6 py-3 bg-primary text-[#1A1305] font-semibold rounded-lg hover:bg-primary/90 transition-colors transform hover:-translate-y-1">
+        <Link
+          href="/sign-up-login-screen"
+          className="inline-flex items-center px-6 py-3 bg-primary text-[#1A1305] font-semibold rounded-lg hover:bg-primary/90 transition-colors transform hover:-translate-y-1"
+        >
           Launch Aegis
           <ArrowRight className="ml-3 h-4 w-4" />
         </Link>

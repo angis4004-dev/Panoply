@@ -44,7 +44,17 @@ const eslintConfig = [
     },
   },
   {
-    ignores: ['node_modules/**', '.next/**', 'out/**', 'public/**', 'dist/**'],
+    ignores: [
+      'node_modules/**',
+      '.next/**',
+      'out/**',
+      'public/**',
+      'dist/**',
+      '.claude/**',
+      '.claude-flow/**',
+      'docs/**',
+      'data/**',
+    ],
   },
 ];
 

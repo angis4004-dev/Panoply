@@ -33,7 +33,9 @@ export default function YieldVaultSection() {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-foreground/60">Risk</span>
-                <span className="px-2 py-0.5 bg-[#3FBF95]/20 text-[#3FBF95] rounded text-xs">Low</span>
+                <span className="px-2 py-0.5 bg-[#3FBF95]/20 text-[#3FBF95] rounded text-xs">
+                  Low
+                </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-foreground/60">Strategy</span>
@@ -64,7 +66,9 @@ export default function YieldVaultSection() {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-foreground/60">Risk</span>
-                <span className="px-2 py-0.5 bg-[#5B9BD9]/20 text-[#5B9BD9] rounded text-xs">Medium</span>
+                <span className="px-2 py-0.5 bg-[#5B9BD9]/20 text-[#5B9BD9] rounded text-xs">
+                  Medium
+                </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-foreground/60">Strategy</span>
@@ -95,7 +99,9 @@ export default function YieldVaultSection() {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-foreground/60">Risk</span>
-                <span className="px-2 py-0.5 bg-[#E5555A]/20 text-[#E5555A] rounded text-xs">High</span>
+                <span className="px-2 py-0.5 bg-[#E5555A]/20 text-[#E5555A] rounded text-xs">
+                  High
+                </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-foreground/60">Strategy</span>
@@ -106,7 +112,10 @@ export default function YieldVaultSection() {
         </div>
 
         <div className="mt-10 text-center">
-          <Link href="/dashboard/vaults" className="inline-flex items-center px-4 py-2 bg-primary text-[#1A1305] font-medium rounded-lg hover:bg-primary/90 transition-colors">
+          <Link
+            href="/dashboard/vaults"
+            className="inline-flex items-center px-4 py-2 bg-primary text-[#1A1305] font-medium rounded-lg hover:bg-primary/90 transition-colors"
+          >
             Explore All Vaults
             <ArrowRight className="ml-2 h-4 w-4" />
           </Link>

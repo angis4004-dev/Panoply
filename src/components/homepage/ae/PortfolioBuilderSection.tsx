@@ -11,8 +11,8 @@ export default function PortfolioBuilderSection() {
           Build Your Ideal Portfolio
         </h2>
         <p className="text-center text-white/60 mb-8 max-w-2xl mx-auto">
-          Let AI help you create a diversified portfolio based on your risk tolerance, 
-          investment goals, and preferred assets.
+          Let AI help you create a diversified portfolio based on your risk tolerance, investment
+          goals, and preferred assets.
         </p>
         <div className="bg-black/30 border border-white/10 rounded-xl p-8">
           <div className="space-y-6">
@@ -69,7 +69,7 @@ export default function PortfolioBuilderSection() {
                 </div>
               </div>
             </div>
-            
+
             {/* Portfolio Metrics */}
             <div className="grid grid-cols-1 gap-4 pt-6 border-t border-white/10">
               <div className="flex justify-between text-sm">
@@ -82,14 +82,19 @@ export default function PortfolioBuilderSection() {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-white/60">Risk Level</span>
-                <span className="px-2 py-0.5 bg-yellow-500/20 text-yellow-400 rounded text-xs">Moderate</span>
+                <span className="px-2 py-0.5 bg-yellow-500/20 text-yellow-400 rounded text-xs">
+                  Moderate
+                </span>
               </div>
             </div>
           </div>
         </div>
-        
+
         <div className="mt-8 text-center">
-          <Link href="/dashboard/builder" className="inline-flex items-center px-4 py-2 bg-cyan-400 text-black font-medium rounded-lg hover:bg-cyan-400/90 transition-colors">
+          <Link
+            href="/dashboard/builder"
+            className="inline-flex items-center px-4 py-2 bg-cyan-400 text-black font-medium rounded-lg hover:bg-cyan-400/90 transition-colors"
+          >
             Create Your Portfolio
             <ArrowRight className="ml-2 h-4 w-4" />
           </Link>

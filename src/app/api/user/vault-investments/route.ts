@@ -9,10 +9,7 @@ export async function GET(request: NextRequest) {
     // Get session to identify the current user
     const session = await getSessionFromRequest(request);
     if (!session) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const userId = session.user.id;
@@ -22,14 +19,12 @@ export async function GET(request: NextRequest) {
     const vaultModel = await VaultModel;
 
     if (!userVaultInvestmentModel || !vaultModel) {
-      return NextResponse.json(
-        { error: 'Database connection unavailable' },
-        { status: 503 }
-      );
+      return NextResponse.json({ error: 'Database connection unavailable' }, { status: 503 });
     }
 
     // Get user's vault investments with vault details
-    const userInvestments = await userVaultInvestmentModel.find({ userId })
+    const userInvestments = await userVaultInvestmentModel
+      .find({ userId })
       .populate('vaultId', 'name strategy riskLevel managerScore aum apr')
       .lean();
 
@@ -45,16 +40,13 @@ export async function GET(request: NextRequest) {
       apy: inv.vaultId.apr,
       investedAmount: inv.amount,
       vaultTokens: inv.share,
-      investedAt: inv.investedAt
+      investedAt: inv.investedAt,
     }));
 
     return NextResponse.json(formattedInvestments);
   } catch (error) {
     console.error('Error fetching user vault investments:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch vault investments' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch vault investments' }, { status: 500 });
   }
 }
 
@@ -63,10 +55,7 @@ export async function POST(request: NextRequest) {
     // Get session to identify the current user
     const session = await getSessionFromRequest(request);
     if (!session) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const userId = session.user.id;
@@ -76,17 +65,11 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!vaultId) {
-      return NextResponse.json(
-        { error: 'Vault ID is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Vault ID is required' }, { status: 400 });
     }
 
     if (!amount || amount <= 0) {
-      return NextResponse.json(
-        { error: 'Amount must be greater than 0' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Amount must be greater than 0' }, { status: 400 });
     }
 
     const UserModel = await getUserModel();
@@ -94,30 +77,27 @@ export async function POST(request: NextRequest) {
     const vaultModel = await VaultModel;
 
     if (!userVaultInvestmentModel || !vaultModel) {
-      return NextResponse.json(
-        { error: 'Database connection unavailable' },
-        { status: 503 }
-      );
+      return NextResponse.json({ error: 'Database connection unavailable' }, { status: 503 });
     }
 
     // Check if vault exists
     const vault = await vaultModel.findById(vaultId);
     if (!vault) {
-      return NextResponse.json(
-        { error: 'Vault not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Vault not found' }, { status: 404 });
     }
 
     // Check if user already has an investment in this vault
     const existingInvestment = await userVaultInvestmentModel.findOne({
       userId,
-      vaultId
+      vaultId,
     });
 
     if (existingInvestment) {
       return NextResponse.json(
-        { error: 'You already have an investment in this vault. Use the update endpoint to modify your investment.' },
+        {
+          error:
+            'You already have an investment in this vault. Use the update endpoint to modify your investment.',
+        },
         { status: 409 }
       );
     }
@@ -131,23 +111,23 @@ export async function POST(request: NextRequest) {
       userId,
       vaultId,
       amount,
-      share: vaultTokens
+      share: vaultTokens,
     });
 
     const savedInvestment = await newInvestment.save();
 
-    return NextResponse.json({
-      id: savedInvestment._id.toString(),
-      vaultId: savedInvestment.vaultId.toString(),
-      amount: savedInvestment.amount,
-      vaultTokens: savedInvestment.share,
-      investedAt: savedInvestment.investedAt
-    }, { status: 201 });
+    return NextResponse.json(
+      {
+        id: savedInvestment._id.toString(),
+        vaultId: savedInvestment.vaultId.toString(),
+        amount: savedInvestment.amount,
+        vaultTokens: savedInvestment.share,
+        investedAt: savedInvestment.investedAt,
+      },
+      { status: 201 }
+    );
   } catch (error) {
     console.error('Error creating vault investment:', error);
-    return NextResponse.json(
-      { error: 'Failed to create vault investment' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to create vault investment' }, { status: 500 });
   }
 }
