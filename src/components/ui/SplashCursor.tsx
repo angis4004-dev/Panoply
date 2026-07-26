@@ -253,7 +253,7 @@ function SplashCursor({
       gl.attachShader(program, fragmentShader);
       gl.linkProgram(program);
       if (!gl.getProgramParameter(program, gl.LINK_STATUS))
-        console.trace(gl.getProgramInfoLog(program));
+        console.error(gl.getProgramInfoLog(program));
       return program;
     }
 
@@ -273,7 +273,7 @@ function SplashCursor({
       gl.shaderSource(shader, source);
       gl.compileShader(shader);
       if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS))
-        console.trace(gl.getShaderInfoLog(shader));
+        console.error(gl.getShaderInfoLog(shader));
       return shader;
     }
 
@@ -933,11 +933,7 @@ function SplashCursor({
         p.color = color;
       });
 
-      const points = pointers.length;
       pointers.forEach((p) => {
-        const rgba = [color[0] * 0.15, color[1] * 0.15, color[2] * 0.15, 1];
-        const deltaX = (x - p.texcoordX) * config.SPLAT_RADIUS * 2;
-        const deltaY = (y - p.texcoordY) * config.SPLAT_RADIUS * 2;
         const deltaDX = dx * 0.5;
         const deltaDY = dy * 0.5;
         const pct = pctWithinRadius(p, { texcoordX: x, texcoordY: y }, config.SPLAT_RADIUS);
@@ -947,11 +943,6 @@ function SplashCursor({
 
       const colorPtr = color;
       pointers.forEach((p) => {
-        const rgba = [colorPtr[0] * 0.25, colorPtr[1] * 0.25, colorPtr[2] * 0.25, 1];
-        const deltaX = x - p.texcoordX;
-        const deltaY = y - p.texcoordY;
-        const deltaDX = dx * 0.5;
-        const deltaDY = dy * 0.5;
         const pct = pctWithinRadius(p, { texcoordX: x, texcoordY: y }, config.SPLAT_RADIUS);
         p.color[0] += colorPtr[0] * pct * 0.25;
         p.color[1] += colorPtr[1] * pct * 0.25;
@@ -974,8 +965,6 @@ function SplashCursor({
       } else {
         gl.disable(gl.BLEND);
       }
-      const width = gl.drawingBufferWidth;
-      const height = gl.drawingBufferHeight;
       displayMaterial.bind();
       // Removed unused uDithering uniform reference
       gl.uniform1i(displayMaterial.uniforms['uTexture'], dye.read.attach(0));

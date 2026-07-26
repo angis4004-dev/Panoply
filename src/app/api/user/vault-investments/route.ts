@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionFromRequest } from '@/lib/session';
-import { getUserModel } from '@/lib/mongo';
+import { connectToDatabase } from '@/lib/mongo';
 import { VaultModel } from '@/lib/models/Vault';
 import { UserVaultInvestmentModel } from '@/lib/models/UserVaultInvestment';
 
@@ -14,17 +14,13 @@ export async function GET(request: NextRequest) {
 
     const userId = session.user.id;
 
-    const UserModel = await getUserModel();
-    const userVaultInvestmentModel = await UserVaultInvestmentModel;
-    const vaultModel = await VaultModel;
-
-    if (!userVaultInvestmentModel || !vaultModel) {
+    const connection = await connectToDatabase();
+    if (!connection) {
       return NextResponse.json({ error: 'Database connection unavailable' }, { status: 503 });
     }
 
     // Get user's vault investments with vault details
-    const userInvestments = await userVaultInvestmentModel
-      .find({ userId })
+    const userInvestments = await UserVaultInvestmentModel.find({ userId })
       .populate('vaultId', 'name strategy riskLevel managerScore aum apr')
       .lean();
 
@@ -72,22 +68,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Amount must be greater than 0' }, { status: 400 });
     }
 
-    const UserModel = await getUserModel();
-    const userVaultInvestmentModel = await UserVaultInvestmentModel;
-    const vaultModel = await VaultModel;
-
-    if (!userVaultInvestmentModel || !vaultModel) {
+    const connection = await connectToDatabase();
+    if (!connection) {
       return NextResponse.json({ error: 'Database connection unavailable' }, { status: 503 });
     }
 
     // Check if vault exists
-    const vault = await vaultModel.findById(vaultId);
+    const vault = await VaultModel.findById(vaultId);
     if (!vault) {
       return NextResponse.json({ error: 'Vault not found' }, { status: 404 });
     }
 
     // Check if user already has an investment in this vault
-    const existingInvestment = await userVaultInvestmentModel.findOne({
+    const existingInvestment = await UserVaultInvestmentModel.findOne({
       userId,
       vaultId,
     });
@@ -107,7 +100,7 @@ export async function POST(request: NextRequest) {
     const vaultTokens = amount;
 
     // Create new investment
-    const newInvestment = new userVaultInvestmentModel({
+    const newInvestment = new UserVaultInvestmentModel({
       userId,
       vaultId,
       amount,

@@ -1,20 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import {
-  Shield,
-  Banknote,
-  Globe,
-  Users,
-  Server,
-  Code,
-  Lock,
-  BookOpen,
-  GitBranch,
-  X,
-  Mail,
-  Gamepad2,
-} from 'lucide-react';
+import { Shield, X, Mail, Gamepad2 } from 'lucide-react';
 
 export default function Footer() {
   return (

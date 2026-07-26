@@ -2,18 +2,7 @@
 
 import Link from 'next/link';
 import { useAppStore } from '@/store/app-store';
-import {
-  Store,
-  Brain,
-  Bot,
-  Vault,
-  Zap,
-  SunMoon,
-  LogIn,
-  SlidersHorizontal,
-  User,
-  Shield,
-} from 'lucide-react';
+import { Shield } from 'lucide-react';
 
 export default function Navbar() {
   const { user } = useAppStore();

@@ -11,7 +11,6 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from 'recharts';
-import { useAppStore } from '@/store/app-store';
 
 interface ChartDataPoint {
   date: string;
