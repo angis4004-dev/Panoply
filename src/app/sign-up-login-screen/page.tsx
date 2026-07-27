@@ -18,6 +18,7 @@ import {
   Cpu,
 } from 'lucide-react';
 import AppLogo from '@/components/ui/AppLogo';
+import FlowFieldBackground from '@/components/ui/flow-field-background';
 import { Toaster, toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
 
@@ -559,14 +560,13 @@ function SignUpLoginPageContent() {
 
       {/* Left brand panel */}
       <div className="hidden lg:flex lg:w-[52%] xl:w-[55%] flex-col relative overflow-hidden bg-gradient-to-br from-[#122131] via-[#0A0E13] to-[#122131]">
-        {/* Grid background */}
-        <div
-          className="absolute inset-0 opacity-[0.04]"
-          style={{
-            backgroundImage:
-              'linear-gradient(rgba(0,212,170,1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,212,170,1) 1px, transparent 1px)',
-            backgroundSize: '40px 40px',
-          }}
+        {/* Ambient particle flow field */}
+        <FlowFieldBackground
+          className="absolute inset-0 opacity-60"
+          color="#00D4FF"
+          particleCount={130}
+          trailOpacity={0.1}
+          speed={0.6}
         />
 
         {/* Glow orbs */}
