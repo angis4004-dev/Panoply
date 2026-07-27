@@ -43,8 +43,8 @@ const C = {
   text: '#E7ECF2',
   textDim: '#8B96A5',
   textFaint: '#5C6675',
-  gold: '#1E63FF',
-  goldDim: '#3D5A9E',
+  primary: '#1E63FF',
+  primaryDim: '#3D5A9E',
   teal: '#3FBF95',
   red: '#E5555A',
   blue: '#5B9BD9',
@@ -80,7 +80,7 @@ function SectionLabel({ children, right }) {
 function Pill({ children, tone = 'neutral' }) {
   const tones = {
     neutral: { color: C.textDim, bg: C.panel2, border: C.border },
-    gold: { color: C.gold, bg: 'rgba(30,99,255,0.12)', border: 'rgba(30,99,255,0.35)' },
+    primary: { color: C.primary, bg: 'rgba(30,99,255,0.12)', border: 'rgba(30,99,255,0.35)' },
     teal: { color: C.teal, bg: 'rgba(63,191,149,0.12)', border: 'rgba(63,191,149,0.35)' },
     red: { color: C.red, bg: 'rgba(229,85,90,0.12)', border: 'rgba(229,85,90,0.35)' },
     blue: { color: C.blue, bg: 'rgba(91,155,217,0.12)', border: 'rgba(91,155,217,0.35)' },
@@ -141,7 +141,7 @@ function ShieldGauge({ score = 87 }) {
           cy={75}
           r={r}
           fill="none"
-          stroke={C.gold}
+          stroke={C.primary}
           strokeWidth={10}
           strokeDasharray={c}
           strokeDashoffset={offset}
@@ -221,9 +221,9 @@ function Td({ children, style, ...rest }) {
 /* ---------------------------------- form elements ---------------------------------- */
 function Button({ children, onClick, variant = 'ghost', icon: Icon, style }) {
   const variants = {
-    gold: { background: C.gold, color: '#F2F5FA', border: `1px solid ${C.gold}` },
+    primary: { background: C.primary, color: '#F2F5FA', border: `1px solid ${C.primary}` },
     ghost: { background: 'transparent', color: C.textDim, border: `1px solid ${C.border}` },
-    outline: { background: 'transparent', color: C.gold, border: `1px solid ${C.goldDim}` },
+    outline: { background: 'transparent', color: C.primary, border: `1px solid ${C.primaryDim}` },
   };
   return (
     <button
@@ -372,7 +372,7 @@ function UserDetailModal({ user, onClose, onSave }) {
           <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="gold" onClick={() => onSave(form)}>
+          <Button variant="primary" onClick={() => onSave(form)}>
             Save changes
           </Button>
         </>
@@ -456,7 +456,7 @@ function AddBotModal({ onClose, onAdd }) {
           <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="gold" onClick={() => onAdd(form)} disabled={!form.user}>
+          <Button variant="primary" onClick={() => onAdd(form)} disabled={!form.user}>
             Create bot
           </Button>
         </>
@@ -520,7 +520,7 @@ function AddModelModal({ onClose, onAdd }) {
           <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="gold" onClick={() => onAdd(form)} disabled={!form.name}>
+          <Button variant="primary" onClick={() => onAdd(form)} disabled={!form.name}>
             Register model
           </Button>
         </>
@@ -873,7 +873,7 @@ function AdminSidebarContent({ tab, setTab, onNavigate }) {
     <>
       <div style={{ padding: '22px 20px', borderBottom: `1px solid ${C.borderSoft}` }}>
         <div className="flex items-center gap-2">
-          <ShieldCheck size={18} color={C.gold} />
+          <ShieldCheck size={18} color={C.primary} />
           <span style={{ ...display, fontSize: 16, fontWeight: 700, letterSpacing: 0.4 }}>
             AEGIS
           </span>
@@ -902,7 +902,7 @@ function AdminSidebarContent({ tab, setTab, onNavigate }) {
                 borderRadius: 7,
                 background: active ? C.panel2 : 'transparent',
                 border: 'none',
-                borderLeft: active ? `2px solid ${C.gold}` : '2px solid transparent',
+                borderLeft: active ? `2px solid ${C.primary}` : '2px solid transparent',
                 color: active ? C.text : C.textDim,
                 cursor: 'pointer',
                 textAlign: 'left',
@@ -911,7 +911,7 @@ function AdminSidebarContent({ tab, setTab, onNavigate }) {
                 fontWeight: active ? 600 : 500,
               }}
             >
-              <Icon size={15} color={active ? C.gold : C.textFaint} />
+              <Icon size={15} color={active ? C.primary : C.textFaint} />
               {label}
             </button>
           );
@@ -930,7 +930,7 @@ function AdminSidebarContent({ tab, setTab, onNavigate }) {
               justifyContent: 'center',
               ...mono,
               fontSize: 11,
-              color: C.gold,
+              color: C.primary,
             }}
           >
             RK
@@ -964,16 +964,16 @@ export default function AegisAdminDashboard() {
     fetchMLModels();
   }, []);
 
-  const sevTone = { high: 'red', med: 'gold', low: 'blue' };
+  const sevTone = { high: 'red', med: 'primary', low: 'blue' };
   const statusTone = {
     active: 'teal',
     flagged: 'red',
     onboarding: 'blue',
     suspended: 'red',
     running: 'teal',
-    fallback: 'gold',
+    fallback: 'primary',
     paused: 'neutral',
-    pending: 'gold',
+    pending: 'primary',
     review: 'blue',
     delivered: 'teal',
     bounced: 'red',
@@ -1319,15 +1319,15 @@ function OverviewTab({
 
       <div className="grid grid-cols-3 gap-4">
         <Panel style={{ padding: 18, gridColumn: 'span 2' }}>
-          <SectionLabel right={<Pill tone="gold">6-month trend</Pill>}>
+          <SectionLabel right={<Pill tone="primary">6-month trend</Pill>}>
             Monthly Active Users
           </SectionLabel>
           <ResponsiveContainer width="100%" height={190}>
             <AreaChart data={mauSeries} margin={{ left: -20, top: 5 }}>
               <defs>
                 <linearGradient id="mauFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={C.gold} stopOpacity={0.35} />
-                  <stop offset="100%" stopColor={C.gold} stopOpacity={0} />
+                  <stop offset="0%" stopColor={C.primary} stopOpacity={0.35} />
+                  <stop offset="100%" stopColor={C.primary} stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid stroke={C.borderSoft} vertical={false} />
@@ -1350,7 +1350,7 @@ function OverviewTab({
               <Area
                 type="monotone"
                 dataKey="v"
-                stroke={C.gold}
+                stroke={C.primary}
                 strokeWidth={2}
                 fill="url(#mauFill)"
               />
@@ -1444,7 +1444,7 @@ function OverviewTab({
                   <div style={{ fontSize: 12, fontWeight: 500 }}>{v.name}</div>
                   <div style={{ ...mono, fontSize: 10.5, color: C.textFaint }}>{v.manager}</div>
                 </div>
-                <div style={{ ...display, fontSize: 14, fontWeight: 600, color: C.gold }}>
+                <div style={{ ...display, fontSize: 14, fontWeight: 600, color: C.primary }}>
                   {v.score}
                 </div>
               </div>
@@ -1527,7 +1527,7 @@ function BotsTab({ bots, statusTone, onAddClick }) {
     <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between">
         <h1 style={{ ...display, fontSize: 20, fontWeight: 600 }}>Trading Bots</h1>
-        <Button variant="gold" icon={Plus} onClick={onAddClick}>
+        <Button variant="primary" icon={Plus} onClick={onAddClick}>
           Add bot
         </Button>
         </div>
@@ -1595,7 +1595,7 @@ function VaultsTab({ topVaults, vaultsQueue, statusTone }) {
             <tr key={v.name}>
               <Td style={{ fontWeight: 500 }}>{v.name}</Td>
               <Td style={{ ...mono, color: C.textDim }}>{v.manager}</Td>
-              <Td style={{ ...mono, color: C.gold }}>{v.score}</Td>
+              <Td style={{ ...mono, color: C.primary }}>{v.score}</Td>
               <Td>{v.risk}</Td>
               <Td style={{ ...mono }}>{v.aum}</Td>
               <Td style={{ ...mono }}>{v.investors}</Td>
@@ -1604,7 +1604,7 @@ function VaultsTab({ topVaults, vaultsQueue, statusTone }) {
         />
       </Panel>
       <Panel style={{ padding: 18 }}>
-        <SectionLabel right={<Pill tone="gold">{vaultsQueue.length} pending</Pill>}>
+        <SectionLabel right={<Pill tone="primary">{vaultsQueue.length} pending</Pill>}>
           Vault Creation Queue
         </SectionLabel>
         <DataTable
@@ -1670,7 +1670,7 @@ function ModelsTab({ mlModels, onAddClick }) {
     <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between">
         <h1 style={{ ...display, fontSize: 20, fontWeight: 600 }}>ML Models</h1>
-        <Button variant="gold" icon={Plus} onClick={onAddClick}>
+        <Button variant="primary" icon={Plus} onClick={onAddClick}>
           Register model
         </Button>
       </div>
@@ -1680,7 +1680,7 @@ function ModelsTab({ mlModels, onAddClick }) {
             <div className="flex items-center justify-between" style={{ marginBottom: 10 }}>
               <div style={{ fontWeight: 600, fontSize: 13.5 }}>{m.name}</div>
               <Pill
-                tone={m.drift === 'stable' ? 'teal' : m.drift === 'critical' ? 'red' : 'gold'}
+                tone={m.drift === 'stable' ? 'teal' : m.drift === 'critical' ? 'red' : 'primary'}
               >
                 {m.drift}
               </Pill>
@@ -1699,7 +1699,7 @@ function ModelsTab({ mlModels, onAddClick }) {
                 marginBottom: 12,
               }}
             >
-              <div style={{ height: '100%', width: `${m.confidence}%`, background: C.gold }} />
+              <div style={{ height: '100%', width: `${m.confidence}%`, background: C.primary }} />
             </div>
             <div className="flex items-center justify-between">
               <span style={{ fontSize: 11.5, color: C.textDim }}>Last retrained</span>
