@@ -13,24 +13,16 @@ export async function GET() {
     // Get all yield opportunities (no filtering - public data)
     const yields = await YieldOpportunityModel.find().lean();
 
-    // Transform to match frontend format
+    // Transform to match frontend format. Only include fields backed by real
+    // data - the schema has no TVL, audit, volume, or utilization data yet,
+    // so those aren't fabricated here anymore (see YieldOpportunity model).
     const formattedYields = yields.map((yieldOp) => ({
       id: yieldOp._id.toString(),
       protocol: yieldOp.protocol,
       chain: yieldOp.chain,
       apy: yieldOp.apr30d, // Using 30d APR as APY for simplicity
-      tvl: 'N/A', // Placeholder - schema has no TVL field yet
-      change24h: 0, // Placeholder - would need to calculate from historical data
+      tvl: null,
       risk: yieldOp.riskLevel,
-      audit: 'CertiK', // Placeholder
-      tokens: [yieldOp.protocol], // Simplified
-      impermanentLoss: 'Low', // Placeholder
-      lockPeriod: 'Flexible',
-      minDeposit: '$10',
-      fee: '0.05%',
-      dailyVolume: '$5M', // Placeholder
-      utilRate: '65%', // Placeholder
-      description: `Earn yield on ${yieldOp.protocol} via ${yieldOp.chain}`,
     }));
 
     return NextResponse.json(formattedYields);

@@ -9,7 +9,7 @@ interface YieldOpportunity {
   protocol: string;
   chain: string;
   apy: number;
-  tvl: string;
+  tvl: string | null;
   risk: 'Low' | 'Medium' | 'High';
 }
 
@@ -79,7 +79,7 @@ export default function YieldPage() {
                   <td className="hidden px-4 py-3.5 text-[#8B95A5] md:table-cell">{row.risk}</td>
                   <td className="px-4 py-3.5 font-mono font-semibold text-[#4ADE80]">{row.apy}%</td>
                   <td className="hidden px-4 py-3.5 font-mono text-[#8B95A5] lg:table-cell">
-                    {row.tvl}
+                    {row.tvl ?? '—'}
                   </td>
                 </tr>
               ))}
