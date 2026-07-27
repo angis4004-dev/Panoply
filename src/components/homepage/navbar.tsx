@@ -25,7 +25,10 @@ export function Navbar() {
       <div className="bg-[#0A0E13]/90 backdrop-blur-md border-b border-[#212A35]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
-            <Link href="/" className="flex items-center gap-2.5">
+            <Link
+              href="/"
+              className="flex items-center gap-2.5 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+            >
               <AegisMark size={28} />
               <span className="text-xl font-bold text-white tracking-wide">AEGIS</span>
             </Link>
@@ -35,7 +38,7 @@ export function Navbar() {
                 <Link
                   key={link.label}
                   href={link.href}
-                  className="text-sm text-[#8B95A5] hover:text-[#E7ECF2] transition-colors"
+                  className="rounded text-sm text-[#8B95A5] transition-colors hover:text-[#E7ECF2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
                 >
                   {link.label}
                 </Link>
@@ -47,13 +50,13 @@ export function Navbar() {
                 <>
                   <Link
                     href="/dashboard"
-                    className="px-4 py-2 text-sm font-medium text-[#F2F5FA] bg-primary hover:bg-[#3D77FF] rounded-lg transition-colors"
+                    className="px-4 py-2 text-sm font-medium text-[#F2F5FA] bg-primary hover:bg-[#3D77FF] rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
                   >
                     Launch App
                   </Link>
                   <button
                     onClick={logout}
-                    className="p-2 text-[#8B95A5] hover:text-[#E7ECF2] transition-colors"
+                    className="rounded-lg p-2 text-[#8B95A5] transition-colors hover:text-[#E7ECF2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
                     aria-label="Log out"
                   >
                     <LogOut className="w-4 h-4" />
@@ -63,13 +66,13 @@ export function Navbar() {
                 <>
                   <Link
                     href="/sign-up-login-screen"
-                    className="px-4 py-2 text-sm font-medium text-primary border border-primary/40 hover:bg-primary/10 rounded-lg transition-colors"
+                    className="px-4 py-2 text-sm font-medium text-primary border border-primary/40 hover:bg-primary/10 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
                   >
                     Sign In
                   </Link>
                   <Link
                     href="/sign-up-login-screen"
-                    className="px-4 py-2 text-sm font-semibold text-[#F2F5FA] bg-primary hover:bg-[#3D77FF] rounded-lg transition-colors"
+                    className="px-4 py-2 text-sm font-semibold text-[#F2F5FA] bg-primary hover:bg-[#3D77FF] rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
                   >
                     Get Started
                   </Link>
@@ -79,7 +82,7 @@ export function Navbar() {
 
             <button
               onClick={() => setIsMenuOpen(true)}
-              className="md:hidden p-2 text-[#E7ECF2]"
+              className="rounded-lg p-2 text-[#E7ECF2] md:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
               aria-label="Open menu"
             >
               <Menu className="h-5 w-5" />
@@ -92,7 +95,11 @@ export function Navbar() {
         <div className="fixed inset-0 z-50 bg-[#0A0E13]/95 backdrop-blur-sm md:hidden">
           <div className="flex flex-col h-full p-6">
             <div className="flex justify-end mb-8">
-              <button onClick={() => setIsMenuOpen(false)} aria-label="Close menu">
+              <button
+                onClick={() => setIsMenuOpen(false)}
+                aria-label="Close menu"
+                className="rounded-lg p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+              >
                 <X className="h-5 w-5 text-[#E7ECF2]" />
               </button>
             </div>

@@ -41,10 +41,10 @@ export function BotsPreview() {
           {/* Bot cards */}
           <div className="lg:col-span-2 grid gap-4 sm:grid-cols-3">
             {previewBots.map((bot, i) => (
-              <Reveal key={bot.name} delay={i * 80}>
+              <Reveal key={bot.name} delay={i * 80} className="group">
                 <div className="relative h-full rounded-xl border border-[#212A35] bg-[#122131]/50 p-5 select-none transition-all duration-300 hover:-translate-y-1 hover:border-primary/30">
                   <SignInBadge />
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 mb-4">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 mb-4 transition-transform duration-300 group-hover:scale-110">
                     <Bot className="h-4 w-4 text-primary" />
                   </div>
                   <h3 className="text-sm font-semibold text-white mb-1">{bot.name}</h3>

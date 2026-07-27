@@ -22,7 +22,7 @@ export function FinalCta() {
               </p>
               <Link
                 href="/sign-up-login-screen"
-                className="inline-flex items-center gap-2 px-8 py-3.5 text-sm font-semibold text-[#F2F5FA] bg-primary hover:bg-[#3D77FF] rounded-lg transition-all active:scale-[0.97] hover:shadow-lg hover:shadow-primary/25"
+                className="inline-flex items-center gap-2 px-8 py-3.5 text-sm font-semibold text-[#F2F5FA] bg-primary hover:bg-[#3D77FF] rounded-lg transition-all active:scale-[0.97] hover:shadow-lg hover:shadow-primary/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
               >
                 Get Started Free
                 <ArrowRight className="h-4 w-4" />
