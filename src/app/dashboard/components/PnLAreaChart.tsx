@@ -105,25 +105,28 @@ export default function PnLAreaChart() {
 
         if (isMounted) {
           if (chartData.prices && chartData.prices.length > 0) {
-            // Process the raw price data into chart-friendly format
-            const processedData: ChartDataPoint[] = chartData.prices
-              .map(([timestamp, price]: [number, number]) => {
-                const date = new Date(timestamp);
-                const dateString = date.toLocaleDateString('en-US', {
+            // CoinGecko returns hourly (or finer) granularity for any range
+            // under ~90 days, so a naive one-point-per-entry mapping puts
+            // many consecutive points on the same calendar day - the x-axis
+            // then repeats the same date label several times in a row.
+            // Collapse to one point per day (last price of that day) so the
+            // axis always advances.
+            const byDay = new Map<string, { timestamp: number; price: number }>();
+            for (const [timestamp, price] of chartData.prices as [number, number][]) {
+              const dayKey = new Date(timestamp).toISOString().slice(0, 10);
+              byDay.set(dayKey, { timestamp, price });
+            }
+            const firstPrice = chartData.prices[0][1];
+            const processedData: ChartDataPoint[] = Array.from(byDay.values())
+              .sort((a, b) => a.timestamp - b.timestamp)
+              .map(({ timestamp, price }) => ({
+                date: new Date(timestamp).toLocaleDateString('en-US', {
                   month: 'short',
                   day: 'numeric',
-                });
-                return {
-                  date: dateString,
-                  // Normalize to starting value of 10000 for comparison with sample data
-                  value: (price / chartData.prices[0][1]) * 10000,
-                };
-              })
-              // Remove duplicates (same date can have multiple entries)
-              .filter(
-                (item, index, self) =>
-                  index === self.findIndex((t) => t.date === item.date && t.value === item.value)
-              );
+                }),
+                // Normalize to starting value of 10000 for comparison with sample data
+                value: (price / firstPrice) * 10000,
+              }));
 
             setData(processedData);
             setLoading(false);
@@ -165,6 +168,9 @@ export default function PnLAreaChart() {
       </div>
     );
   }
+
+  // Aim for ~7 visible x-axis labels regardless of how many days are loaded.
+  const xAxisInterval = Math.max(0, Math.ceil(data.length / 7) - 1);
 
   const rangeDescription: Record<string, string> = {
     '7d': 'Last 7 days',
@@ -217,7 +223,7 @@ export default function PnLAreaChart() {
             tick={{ fill: '#52525B', fontSize: 10 }}
             axisLine={false}
             tickLine={false}
-            interval={3}
+            interval={xAxisInterval}
           />
           <YAxis
             tick={{ fill: '#52525B', fontSize: 10 }}
