@@ -112,18 +112,19 @@ export function Hero() {
           <Reveal>
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/5 px-4 py-1.5 mb-6">
               <span className="text-[10px] font-semibold uppercase tracking-[0.35em] text-primary">
-                Trusted by 50,000+ traders
+                Quantitative Intelligence for Decentralized Finance
               </span>
             </div>
             <h1 className="text-4xl sm:text-5xl font-bold text-white mb-5 leading-tight">
-              Trade like{' '}
+              Disciplined automation for{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-brand-cyan to-[#7B61FF]">
-                the best.
+                on-chain portfolios.
               </span>
             </h1>
             <p className="text-[#8B95A5] text-lg mb-8 max-w-xl leading-relaxed">
-              Deploy the same AI strategies serious traders use — non-custodially, on autopilot. Set
-              your risk, and let Aegis handle the rest.
+              Aegis combines quantitative research, automated execution, and risk management in a
+              single non-custodial platform. Set your risk parameters and let disciplined,
+              continuously monitored automation handle the rest.
             </p>
             <div className="flex flex-wrap gap-4">
               <Link

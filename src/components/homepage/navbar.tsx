@@ -17,7 +17,7 @@ export function Navbar() {
     { href: '#bots', label: 'Bots' },
     { href: '#bots', label: 'Charts' },
     { href: '#pricing', label: 'Pricing' },
-    { href: '#about', label: 'About' },
+    { href: '/about', label: 'About' },
   ];
 
   return (

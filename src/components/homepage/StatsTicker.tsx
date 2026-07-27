@@ -29,8 +29,8 @@ export function StatsTicker() {
     { label: 'Uptime', value: '99.9%' },
     { label: 'Volume', value: '$850M' },
     { label: 'Active Bots', value: '12,400' },
-    { label: 'Yield Avg.', value: '14.2%' },
-    { label: 'Win Rate', value: '78%' },
+    { label: 'Chains Supported', value: '6+' },
+    { label: 'Strategy Categories', value: '10+' },
   ];
 
   return (

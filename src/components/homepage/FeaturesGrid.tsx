@@ -21,7 +21,7 @@ const features = [
     icon: TrendingUp,
     title: 'Optimized Yield',
     description:
-      'Access the highest yields across chains with AI-suggested allocations and auto-compounding.',
+      'Compare yield opportunities across chains with data-driven allocation suggestions and auto-compounding.',
     href: '/dashboard/yield',
   },
   {
@@ -39,11 +39,12 @@ export function FeaturesGrid() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-14">
           <h2 className="text-3xl font-bold text-white mb-4">
-            Earn With Elite AI Strategies — Or Build Your Own
+            Automated Strategies, or Build Your Own
           </h2>
           <p className="text-[#8B95A5] max-w-2xl mx-auto">
-            Sit back and let AI-managed bots and vaults earn for you, or step in and build a custom
-            strategy with the Portfolio Builder. Either way, you stay in control.
+            Deploy quantitatively-managed bots and vaults, or configure a custom allocation with the
+            Portfolio Builder. Every strategy runs non-custodially, with you in control of risk
+            parameters throughout.
           </p>
         </div>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">

@@ -12,8 +12,8 @@ export function Footer() {
               <span className="text-lg font-bold text-white tracking-wide">AEGIS</span>
             </div>
             <p className="text-sm text-[#8B95A5] leading-relaxed">
-              AI-first crypto intelligence for automated trading, vault investing, and portfolio
-              analysis.
+              Quantitative Intelligence for Decentralized Finance — signal-driven automation, vault
+              investing, and transparent portfolio analytics.
             </p>
           </div>
 
@@ -47,6 +47,9 @@ export function Footer() {
           <div>
             <h3 className="text-sm font-semibold text-white mb-4">Platform</h3>
             <nav className="flex flex-col gap-2 text-sm">
+              <Link href="/about" className="text-[#8B95A5] hover:text-[#E7ECF2] transition-colors">
+                About
+              </Link>
               <a href="#security" className="text-[#8B95A5] hover:text-[#E7ECF2] transition-colors">
                 Security
               </a>

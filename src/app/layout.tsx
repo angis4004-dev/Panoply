@@ -15,9 +15,9 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'Aegis — AI-First Crypto Intelligence',
+  title: 'Aegis — Quantitative Intelligence for Decentralized Finance',
   description:
-    'Aegis is an AI-first crypto intelligence workspace for secure sign-in, portfolio insights, vault discovery, yield analysis, and trading workflows.',
+    'Aegis is a quantitative DeFi automation platform combining signal generation, automated execution, and risk management across secure sign-in, portfolio insights, vault discovery, and yield analysis.',
   icons: {
     icon: { url: '/favicon.ico', type: 'image/x-icon' },
   },
