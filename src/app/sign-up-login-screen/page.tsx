@@ -121,7 +121,7 @@ function LoginForm({
         <button
           type="button"
           onClick={onSwitchToSignup}
-          className="mt-2 text-xs font-semibold text-[#3D77FF] underline decoration-[#1E63FF]/40 underline-offset-2"
+          className="mt-2 text-xs font-semibold text-[#3D77FF] underline decoration-primary/40 underline-offset-2"
         >
           Create an account
         </button>
@@ -137,7 +137,7 @@ function LoginForm({
             type="email"
             autoComplete="email"
             placeholder="you@cryptotradeai.io"
-            className={`w-full bg-[#212A35] border rounded-lg pl-9 pr-4 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-[#1E63FF]/50 transition-all ${
+            className={`w-full bg-[#212A35] border rounded-lg pl-9 pr-4 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${
               errors.email ? 'border-red-500/60' : 'border-[#2A3542]'
             }`}
             {...register('email', {
@@ -168,7 +168,7 @@ function LoginForm({
             type={showPassword ? 'text' : 'password'}
             autoComplete="current-password"
             placeholder="••••••••••••"
-            className={`w-full bg-[#212A35] border rounded-lg pl-9 pr-10 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-[#1E63FF]/50 transition-all ${
+            className={`w-full bg-[#212A35] border rounded-lg pl-9 pr-10 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${
               errors.password ? 'border-red-500/60' : 'border-[#2A3542]'
             }`}
             {...register('password', { required: 'Password is required' })}
@@ -196,7 +196,7 @@ function LoginForm({
             type="checkbox"
             checked={showOTP}
             onChange={(e) => setShowOTP(e.target.checked)}
-            className="w-3.5 h-3.5 rounded border-[#5C6675] bg-[#212A35] accent-[#1E63FF]"
+            className="w-3.5 h-3.5 rounded border-[#5C6675] bg-[#212A35] accent-primary"
           />
           <span className="text-xs text-[#8B95A5]">Use MFA / OTP</span>
         </label>
@@ -204,14 +204,14 @@ function LoginForm({
           <input
             type="checkbox"
             {...register('rememberMe')}
-            className="w-3.5 h-3.5 rounded border-[#5C6675] bg-[#212A35] accent-[#1E63FF]"
+            className="w-3.5 h-3.5 rounded border-[#5C6675] bg-[#212A35] accent-primary"
           />
           <span className="text-xs text-[#8B95A5]">Remember me</span>
         </label>
       </div>
 
       <div className="flex justify-end -mt-2">
-        <Link href="/forgot-password" className="text-xs text-[#3D77FF] hover:text-[#00D4FF]">
+        <Link href="/forgot-password" className="text-xs text-[#3D77FF] hover:text-brand-cyan">
           Forgot your password?
         </Link>
       </div>
@@ -235,7 +235,7 @@ function LoginForm({
               inputMode="numeric"
               maxLength={6}
               placeholder="000000"
-              className="w-full bg-[#212A35] border border-[#2A3542] rounded-lg pl-9 pr-4 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-[#1E63FF]/50 font-mono tracking-[0.3em] transition-all"
+              className="w-full bg-[#212A35] border border-[#2A3542] rounded-lg pl-9 pr-4 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 font-mono tracking-[0.3em] transition-all"
               {...register('otp')}
             />
           </div>
@@ -246,7 +246,7 @@ function LoginForm({
       <button
         type="submit"
         disabled={loading}
-        className="w-full flex items-center justify-center gap-2 bg-[#1E63FF] hover:bg-[#3D77FF] disabled:bg-[#1E63FF]/40 disabled:cursor-not-allowed text-[#0A0E13] font-semibold text-sm rounded-lg py-2.5 transition-all duration-150 active:scale-[0.98]"
+        className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-[#3D77FF] disabled:bg-primary/40 disabled:cursor-not-allowed text-[#0A0E13] font-semibold text-sm rounded-lg py-2.5 transition-all duration-150 active:scale-[0.98]"
         style={{ minHeight: '42px' }}
       >
         {loading ? (
@@ -350,7 +350,7 @@ function SignupForm() {
         <input
           type="text"
           placeholder="Alex Thornton"
-          className={`w-full bg-[#212A35] border rounded-lg px-4 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-[#1E63FF]/50 transition-all ${
+          className={`w-full bg-[#212A35] border rounded-lg px-4 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${
             errors.fullName ? 'border-red-500/60' : 'border-[#2A3542]'
           }`}
           {...register('fullName', { required: 'Full name is required' })}
@@ -371,7 +371,7 @@ function SignupForm() {
         <input
           type="email"
           placeholder="you@cryptotradeai.io"
-          className={`w-full bg-[#212A35] border rounded-lg px-4 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-[#1E63FF]/50 transition-all ${
+          className={`w-full bg-[#212A35] border rounded-lg px-4 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${
             errors.email ? 'border-red-500/60' : 'border-[#2A3542]'
           }`}
           {...register('email', {
@@ -402,7 +402,7 @@ function SignupForm() {
           <input
             type={showPassword ? 'text' : 'password'}
             placeholder="••••••••••••"
-            className={`w-full bg-[#212A35] border rounded-lg px-4 pr-10 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-[#1E63FF]/50 transition-all ${
+            className={`w-full bg-[#212A35] border rounded-lg px-4 pr-10 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${
               errors.password ? 'border-red-500/60' : 'border-[#2A3542]'
             }`}
             {...register('password', {
@@ -439,7 +439,7 @@ function SignupForm() {
           <input
             type={showConfirm ? 'text' : 'password'}
             placeholder="••••••••••••"
-            className={`w-full bg-[#212A35] border rounded-lg px-4 pr-10 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-[#1E63FF]/50 transition-all ${
+            className={`w-full bg-[#212A35] border rounded-lg px-4 pr-10 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${
               errors.confirmPassword ? 'border-red-500/60' : 'border-[#2A3542]'
             }`}
             {...register('confirmPassword', {
@@ -468,7 +468,7 @@ function SignupForm() {
         <label className="flex items-start gap-2 cursor-pointer">
           <input
             type="checkbox"
-            className="mt-0.5 w-3.5 h-3.5 rounded border-[#5C6675] bg-[#212A35] accent-[#1E63FF] flex-shrink-0"
+            className="mt-0.5 w-3.5 h-3.5 rounded border-[#5C6675] bg-[#212A35] accent-primary flex-shrink-0"
             {...register('agreeTerms', {
               required: 'You must accept the terms',
             })}
@@ -497,7 +497,7 @@ function SignupForm() {
       <button
         type="submit"
         disabled={loading}
-        className="w-full flex items-center justify-center gap-2 bg-[#1E63FF] hover:bg-[#3D77FF] disabled:bg-[#1E63FF]/40 disabled:cursor-not-allowed text-[#0A0E13] font-semibold text-sm rounded-lg py-2.5 transition-all duration-150 active:scale-[0.98]"
+        className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-[#3D77FF] disabled:bg-primary/40 disabled:cursor-not-allowed text-[#0A0E13] font-semibold text-sm rounded-lg py-2.5 transition-all duration-150 active:scale-[0.98]"
         style={{ minHeight: '42px' }}
       >
         {loading ? (
@@ -570,8 +570,8 @@ function SignUpLoginPageContent() {
         />
 
         {/* Glow orbs */}
-        <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-[#1E63FF]/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-[#1E63FF]/5 rounded-full blur-3xl" />
+        <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
 
         <div className="relative z-10 flex flex-col h-full p-12">
           {/* Logo */}
@@ -582,7 +582,7 @@ function SignUpLoginPageContent() {
 
           {/* Hero text */}
           <div className="flex-1 flex flex-col justify-center">
-            <div className="inline-flex items-center gap-2 bg-[#1E63FF]/10 border border-[#1E63FF]/20 rounded-full px-3 py-1.5 mb-6 w-fit">
+            <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-3 py-1.5 mb-6 w-fit">
               <span className="w-1.5 h-1.5 rounded-full bg-[#3D77FF] pulse-glow" />
               <span className="text-xs font-semibold text-[#3D77FF] tracking-wide">
                 AEGIS — AI-FIRST CRYPTO INTELLIGENCE
@@ -592,7 +592,7 @@ function SignUpLoginPageContent() {
               Securely access
               <br />
               your{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#3D77FF] to-[#00D4FF]">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#3D77FF] to-brand-cyan">
                 Aegis workspace
               </span>
             </h1>
@@ -632,7 +632,7 @@ function SignUpLoginPageContent() {
               <button
                 type="button"
                 onClick={handleGoogleEntry}
-                className="rounded-full bg-[#1E63FF] px-4 py-2 text-sm font-semibold text-[#0A0E13] transition hover:bg-[#3D77FF]"
+                className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-[#0A0E13] transition hover:bg-[#3D77FF]"
               >
                 Sign in with Google
               </button>
@@ -675,7 +675,7 @@ function SignUpLoginPageContent() {
                 key={`tab-${m}`}
                 onClick={() => setMode(m)}
                 className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all duration-200 ${
-                  mode === m ? 'bg-[#1E63FF] text-[#0A0E13]' : 'text-[#8B95A5] hover:text-[#E7ECF2]'
+                  mode === m ? 'bg-primary text-[#0A0E13]' : 'text-[#8B95A5] hover:text-[#E7ECF2]'
                 }`}
               >
                 {m === 'login' ? 'Sign In' : 'Create Account'}

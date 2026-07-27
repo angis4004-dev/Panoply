@@ -47,7 +47,7 @@ export default function ForgotPasswordPage() {
         <div className="bg-[#122131] border border-[#212A35] rounded-2xl p-6">
           {submitted ? (
             <div className="text-center py-4">
-              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#1E63FF]/10">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
                 <Mail className="h-6 w-6 text-[#3D77FF]" />
               </div>
               <h2 className="text-lg font-bold text-[#E7ECF2] mb-2">Check your email</h2>
@@ -77,7 +77,7 @@ export default function ForgotPasswordPage() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full rounded-lg border border-[#2A3542] bg-[#212A35]/60 px-4 py-2.5 text-sm text-[#E7ECF2] outline-none focus:border-[#1E63FF]"
+                    className="w-full rounded-lg border border-[#2A3542] bg-[#212A35]/60 px-4 py-2.5 text-sm text-[#E7ECF2] outline-none focus:border-primary"
                     placeholder="you@example.com"
                   />
                 </div>
@@ -87,7 +87,7 @@ export default function ForgotPasswordPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full rounded-lg bg-[#1E63FF] px-4 py-2.5 text-sm font-semibold text-[#0A0E13] transition hover:bg-[#3D77FF] disabled:opacity-60"
+                  className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-[#0A0E13] transition hover:bg-[#3D77FF] disabled:opacity-60"
                 >
                   {loading ? 'Sending...' : 'Send reset link'}
                 </button>

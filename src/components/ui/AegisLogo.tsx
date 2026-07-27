@@ -1,4 +1,5 @@
 import React from 'react';
+import { BRAND_COLORS } from '@/lib/brand-colors';
 
 interface AegisMarkProps {
   size?: number;
@@ -31,9 +32,9 @@ export function AegisMark({ size = 32, className = '' }: AegisMarkProps) {
           y2="10"
           gradientUnits="userSpaceOnUse"
         >
-          <stop offset="0%" stopColor="#1E63FF" />
-          <stop offset="50%" stopColor="#00D4FF" />
-          <stop offset="100%" stopColor="#7B61FF" />
+          <stop offset="0%" stopColor={BRAND_COLORS.blue} />
+          <stop offset="50%" stopColor={BRAND_COLORS.cyan} />
+          <stop offset="100%" stopColor={BRAND_COLORS.purple} />
         </linearGradient>
       </defs>
       {/* Left wing */}

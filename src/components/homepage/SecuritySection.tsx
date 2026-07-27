@@ -29,7 +29,7 @@ export function SecuritySection() {
     <section id="security" className="py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-14">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.35em] text-[#1E63FF] mb-3">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.35em] text-primary mb-3">
             Before anything else
           </p>
           <h2 className="text-3xl font-bold text-white mb-4">Your Keys. Your Crypto. Always.</h2>
@@ -43,9 +43,9 @@ export function SecuritySection() {
             const Icon = item.icon;
             return (
               <Reveal key={item.title} delay={i * 80}>
-                <div className="h-full bg-[#122131]/50 border border-[#212A35] rounded-xl p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:border-[#1E63FF]/25">
-                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-[#1E63FF]/10">
-                    <Icon className="h-6 w-6 text-[#1E63FF]" />
+                <div className="h-full bg-[#122131]/50 border border-[#212A35] rounded-xl p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:border-primary/25">
+                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                    <Icon className="h-6 w-6 text-primary" />
                   </div>
                   <h3 className="font-semibold text-white mb-2">{item.title}</h3>
                   <p className="text-sm text-[#8B95A5]">{item.desc}</p>

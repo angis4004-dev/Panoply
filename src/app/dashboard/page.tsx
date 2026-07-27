@@ -38,9 +38,9 @@ export default function DashboardPage() {
       />
 
       {/* Dry-run strip */}
-      <div className="mb-6 flex items-center gap-3 rounded-lg border border-[#1E63FF]/20 bg-[#1E63FF]/5 px-4 py-2.5">
-        <span className="h-2 w-2 shrink-0 animate-pulse rounded-full bg-[#1E63FF]" />
-        <p className="text-xs font-medium text-[#1E63FF]">
+      <div className="mb-6 flex items-center gap-3 rounded-lg border border-primary/20 bg-primary/5 px-4 py-2.5">
+        <span className="h-2 w-2 shrink-0 animate-pulse rounded-full bg-primary" />
+        <p className="text-xs font-medium text-primary">
           Dry-run mode — all trades simulated. No real funds at risk.
         </p>
       </div>
@@ -56,7 +56,7 @@ export default function DashboardPage() {
               <span className="font-mono text-4xl font-bold tabular-nums text-white sm:text-5xl">
                 $84,230.15
               </span>
-              <span className="inline-flex items-center gap-1 rounded-full bg-[#4ADE80]/10 px-2.5 py-0.5 text-sm font-semibold text-[#4ADE80]">
+              <span className="inline-flex items-center gap-1 rounded-full bg-green-400/10 px-2.5 py-0.5 text-sm font-semibold text-green-400">
                 <TrendingUp className="h-3.5 w-3.5" />
                 +4.2%
               </span>
@@ -66,14 +66,14 @@ export default function DashboardPage() {
           <div className="flex flex-wrap gap-2">
             <Link
               href="/dashboard/bots"
-              className="inline-flex items-center gap-2 rounded-lg bg-[#1E63FF] px-4 py-2 text-sm font-semibold text-[#F2F5FA] hover:bg-[#3D77FF] transition-colors"
+              className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-[#F2F5FA] hover:bg-[#3D77FF] transition-colors"
             >
               <BotIcon className="h-4 w-4" />
               Create Bot
             </Link>
             <Link
               href="/dashboard/builder"
-              className="inline-flex items-center gap-2 rounded-lg border border-[#212A35] px-4 py-2 text-sm font-medium text-[#E7ECF2] hover:border-[#1E63FF]/40 hover:bg-[#17202e] transition-colors"
+              className="inline-flex items-center gap-2 rounded-lg border border-[#212A35] px-4 py-2 text-sm font-medium text-[#E7ECF2] hover:border-primary/40 hover:bg-[#17202e] transition-colors"
             >
               Run Builder
               <ArrowUpRight className="h-3.5 w-3.5" />
@@ -97,7 +97,7 @@ export default function DashboardPage() {
             <h2 className="text-lg font-semibold text-white">Active Bots</h2>
             <Link
               href="/dashboard/bots"
-              className="text-xs font-medium text-[#1E63FF] hover:underline"
+              className="text-xs font-medium text-primary hover:underline"
             >
               View all
             </Link>
@@ -108,7 +108,7 @@ export default function DashboardPage() {
             ) : bots.length === 0 ? (
               <p className="text-sm text-[#8B95A5]">
                 No bots deployed yet.{' '}
-                <Link href="/dashboard/bots" className="text-[#1E63FF] hover:underline">
+                <Link href="/dashboard/bots" className="text-primary hover:underline">
                   Create one
                 </Link>
                 .
@@ -117,19 +117,19 @@ export default function DashboardPage() {
               bots.slice(0, 3).map((bot) => (
                 <div
                   key={bot.id}
-                  className="rounded-xl border border-[#212A35] border-l-[#1E63FF] border-l-[3px] bg-[#122131]/50 p-4 hover:bg-[#17202e]/40 transition-colors"
+                  className="rounded-xl border border-[#212A35] border-l-primary border-l-[3px] bg-[#122131]/50 p-4 hover:bg-[#17202e]/40 transition-colors"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#1E63FF]/10">
-                        <BotIcon className="h-4 w-4 text-[#1E63FF]" />
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+                        <BotIcon className="h-4 w-4 text-primary" />
                       </div>
                       <div>
                         <h3 className="font-semibold text-white">{bot.pair}</h3>
                         <p className="text-xs text-[#8B95A5]">{bot.type} strategy</p>
                       </div>
                     </div>
-                    <span className="rounded-full bg-[#1E63FF]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#1E63FF]">
+                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
                       {bot.status}
                     </span>
                   </div>
@@ -137,7 +137,7 @@ export default function DashboardPage() {
                     <div>
                       <p className="text-[#8B95A5]">P&amp;L</p>
                       <p
-                        className={`font-mono font-semibold ${bot.pnl.startsWith('+') ? 'text-[#4ADE80]' : 'text-[#E5555A]'}`}
+                        className={`font-mono font-semibold ${bot.pnl.startsWith('+') ? 'text-green-400' : 'text-[#E5555A]'}`}
                       >
                         {bot.pnl}
                       </p>
@@ -159,7 +159,7 @@ export default function DashboardPage() {
             <h2 className="text-lg font-semibold text-white">Top Yields</h2>
             <Link
               href="/dashboard/yield"
-              className="text-xs font-medium text-[#1E63FF] hover:underline"
+              className="text-xs font-medium text-primary hover:underline"
             >
               Explore all
             </Link>
@@ -188,7 +188,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-mono text-lg font-bold text-[#4ADE80]">{yield_.apy}%</p>
+                    <p className="font-mono text-lg font-bold text-green-400">{yield_.apy}%</p>
                     <p className="text-[10px] uppercase tracking-wide text-[#8B95A5]">APY</p>
                   </div>
                 </div>
@@ -203,7 +203,7 @@ export default function DashboardPage() {
                 <p className="text-xs font-medium uppercase tracking-wider text-[#8B95A5]">
                   Aegis Risk Score
                 </p>
-                <p className="mt-1 text-xl font-bold text-[#4ADE80]">Low Risk</p>
+                <p className="mt-1 text-xl font-bold text-green-400">Low Risk</p>
                 <p className="text-sm text-[#8B95A5]">78 / 100</p>
               </div>
               <div className="relative flex h-16 w-16 items-center justify-center">
@@ -220,7 +220,7 @@ export default function DashboardPage() {
                     strokeLinecap="round"
                   />
                 </svg>
-                <Vault className="absolute h-5 w-5 text-[#1E63FF]" />
+                <Vault className="absolute h-5 w-5 text-primary" />
               </div>
             </div>
           </div>

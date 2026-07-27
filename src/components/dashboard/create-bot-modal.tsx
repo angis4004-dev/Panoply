@@ -60,7 +60,7 @@ export function CreateBotModal({ onClose }: CreateBotModalProps) {
             <select
               value={type}
               onChange={(e) => setType(e.target.value as (typeof BOT_TYPES)[number])}
-              className="w-full rounded-lg border border-[#212A35] bg-[#122131] px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#1E63FF]/50"
+              className="w-full rounded-lg border border-[#212A35] bg-[#122131] px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
             >
               {BOT_TYPES.map((t) => (
                 <option key={t} value={t}>
@@ -79,7 +79,7 @@ export function CreateBotModal({ onClose }: CreateBotModalProps) {
               value={pair}
               onChange={(e) => setPair(e.target.value)}
               placeholder="BTC/USDT"
-              className="w-full rounded-lg border border-[#212A35] bg-[#122131] px-3 py-2.5 text-sm text-white placeholder-[#4b5563] focus:outline-none focus:ring-2 focus:ring-[#1E63FF]/50"
+              className="w-full rounded-lg border border-[#212A35] bg-[#122131] px-3 py-2.5 text-sm text-white placeholder-[#4b5563] focus:outline-none focus:ring-2 focus:ring-primary/50"
             />
           </div>
 
@@ -93,7 +93,7 @@ export function CreateBotModal({ onClose }: CreateBotModalProps) {
               max={100}
               value={confidence}
               onChange={(e) => setConfidence(Number(e.target.value))}
-              className="w-full accent-[#1E63FF]"
+              className="w-full accent-primary"
             />
           </div>
 
@@ -102,7 +102,7 @@ export function CreateBotModal({ onClose }: CreateBotModalProps) {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full rounded-lg bg-[#1E63FF] px-4 py-2.5 text-sm font-semibold text-[#F2F5FA] hover:bg-[#3D77FF] disabled:opacity-50 transition-colors"
+            className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-[#F2F5FA] hover:bg-[#3D77FF] disabled:opacity-50 transition-colors"
           >
             {submitting ? 'Creating...' : 'Create Bot'}
           </button>

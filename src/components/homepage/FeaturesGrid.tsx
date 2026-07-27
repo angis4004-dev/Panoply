@@ -52,13 +52,13 @@ export function FeaturesGrid() {
             return (
               <Reveal key={feature.title} delay={i * 80}>
                 <Link href={feature.href} className="group block h-full">
-                  <div className="h-full bg-[#122131]/50 border border-[#212A35] rounded-xl p-6 transition-all duration-300 hover:-translate-y-1 hover:border-[#1E63FF]/30 hover:bg-[#17202e]/50">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#1E63FF]/10 mb-4">
-                      <Icon className="h-5 w-5 text-[#1E63FF]" />
+                  <div className="h-full bg-[#122131]/50 border border-[#212A35] rounded-xl p-6 transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:bg-[#17202e]/50">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 mb-4">
+                      <Icon className="h-5 w-5 text-primary" />
                     </div>
                     <h3 className="text-lg font-semibold text-white mb-2">{feature.title}</h3>
                     <p className="text-sm text-[#8B95A5] leading-relaxed">{feature.description}</p>
-                    <span className="inline-block mt-4 text-sm font-medium text-[#1E63FF] group-hover:underline">
+                    <span className="inline-block mt-4 text-sm font-medium text-primary group-hover:underline">
                       Learn more →
                     </span>
                   </div>

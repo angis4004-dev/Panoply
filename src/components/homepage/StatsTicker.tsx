@@ -41,14 +41,14 @@ export function StatsTicker() {
             {stats.map((stat, index) => (
               <div key={index} className="whitespace-nowrap">
                 <span className="text-xs text-[#8B95A5]">{stat.label}</span>
-                <span className="ml-1 text-xs font-mono text-[#1E63FF]">{stat.value}</span>
+                <span className="ml-1 text-xs font-mono text-primary">{stat.value}</span>
               </div>
             ))}
             {/* Duplicate for seamless loop */}
             {stats.map((stat, index) => (
               <div key={`-${index}`} className="whitespace-nowrap">
                 <span className="text-xs text-[#8B95A5]">{stat.label}</span>
-                <span className="ml-1 text-xs font-mono text-[#1E63FF]">{stat.value}</span>
+                <span className="ml-1 text-xs font-mono text-primary">{stat.value}</span>
               </div>
             ))}
           </div>

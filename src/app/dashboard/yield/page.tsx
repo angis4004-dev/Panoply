@@ -71,13 +71,13 @@ export default function YieldPage() {
                 >
                   <td className="px-4 py-3.5">
                     <div className="flex items-center gap-2">
-                      <Zap className="h-4 w-4 text-[#1E63FF]" />
+                      <Zap className="h-4 w-4 text-primary" />
                       <span className="font-medium text-white">{row.protocol}</span>
                     </div>
                   </td>
                   <td className="hidden px-4 py-3.5 text-[#8B95A5] sm:table-cell">{row.chain}</td>
                   <td className="hidden px-4 py-3.5 text-[#8B95A5] md:table-cell">{row.risk}</td>
-                  <td className="px-4 py-3.5 font-mono font-semibold text-[#4ADE80]">{row.apy}%</td>
+                  <td className="px-4 py-3.5 font-mono font-semibold text-green-400">{row.apy}%</td>
                   <td className="hidden px-4 py-3.5 font-mono text-[#8B95A5] lg:table-cell">
                     {row.tvl ?? '—'}
                   </td>

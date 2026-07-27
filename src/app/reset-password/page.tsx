@@ -70,7 +70,7 @@ function ResetPasswordContent() {
               </p>
               <Link
                 href="/forgot-password"
-                className="inline-block rounded-lg bg-[#1E63FF] px-4 py-2.5 text-sm font-semibold text-[#0A0E13] hover:bg-[#3D77FF]"
+                className="inline-block rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-[#0A0E13] hover:bg-[#3D77FF]"
               >
                 Request new link
               </Link>
@@ -104,7 +104,7 @@ function ResetPasswordContent() {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full rounded-lg border border-[#2A3542] bg-[#212A35]/60 px-4 py-2.5 text-sm text-[#E7ECF2] outline-none focus:border-[#1E63FF]"
+                    className="w-full rounded-lg border border-[#2A3542] bg-[#212A35]/60 px-4 py-2.5 text-sm text-[#E7ECF2] outline-none focus:border-primary"
                     placeholder="At least 8 characters"
                   />
                 </div>
@@ -121,7 +121,7 @@ function ResetPasswordContent() {
                     required
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full rounded-lg border border-[#2A3542] bg-[#212A35]/60 px-4 py-2.5 text-sm text-[#E7ECF2] outline-none focus:border-[#1E63FF]"
+                    className="w-full rounded-lg border border-[#2A3542] bg-[#212A35]/60 px-4 py-2.5 text-sm text-[#E7ECF2] outline-none focus:border-primary"
                     placeholder="Re-enter password"
                   />
                 </div>
@@ -131,7 +131,7 @@ function ResetPasswordContent() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full rounded-lg bg-[#1E63FF] px-4 py-2.5 text-sm font-semibold text-[#0A0E13] transition hover:bg-[#3D77FF] disabled:opacity-60"
+                  className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-[#0A0E13] transition hover:bg-[#3D77FF] disabled:opacity-60"
                 >
                   {loading ? 'Updating...' : 'Update password'}
                 </button>

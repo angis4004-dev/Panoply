@@ -23,7 +23,7 @@ export default function HistoryPage() {
           </p>
           <a
             href="/dashboard/builder"
-            className="mt-6 rounded-lg bg-[#1E63FF] px-5 py-2.5 text-sm font-semibold text-[#F2F5FA] hover:bg-[#3D77FF] transition-colors"
+            className="mt-6 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-[#F2F5FA] hover:bg-[#3D77FF] transition-colors"
           >
             Open Builder
           </a>
@@ -36,7 +36,7 @@ export default function HistoryPage() {
               className="flex items-center justify-between rounded-xl border border-[#212A35] bg-[#122131]/50 p-4"
             >
               <div className="flex items-center gap-3">
-                <FileText className="h-5 w-5 text-[#1E63FF]" />
+                <FileText className="h-5 w-5 text-primary" />
                 <div>
                   <p className="font-medium text-white">Portfolio Report</p>
                   <p className="text-xs text-[#8B95A5]">
@@ -44,7 +44,7 @@ export default function HistoryPage() {
                   </p>
                 </div>
               </div>
-              <button className="text-sm font-medium text-[#1E63FF] hover:underline">View</button>
+              <button className="text-sm font-medium text-primary hover:underline">View</button>
             </div>
           ))}
         </div>

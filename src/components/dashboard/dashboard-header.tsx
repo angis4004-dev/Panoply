@@ -30,8 +30,8 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
         </Link>
         <div className="hidden items-center gap-2 sm:flex">
           <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#4ADE80] opacity-40" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-[#4ADE80]" />
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-40" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-green-400" />
           </span>
           <span className="text-xs font-medium text-[#8B95A5]">Markets live</span>
         </div>
@@ -48,7 +48,7 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
 
         {user ? (
           <div className="flex items-center gap-2.5 rounded-lg border border-[#212A35] bg-[#122131]/60 py-1 pl-1 pr-3">
-            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-[#1E63FF]/15 text-xs font-bold text-[#1E63FF]">
+            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/15 text-xs font-bold text-primary">
               {initial}
             </div>
             <span className="hidden text-sm font-medium text-[#E7ECF2] sm:inline">
@@ -58,7 +58,7 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
         ) : (
           <Link
             href="/sign-up-login-screen"
-            className="rounded-lg bg-[#1E63FF] px-3 py-1.5 text-xs font-semibold text-[#F2F5FA] hover:bg-[#3D77FF] transition-colors"
+            className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-[#F2F5FA] hover:bg-[#3D77FF] transition-colors"
           >
             Sign In
           </Link>

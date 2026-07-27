@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Chart from 'chart.js/auto';
 import { ArrowRight, TrendingUp } from 'lucide-react';
 import { Reveal } from '@/components/ui/Reveal';
+import { BRAND_COLORS } from '@/lib/brand-colors';
 
 // Deterministic pseudo-random walk so the hero chart reads as real price
 // action instead of an obviously synthetic sine wave, while staying stable
@@ -57,7 +58,7 @@ export function Hero() {
           {
             label: 'Portfolio Value',
             data: series,
-            borderColor: '#1E63FF',
+            borderColor: BRAND_COLORS.blue,
             backgroundColor: gradient,
             tension: 0.4,
             fill: true,
@@ -109,14 +110,14 @@ export function Hero() {
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-center rounded-2xl border border-[#212A35] bg-[#0D131C]/50 backdrop-blur-sm p-6 sm:p-10">
           <Reveal>
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#1E63FF]/25 bg-[#1E63FF]/5 px-4 py-1.5 mb-6">
-              <span className="text-[10px] font-semibold uppercase tracking-[0.35em] text-[#1E63FF]">
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/5 px-4 py-1.5 mb-6">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.35em] text-primary">
                 Trusted by 50,000+ traders
               </span>
             </div>
             <h1 className="text-4xl sm:text-5xl font-bold text-white mb-5 leading-tight">
               Trade like{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#1E63FF] via-[#00D4FF] to-[#7B61FF]">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-brand-cyan to-[#7B61FF]">
                 the best.
               </span>
             </h1>
@@ -127,14 +128,14 @@ export function Hero() {
             <div className="flex flex-wrap gap-4">
               <Link
                 href="/sign-up-login-screen"
-                className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-[#F2F5FA] bg-[#1E63FF] hover:bg-[#3D77FF] rounded-lg transition-all active:scale-[0.97] hover:shadow-lg hover:shadow-[#1E63FF]/25"
+                className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-[#F2F5FA] bg-primary hover:bg-[#3D77FF] rounded-lg transition-all active:scale-[0.97] hover:shadow-lg hover:shadow-primary/25"
               >
                 Put Your Portfolio on Autopilot
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <a
                 href="#features"
-                className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-[#E7ECF2] border border-[#212A35] hover:border-[#1E63FF]/50 hover:bg-[#17202e] rounded-lg transition-all active:scale-[0.97]"
+                className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-[#E7ECF2] border border-[#212A35] hover:border-primary/50 hover:bg-[#17202e] rounded-lg transition-all active:scale-[0.97]"
               >
                 See How It Works
               </a>
@@ -152,7 +153,7 @@ export function Hero() {
                     {displayValue}
                   </p>
                 </div>
-                <span className="inline-flex items-center gap-1 rounded-full border border-[#00C896]/25 bg-[#00C896]/10 px-2.5 py-1 text-xs font-semibold text-[#00C896]">
+                <span className="inline-flex items-center gap-1 rounded-full border border-brand-green/25 bg-brand-green/10 px-2.5 py-1 text-xs font-semibold text-brand-green">
                   <TrendingUp className="h-3 w-3" />+{changePct}%
                 </span>
               </div>

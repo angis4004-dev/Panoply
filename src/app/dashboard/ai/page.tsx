@@ -34,11 +34,11 @@ export default function AIPage() {
             </div>
           </div>
           <div className="flex gap-3">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#1E63FF]/15">
-              <Brain className="h-4 w-4 text-[#1E63FF]" />
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/15">
+              <Brain className="h-4 w-4 text-primary" />
             </div>
             <div>
-              <p className="text-xs font-medium text-[#1E63FF]">Aegis AI</p>
+              <p className="text-xs font-medium text-primary">Aegis AI</p>
               <p className="text-sm leading-relaxed text-[#E7ECF2]">
                 I found 3 opportunities that may improve estimated yield while maintaining your
                 current risk profile — Aave USDC (5.2%), Curve 3Pool (8.1%), and a low-volatility
@@ -53,7 +53,7 @@ export default function AIPage() {
             <button
               key={s}
               onClick={() => setInput(s)}
-              className="rounded-full border border-[#212A35] px-3 py-1.5 text-xs text-[#8B95A5] hover:border-[#1E63FF]/40 hover:text-[#E7ECF2] transition-colors"
+              className="rounded-full border border-[#212A35] px-3 py-1.5 text-xs text-[#8B95A5] hover:border-primary/40 hover:text-[#E7ECF2] transition-colors"
             >
               {s}
             </button>
@@ -67,7 +67,7 @@ export default function AIPage() {
             placeholder="Ask about your portfolio, bots, or yield..."
             className="flex-1 bg-transparent px-3 py-2 text-sm text-[#E7ECF2] placeholder:text-[#8B95A5] outline-none"
           />
-          <button className="flex items-center gap-2 rounded-lg bg-[#1E63FF] px-4 py-2 text-sm font-semibold text-[#F2F5FA] hover:bg-[#3D77FF] transition-colors">
+          <button className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-[#F2F5FA] hover:bg-[#3D77FF] transition-colors">
             <Send className="h-4 w-4" />
             Send
           </button>

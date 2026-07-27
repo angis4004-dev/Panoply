@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
+import { BRAND_COLORS } from '@/lib/brand-colors';
 
 interface FlowFieldBackgroundProps {
   className?: string;
@@ -39,7 +40,7 @@ function hexToRgb(hex: string) {
 
 export default function FlowFieldBackground({
   className,
-  color = '#00D4FF',
+  color = BRAND_COLORS.cyan,
   backgroundColor = '#0A0E13',
   trailOpacity = 0.12,
   particleCount = 220,

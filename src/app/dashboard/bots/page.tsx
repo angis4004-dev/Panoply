@@ -8,9 +8,9 @@ import { CreateBotModal } from '@/components/dashboard/create-bot-modal';
 import { useAppStore } from '@/store/app-store';
 
 const STATUS_STYLES: Record<string, string> = {
-  running: 'bg-[#4ADE80]/10 text-[#4ADE80]',
+  running: 'bg-green-400/10 text-green-400',
   paused: 'bg-[#8B95A5]/10 text-[#8B95A5]',
-  fallback: 'bg-[#1E63FF]/10 text-[#1E63FF]',
+  fallback: 'bg-primary/10 text-primary',
 };
 
 export default function BotsPage() {
@@ -25,7 +25,7 @@ export default function BotsPage() {
         action={
           <button
             onClick={() => setModalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-lg bg-[#1E63FF] px-4 py-2 text-sm font-semibold text-[#F2F5FA] hover:bg-[#3D77FF] transition-colors"
+            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-[#F2F5FA] hover:bg-[#3D77FF] transition-colors"
           >
             <Plus className="h-4 w-4" />
             New Bot
@@ -41,7 +41,7 @@ export default function BotsPage() {
           <p className="text-sm text-[#8B95A5]">You haven&apos;t deployed any bots yet.</p>
           <button
             onClick={() => setModalOpen(true)}
-            className="mt-4 inline-flex items-center gap-2 rounded-lg border border-[#1E63FF]/40 px-4 py-2 text-sm font-semibold text-[#1E63FF] hover:bg-[#1E63FF]/10 transition-colors"
+            className="mt-4 inline-flex items-center gap-2 rounded-lg border border-primary/40 px-4 py-2 text-sm font-semibold text-primary hover:bg-primary/10 transition-colors"
           >
             <Plus className="h-4 w-4" />
             Deploy your first bot
@@ -52,12 +52,12 @@ export default function BotsPage() {
           {bots.map((bot) => (
             <div
               key={bot.id}
-              className="rounded-xl border border-[#212A35] bg-[#122131]/50 p-5 hover:border-[#1E63FF]/25 transition-colors"
+              className="rounded-xl border border-[#212A35] bg-[#122131]/50 p-5 hover:border-primary/25 transition-colors"
             >
               <div className="mb-4 flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#1E63FF]/10">
-                    <Bot className="h-5 w-5 text-[#1E63FF]" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                    <Bot className="h-5 w-5 text-primary" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-white">{bot.pair}</h3>
@@ -76,7 +76,7 @@ export default function BotsPage() {
                 <div>
                   <p className="text-[#8B95A5]">P&amp;L</p>
                   <p
-                    className={`font-mono font-semibold ${bot.pnl.startsWith('+') ? 'text-[#4ADE80]' : 'text-[#E5555A]'}`}
+                    className={`font-mono font-semibold ${bot.pnl.startsWith('+') ? 'text-green-400' : 'text-[#E5555A]'}`}
                   >
                     {bot.pnl}
                   </p>
@@ -89,7 +89,7 @@ export default function BotsPage() {
               <div className="mt-4 flex gap-2 border-t border-[#212A35] pt-3">
                 <button
                   onClick={() => toggleBot(bot.id)}
-                  className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-[#212A35] py-1.5 text-xs font-medium text-[#8B95A5] hover:border-[#1E63FF]/40 hover:text-white transition-colors"
+                  className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-[#212A35] py-1.5 text-xs font-medium text-[#8B95A5] hover:border-primary/40 hover:text-white transition-colors"
                 >
                   {bot.status === 'running' ? (
                     <>
@@ -116,7 +116,7 @@ export default function BotsPage() {
 
       <p className="mt-8 text-center text-sm text-[#8B95A5]">
         Need a custom strategy?{' '}
-        <Link href="/dashboard/ai" className="text-[#1E63FF] hover:underline">
+        <Link href="/dashboard/ai" className="text-primary hover:underline">
           Ask the AI Center
         </Link>
       </p>

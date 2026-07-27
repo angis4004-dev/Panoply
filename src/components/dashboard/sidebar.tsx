@@ -64,7 +64,7 @@ export default function DashboardSidebar({ onNavigate }: DashboardSidebarProps) 
               onClick={onNavigate}
               className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                 active
-                  ? 'bg-[#1E63FF]/12 text-[#1E63FF] border-l-2 border-[#1E63FF] pl-[10px]'
+                  ? 'bg-primary/12 text-primary border-l-2 border-primary pl-[10px]'
                   : 'text-[#8B95A5] hover:bg-[#17202e] hover:text-[#E7ECF2] border-l-2 border-transparent pl-[10px]'
               }`}
             >

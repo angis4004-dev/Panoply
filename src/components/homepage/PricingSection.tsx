@@ -43,7 +43,7 @@ export function PricingSection() {
               key={plan.name}
               className={`rounded-xl border p-6 flex flex-col ${
                 plan.featured
-                  ? 'border-[#1E63FF]/50 bg-[#17202e]/80 shadow-[0_0_40px_rgba(30,99,255,0.08)]'
+                  ? 'border-primary/50 bg-[#17202e]/80 shadow-[0_0_40px_rgba(30,99,255,0.08)]'
                   : 'border-[#212A35] bg-[#122131]/50'
               }`}
             >
@@ -51,7 +51,7 @@ export function PricingSection() {
                 <h3 className="text-xl font-semibold text-white">{plan.name}</h3>
                 <span
                   className={`text-xs font-medium px-2 py-0.5 rounded ${
-                    plan.featured ? 'text-[#1E63FF] bg-[#1E63FF]/10' : 'text-[#8B95A5] bg-[#212A35]'
+                    plan.featured ? 'text-primary bg-primary/10' : 'text-[#8B95A5] bg-[#212A35]'
                   }`}
                 >
                   {plan.featured && <CheckCircle className="inline h-3 w-3 mr-1" />}
@@ -69,7 +69,7 @@ export function PricingSection() {
                   const Icon = featureIcons[i] ?? CheckCircle;
                   return (
                     <li key={feature} className="flex items-center gap-2">
-                      <Icon className="h-4 w-4 text-[#1E63FF] shrink-0" />
+                      <Icon className="h-4 w-4 text-primary shrink-0" />
                       {feature}
                     </li>
                   );
@@ -79,8 +79,8 @@ export function PricingSection() {
                 href="/sign-up-login-screen"
                 className={`w-full text-center px-4 py-3 text-sm font-semibold rounded-lg transition-colors ${
                   plan.featured
-                    ? 'text-[#F2F5FA] bg-[#1E63FF] hover:bg-[#3D77FF]'
-                    : 'text-[#E7ECF2] border border-[#212A35] hover:border-[#1E63FF]/40 hover:bg-[#17202e]'
+                    ? 'text-[#F2F5FA] bg-primary hover:bg-[#3D77FF]'
+                    : 'text-[#E7ECF2] border border-[#212A35] hover:border-primary/40 hover:bg-[#17202e]'
                 }`}
               >
                 {plan.price === 'Custom' ? 'Contact Sales' : 'Get Started'}

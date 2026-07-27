@@ -67,7 +67,7 @@ export function DepositVaultModal({ vaultId, vaultName, apy, onClose }: DepositV
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="1000"
-              className="w-full rounded-lg border border-[#212A35] bg-[#122131] px-3 py-2.5 text-sm text-white placeholder-[#4b5563] focus:outline-none focus:ring-2 focus:ring-[#1E63FF]/50"
+              className="w-full rounded-lg border border-[#212A35] bg-[#122131] px-3 py-2.5 text-sm text-white placeholder-[#4b5563] focus:outline-none focus:ring-2 focus:ring-primary/50"
             />
           </div>
 
@@ -76,7 +76,7 @@ export function DepositVaultModal({ vaultId, vaultName, apy, onClose }: DepositV
           <button
             type="submit"
             disabled={submitting}
-            className="w-full rounded-lg bg-[#1E63FF] px-4 py-2.5 text-sm font-semibold text-[#F2F5FA] hover:bg-[#3D77FF] disabled:opacity-50 transition-colors"
+            className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-[#F2F5FA] hover:bg-[#3D77FF] disabled:opacity-50 transition-colors"
           >
             {submitting ? 'Depositing...' : 'Deposit'}
           </button>

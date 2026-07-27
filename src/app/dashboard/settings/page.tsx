@@ -30,7 +30,7 @@ export default function SettingsPage() {
             <div>
               <label className="text-xs text-[#8B95A5]">Role</label>
               <p className="mt-1">
-                <span className="rounded-full bg-[#1E63FF]/10 px-2.5 py-0.5 text-xs font-medium text-[#1E63FF]">
+                <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
                   {user?.role || 'Trader'}
                 </span>
               </p>
@@ -50,7 +50,7 @@ export default function SettingsPage() {
                   <input
                     type="checkbox"
                     defaultChecked
-                    className="h-4 w-4 rounded border-[#212A35] accent-[#1E63FF]"
+                    className="h-4 w-4 rounded border-[#212A35] accent-primary"
                   />
                 </label>
               )

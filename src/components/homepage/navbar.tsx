@@ -47,7 +47,7 @@ export function Navbar() {
                 <>
                   <Link
                     href="/dashboard"
-                    className="px-4 py-2 text-sm font-medium text-[#F2F5FA] bg-[#1E63FF] hover:bg-[#3D77FF] rounded-lg transition-colors"
+                    className="px-4 py-2 text-sm font-medium text-[#F2F5FA] bg-primary hover:bg-[#3D77FF] rounded-lg transition-colors"
                   >
                     Launch App
                   </Link>
@@ -63,13 +63,13 @@ export function Navbar() {
                 <>
                   <Link
                     href="/sign-up-login-screen"
-                    className="px-4 py-2 text-sm font-medium text-[#1E63FF] border border-[#1E63FF]/40 hover:bg-[#1E63FF]/10 rounded-lg transition-colors"
+                    className="px-4 py-2 text-sm font-medium text-primary border border-primary/40 hover:bg-primary/10 rounded-lg transition-colors"
                   >
                     Sign In
                   </Link>
                   <Link
                     href="/sign-up-login-screen"
-                    className="px-4 py-2 text-sm font-semibold text-[#F2F5FA] bg-[#1E63FF] hover:bg-[#3D77FF] rounded-lg transition-colors"
+                    className="px-4 py-2 text-sm font-semibold text-[#F2F5FA] bg-primary hover:bg-[#3D77FF] rounded-lg transition-colors"
                   >
                     Get Started
                   </Link>
@@ -113,7 +113,7 @@ export function Navbar() {
                 <>
                   <Link
                     href="/dashboard"
-                    className="w-full text-center px-4 py-3 text-sm font-semibold text-[#F2F5FA] bg-[#1E63FF] rounded-lg"
+                    className="w-full text-center px-4 py-3 text-sm font-semibold text-[#F2F5FA] bg-primary rounded-lg"
                   >
                     Launch App
                   </Link>
@@ -128,13 +128,13 @@ export function Navbar() {
                 <>
                   <Link
                     href="/sign-up-login-screen"
-                    className="w-full text-center px-4 py-3 text-sm font-semibold text-[#F2F5FA] bg-[#1E63FF] rounded-lg"
+                    className="w-full text-center px-4 py-3 text-sm font-semibold text-[#F2F5FA] bg-primary rounded-lg"
                   >
                     Get Started
                   </Link>
                   <Link
                     href="/sign-up-login-screen"
-                    className="w-full text-center px-4 py-3 text-sm text-[#1E63FF] border border-[#1E63FF]/40 rounded-lg"
+                    className="w-full text-center px-4 py-3 text-sm text-primary border border-primary/40 rounded-lg"
                   >
                     Sign In
                   </Link>

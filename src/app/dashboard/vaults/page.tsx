@@ -55,11 +55,11 @@ export default function VaultsPage() {
             return (
               <div
                 key={vault.id}
-                className="flex flex-col gap-4 rounded-xl border border-[#212A35] bg-[#122131]/50 p-5 sm:flex-row sm:items-center sm:justify-between hover:border-[#1E63FF]/25 transition-colors"
+                className="flex flex-col gap-4 rounded-xl border border-[#212A35] bg-[#122131]/50 p-5 sm:flex-row sm:items-center sm:justify-between hover:border-primary/25 transition-colors"
               >
                 <div className="flex items-center gap-4">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#1E63FF]/10">
-                    <Shield className="h-5 w-5 text-[#1E63FF]" />
+                  <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10">
+                    <Shield className="h-5 w-5 text-primary" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-white">{vault.name}</h3>
@@ -71,7 +71,7 @@ export default function VaultsPage() {
                 <div className="flex items-center gap-6 sm:gap-10">
                   <div>
                     <p className="text-[10px] uppercase tracking-wide text-[#8B95A5]">APY</p>
-                    <p className="font-mono text-lg font-bold text-[#4ADE80]">{vault.apy}%</p>
+                    <p className="font-mono text-lg font-bold text-green-400">{vault.apy}%</p>
                   </div>
                   <div>
                     <p className="text-[10px] uppercase tracking-wide text-[#8B95A5]">
@@ -90,7 +90,7 @@ export default function VaultsPage() {
                       }
                       setDepositTarget(vault);
                     }}
-                    className="rounded-lg border border-[#1E63FF]/40 px-4 py-2 text-sm font-medium text-[#1E63FF] hover:bg-[#1E63FF]/10 transition-colors"
+                    className="rounded-lg border border-primary/40 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 transition-colors"
                   >
                     {investment ? 'Manage' : 'Deposit'}
                   </button>
@@ -102,7 +102,7 @@ export default function VaultsPage() {
       )}
 
       <div className="mt-8 flex items-center gap-3 rounded-xl border border-[#212A35] bg-[#17202e]/40 p-4">
-        <TrendingUp className="h-5 w-5 shrink-0 text-[#1E63FF]" />
+        <TrendingUp className="h-5 w-5 shrink-0 text-primary" />
         <p className="text-sm text-[#8B95A5]">
           Vault shares are tokenized on-chain. Performance is updated in real time from protocol
           data.
