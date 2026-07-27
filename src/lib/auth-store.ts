@@ -10,6 +10,8 @@ type PersistedUser = AuthUser & {
   passwordHash?: string;
   image?: string;
   googleId?: string;
+  resetPasswordToken?: string;
+  resetPasswordExpires?: string;
 };
 
 function ensureStore() {
@@ -286,6 +288,81 @@ export async function updateUser(
     (key) => updatedUser[key] === undefined && delete updatedUser[key]
   );
   users[index] = updatedUser;
+  writeUsers(users);
+}
+
+/**
+ * Generates a password reset token for the given email (if an account exists)
+ * and persists it with a 1-hour expiry. Returns the token, or undefined if no
+ * account matches - callers should respond identically either way to avoid
+ * leaking which emails have accounts.
+ */
+export async function requestPasswordReset(email: string): Promise<string | undefined> {
+  const normalizedEmail = normalizeEmail(email);
+  const token = crypto.randomBytes(32).toString('hex');
+  const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+  const model = await getUserModel();
+  if (model) {
+    const user = await model.findOne({ email: normalizedEmail });
+    if (!user) return undefined;
+    user.resetPasswordToken = token;
+    user.resetPasswordExpires = expires;
+    await user.save();
+    return token;
+  }
+
+  const users = readUsers();
+  const index = users.findIndex((user) => user.email === normalizedEmail);
+  if (index === -1) return undefined;
+
+  users[index] = {
+    ...users[index],
+    resetPasswordToken: token,
+    resetPasswordExpires: expires.toISOString(),
+  } as PersistedUser;
+  writeUsers(users);
+  return token;
+}
+
+/**
+ * Verifies a reset token (must be unexpired) and sets a new password,
+ * clearing the token afterward so it can't be reused.
+ */
+export async function resetPassword(token: string, newPassword: string): Promise<void> {
+  const model = await getUserModel();
+  if (model) {
+    const user = await model.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: new Date() },
+    });
+    if (!user) {
+      throw new Error('This reset link is invalid or has expired.');
+    }
+    user.passwordHash = hashPassword(newPassword);
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+    return;
+  }
+
+  const users = readUsers();
+  const index = users.findIndex(
+    (user) =>
+      user.resetPasswordToken === token &&
+      user.resetPasswordExpires &&
+      new Date(user.resetPasswordExpires).getTime() > Date.now()
+  );
+  if (index === -1) {
+    throw new Error('This reset link is invalid or has expired.');
+  }
+
+  users[index] = {
+    ...users[index],
+    passwordHash: hashPassword(newPassword),
+    resetPasswordToken: undefined,
+    resetPasswordExpires: undefined,
+  };
   writeUsers(users);
 }
 

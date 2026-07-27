@@ -70,22 +70,31 @@ const sampleData: ChartDataPoint[] = [
   { date: 'Apr 11', value: 22847 },
 ];
 
+const RANGES: { label: string; days: number }[] = [
+  { label: '7d', days: 7 },
+  { label: '14d', days: 14 },
+  { label: '30d', days: 30 },
+  { label: '6m', days: 180 },
+  { label: '1y', days: 365 },
+];
+
 export default function PnLAreaChart() {
   const [data, setData] = useState<ChartDataPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedRange, setSelectedRange] = useState('30d');
 
   useEffect(() => {
     let isMounted = true;
+    const days = RANGES.find((r) => r.label === selectedRange)?.days ?? 30;
 
     async function fetchChartData() {
       try {
         setLoading(true);
         setError(null);
 
-        // Fetch Bitcoin price history for the last 30 days
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:4028'}/api/prices/chart?id=bitcoin&days=30`
+          `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:4028'}/api/prices/chart?id=bitcoin&days=${days}`
         );
 
         if (!response.ok) {
@@ -145,7 +154,7 @@ export default function PnLAreaChart() {
       isMounted = false;
       clearInterval(interval);
     };
-  }, []);
+  }, [selectedRange]);
 
   if (loading && data.length === 0) {
     return (
@@ -157,22 +166,34 @@ export default function PnLAreaChart() {
     );
   }
 
+  const rangeDescription: Record<string, string> = {
+    '7d': 'Last 7 days',
+    '14d': 'Last 14 days',
+    '30d': 'Last 30 days',
+    '6m': 'Last 6 months',
+    '1y': 'Last 1 year',
+  };
+
   return (
     <div className="bg-[#122131] border border-[#212A35] rounded-2xl p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-sm font-semibold text-zinc-200">Cumulative P&L</h3>
-          <p className="text-xs text-zinc-600 mt-0.5">Last 30 days · USDT</p>
+          <p className="text-xs text-zinc-600 mt-0.5">{rangeDescription[selectedRange]} · USDT</p>
         </div>
         <div className="flex items-center gap-1.5">
-          {['7d', '14d', '30d', '90d'].map((r) => (
+          {RANGES.map((r) => (
             <button
-              key={`range-${r}`}
+              key={`range-${r.label}`}
+              type="button"
+              onClick={() => setSelectedRange(r.label)}
               className={`text-[11px] px-2.5 py-1 rounded-lg font-medium transition-all ${
-                r === '30d' ? 'bg-teal-500/15 text-teal-400' : 'text-zinc-500 hover:text-zinc-300'
+                selectedRange === r.label
+                  ? 'bg-teal-500/15 text-teal-400'
+                  : 'text-zinc-500 hover:text-zinc-300'
               }`}
             >
-              {r}
+              {r.label}
             </button>
           ))}
         </div>

@@ -309,7 +309,7 @@ export default function MetricsBentoGrid() {
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-4 gap-4 mb-6">
         {/* Skeleton cards */}
-        <div className="col-span-2 bg-zinc-900 border border-zinc-800 rounded-2xl p-5 animate-pulse">
+        <div className="col-span-2 bg-[#122131] border border-zinc-800 rounded-2xl p-5 animate-pulse">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-teal-500/15 flex items-center justify-center">
@@ -324,7 +324,7 @@ export default function MetricsBentoGrid() {
           <h2 className="text-3xl font-bold text-teal-400 font-mono tabular-nums">Loading...</h2>
           <p className="text-xs text-zinc-600">All-time · Loading closed trades · Since Jan 2024</p>
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 animate-pulse col-span-2">
+        <div className="bg-[#122131] border border-zinc-800 rounded-2xl p-5 animate-pulse col-span-2">
           <div className="flex items-center justify-between mb-3">
             <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center">
               <Target size={16} className="text-zinc-400" />
@@ -342,7 +342,7 @@ export default function MetricsBentoGrid() {
             />
           </div>
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 animate-pulse col-span-2">
+        <div className="bg-[#122131] border border-zinc-800 rounded-2xl p-5 animate-pulse col-span-2">
           <div className="flex items-center justify-between mb-3">
             <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center">
               <Cpu size={16} className="text-zinc-400" />
@@ -363,7 +363,7 @@ export default function MetricsBentoGrid() {
             <span className="text-[10px] text-zinc-500 font-mono">0.75 min</span>
           </div>
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 animate-pulse">
+        <div className="bg-[#122131] border border-zinc-800 rounded-2xl p-5 animate-pulse">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center">
               <Activity size={16} className="text-zinc-400" />
@@ -381,7 +381,7 @@ export default function MetricsBentoGrid() {
           </div>
           <p className="text-[11px] text-zinc-600 mt-2">Loading...</p>
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 animate-pulse">
+        <div className="bg-[#122131] border border-zinc-800 rounded-2xl p-5 animate-pulse">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center">
@@ -406,7 +406,7 @@ export default function MetricsBentoGrid() {
           </div>
           <p className="text-[10px] text-zinc-600 mt-1.5">Loading... · TFT Model v2024-09</p>
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 animate-pulse">
+        <div className="bg-[#122131] border border-zinc-800 rounded-2xl p-5 animate-pulse">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center">
               <TrendingUp size={16} className="text-zinc-400" />
@@ -418,7 +418,7 @@ export default function MetricsBentoGrid() {
           <p className="text-2xl font-bold text-zinc-100 font-mono tabular-nums">Loading...</p>
           <span className="text-[11px] text-zinc-600 mt-2">Loading...</span>
         </div>
-        <div className="bg-gradient-to-br from-amber-500/5 to-zinc-900 border border-amber-500/30 rounded-2xl p-5 animate-pulse">
+        <div className="bg-gradient-to-br from-amber-500/5 to-[#122131] border border-amber-500/30 rounded-2xl p-5 animate-pulse">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-amber-500/15 flex items-center justify-center">
@@ -458,7 +458,7 @@ export default function MetricsBentoGrid() {
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-4 gap-4 mb-6">
       {/* HERO: Realized P&L — spans 2 cols */}
-      <div className="col-span-2 bg-gradient-to-br from-zinc-900 to-zinc-900/80 border border-zinc-800 rounded-2xl p-5 relative overflow-hidden group hover:border-teal-500/30 transition-all duration-200">
+      <div className="col-span-2 bg-gradient-to-br from-[#122131] to-[#122131]/80 border border-zinc-800 rounded-2xl p-5 relative overflow-hidden group hover:border-teal-500/30 transition-all duration-200">
         <div className="absolute top-0 right-0 w-48 h-48 bg-teal-500/5 rounded-full -translate-y-1/2 translate-x-1/2" />
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-3">
@@ -488,7 +488,7 @@ export default function MetricsBentoGrid() {
       </div>
 
       {/* Win Rate */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 hover:border-zinc-700 transition-all duration-200 group">
+      <div className="bg-[#122131] border border-zinc-800 rounded-2xl p-5 hover:border-zinc-700 transition-all duration-200 group">
         <div className="flex items-center justify-between mb-3">
           <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center">
             <Target
@@ -512,7 +512,7 @@ export default function MetricsBentoGrid() {
       </div>
 
       {/* Model Confidence */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 hover:border-zinc-700 transition-all duration-200 group">
+      <div className="bg-[#122131] border border-zinc-800 rounded-2xl p-5 hover:border-zinc-700 transition-all duration-200 group">
         <div className="flex items-center justify-between mb-3">
           <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center">
             <Cpu size={16} className="text-zinc-400 group-hover:text-teal-400 transition-colors" />
@@ -537,7 +537,7 @@ export default function MetricsBentoGrid() {
       </div>
 
       {/* Active Position */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 hover:border-zinc-700 transition-all duration-200">
+      <div className="bg-[#122131] border border-zinc-800 rounded-2xl p-5 hover:border-zinc-700 transition-all duration-200">
         <div className="flex items-center gap-2 mb-3">
           <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center">
             <Activity size={16} className="text-zinc-400" />
@@ -559,7 +559,7 @@ export default function MetricsBentoGrid() {
       </div>
 
       {/* Last Signal */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 hover:border-zinc-700 transition-all duration-200">
+      <div className="bg-[#122131] border border-zinc-800 rounded-2xl p-5 hover:border-zinc-700 transition-all duration-200">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center">
@@ -593,7 +593,7 @@ export default function MetricsBentoGrid() {
       </div>
 
       {/* 24h Trades */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 hover:border-zinc-700 transition-all duration-200">
+      <div className="bg-[#122131] border border-zinc-800 rounded-2xl p-5 hover:border-zinc-700 transition-all duration-200">
         <div className="flex items-center gap-2 mb-3">
           <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center">
             <TrendingUp size={16} className="text-zinc-400" />
@@ -609,7 +609,7 @@ export default function MetricsBentoGrid() {
 
       {/* Drawdown — ALERT state */}
       <div
-        className={`bg-gradient-to-br from-amber-500/5 to-zinc-900 border border-amber-500/30 rounded-2xl p-5 hover:border-amber-500/50 transition-all duration-200 ${drawdown.deltaDir === 'warn' ? 'border-amber-500/50' : ''}`}
+        className={`bg-gradient-to-br from-amber-500/5 to-[#122131] border border-amber-500/30 rounded-2xl p-5 hover:border-amber-500/50 transition-all duration-200 ${drawdown.deltaDir === 'warn' ? 'border-amber-500/50' : ''}`}
       >
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">

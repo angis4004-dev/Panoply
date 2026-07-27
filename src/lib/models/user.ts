@@ -14,6 +14,8 @@ export interface IUser extends Document {
   notes?: string;
   image?: string;
   googleId?: string;
+  resetPasswordToken?: string;
+  resetPasswordExpires?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -41,14 +43,13 @@ const UserSchema = new Schema<IUser>(
     notes: { type: String, default: '' },
     image: { type: String },
     googleId: { type: String },
+    resetPasswordToken: { type: String },
+    resetPasswordExpires: { type: Date },
   },
   {
     timestamps: true,
   }
 );
-
-// Create indexes
-UserSchema.index({ email: 1 });
 
 export const UserModel: Model<IUser> =
   mongoose.models.User || mongoose.model<IUser>('User', UserSchema);

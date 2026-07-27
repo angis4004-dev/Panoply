@@ -1024,13 +1024,17 @@ function SplashCursor({
       }
     }
 
-    // Add event listeners
-    canvas.addEventListener('mousedown', onPointerDown);
-    canvas.addEventListener('mousemove', onPointerMove);
-    canvas.addEventListener('mouseup', onPointerUp);
-    canvas.addEventListener('touchstart', onPointerMove);
-    canvas.addEventListener('touchmove', onPointerMove);
-    canvas.addEventListener('touchend', onPointerUp);
+    // Add event listeners on window, since the canvas is pointer-events: none
+    // (it sits above page content purely as a visual layer and must not
+    // intercept clicks) - clientX/clientY are viewport-relative regardless
+    // of which element the listener is attached to, so this doesn't change
+    // any of the coordinate math below.
+    window.addEventListener('mousedown', onPointerDown);
+    window.addEventListener('mousemove', onPointerMove);
+    window.addEventListener('mouseup', onPointerUp);
+    window.addEventListener('touchstart', onPointerMove);
+    window.addEventListener('touchmove', onPointerMove);
+    window.addEventListener('touchend', onPointerUp);
 
     // Start the animation loop
     animationFrameId.current = requestAnimationFrame(updateFrame);
@@ -1043,12 +1047,12 @@ function SplashCursor({
       }
 
       // Remove event listeners
-      canvas.removeEventListener('mousedown', onPointerDown);
-      canvas.removeEventListener('mousemove', onPointerMove);
-      canvas.removeEventListener('mouseup', onPointerUp);
-      canvas.removeEventListener('touchstart', onPointerMove);
-      canvas.removeEventListener('touchmove', onPointerMove);
-      canvas.removeEventListener('touchend', onPointerUp);
+      window.removeEventListener('mousedown', onPointerDown);
+      window.removeEventListener('mousemove', onPointerMove);
+      window.removeEventListener('mouseup', onPointerUp);
+      window.removeEventListener('touchstart', onPointerMove);
+      window.removeEventListener('touchmove', onPointerMove);
+      window.removeEventListener('touchend', onPointerUp);
 
       // Cleanup WebGL resources
       if (dye) {
