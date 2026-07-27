@@ -40,3 +40,29 @@ jest-test-results.json
 
 # Optional: if using TurboRepo or monorepo
 turbo/
+
+# Build output (non-Next)
+dist/
+
+# Local JSON-file auth fallback (contains password hashes)
+data/
+
+# Tool-specific runtime/config, not part of the app
+.claude/
+.claude-flow/
+
+# Debug logs, pid files, and one-off local artifacts
+*.log
+*.pid
+pidfile
+npm.pid
+cookies.txt
+Cookies
+trader_cookie.txt
+*_response.json
+curl_output.txt
+out.txt
+
+# Editor/local backup files
+*.bak
+*.backup
