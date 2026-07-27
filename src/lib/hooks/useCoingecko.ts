@@ -1,15 +1,5 @@
 import { useState, useEffect } from 'react';
-import {
-  getCoinPrices,
-  getCoinMarketData,
-  getCoinPriceHistory,
-  getGlobalMarketData,
-  getTrendingCoins,
-  type CoinMarketData,
-} from '@/lib/coingecko';
-
-/**
- * Hook from '/lib/coingecko'; */
+import { getCoinPrices, getGlobalMarketData, getTrendingCoins } from '@/lib/coingecko';
 
 /**
  * Hook to get cryptocurrency prices
@@ -42,74 +32,6 @@ export function useCoinPrices(ids: string[], vsCurrency = 'usd') {
   }, [ids, vsCurrency]);
 
   return { prices, loading, error };
-}
-
-/**
- * Hook to get cryptocurrency market data
- */
-export function useCoinMarketData(ids: string[], vsCurrency = 'usd') {
-  const [marketData, setMarketData] = useState({} as Record<string, CoinMarketData>);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null as Error | null);
-
-  useEffect(() => {
-    async function fetchMarketData() {
-      try {
-        setLoading(true);
-        const data = await getCoinMarketData(ids, vsCurrency);
-        setMarketData(data);
-        setError(null);
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error('Unknown error'));
-        setMarketData({});
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchMarketData();
-
-    // Refetch every 5 minutes
-    const interval = setInterval(fetchMarketData, 300000);
-    return () => clearInterval(interval);
-  }, [ids, vsCurrency]);
-
-  return { marketData, loading, error };
-}
-
-/**
- * Hook to get price history for charting
- */
-export function useCoinPriceHistory(id: string, vsCurrency = 'usd', days = 30) {
-  const [priceHistory, setPriceHistory] = useState({ prices: [] } as {
-    prices: [number, number][];
-  });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null as Error | null);
-
-  useEffect(() => {
-    async function fetchPriceHistory() {
-      try {
-        setLoading(true);
-        const data = await getCoinPriceHistory(id, vsCurrency, days);
-        setPriceHistory(data);
-        setError(null);
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error('Unknown error'));
-        setPriceHistory({ prices: [] });
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchPriceHistory();
-
-    // Refetch every hour
-    const interval = setInterval(fetchPriceHistory, 3600000);
-    return () => clearInterval(interval);
-  }, [id, vsCurrency, days]);
-
-  return { priceHistory, loading, error };
 }
 
 /**
