@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type check
+        run: npm run type-check
+
+      - name: Build
+        run: npm run build
+        env:
+          # Build-time only. session.ts requires SESSION_SECRET to be set
+          # (it refuses to sign cookies with a default), and Next.js imports
+          # every API route while collecting page data during `next build`,
+          # so this needs a value even though nothing is actually served.
+          # Real deployments must set their own SESSION_SECRET - this is not
+          # it, and does not need to be a repo secret.
+          SESSION_SECRET: ci-build-placeholder-not-a-real-secret

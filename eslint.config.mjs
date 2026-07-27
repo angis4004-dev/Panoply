@@ -54,6 +54,7 @@ const eslintConfig = [
       '.claude-flow/**',
       'docs/**',
       'data/**',
+      'next-env.d.ts',
     ],
   },
 ];
