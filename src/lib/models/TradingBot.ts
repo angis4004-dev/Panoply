@@ -6,7 +6,9 @@ export interface ITradingBot extends Document {
   userId: mongoose.Types.ObjectId; // Reference to User
   confidence: number; // 0-100
   status: 'running' | 'paused' | 'fallback';
-  pnl: string; // e.g., '+4.2%' or '-0.6%'
+  pnl: string; // e.g., '+4.2%' or '-0.6%' - fallback for pairs we can't price live
+  coinId: string | null; // Resolved CoinGecko id for the base asset, if recognized
+  entryPrice: number | null; // Base asset USD price when the bot was created
   createdAt: Date;
   updatedAt: Date;
 }
@@ -27,6 +29,8 @@ const TradingBotSchema = new Schema<ITradingBot>(
       default: 'running',
     },
     pnl: { type: String, default: '+0.0%' },
+    coinId: { type: String, default: null },
+    entryPrice: { type: Number, default: null },
   },
   {
     timestamps: true,

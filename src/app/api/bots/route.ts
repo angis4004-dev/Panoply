@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongo';
 import { TradingBotModel } from '@/lib/models';
 import { getSessionFromRequest } from '@/lib/session';
+import { getCoinPrices } from '@/lib/coingecko';
+import { resolveBaseCoinId } from '@/lib/coin-symbols';
+import { computePnlPercent, formatPnl } from '@/lib/bot-pnl';
 
 // GET /api/bots - Returns ONLY the bots belonging to the currently logged-in user
 export async function GET(request: NextRequest) {
@@ -22,15 +25,29 @@ export async function GET(request: NextRequest) {
     // Find bots for the specific user
     const bots = await TradingBotModel.find({ userId }).lean();
 
+    // Batch-fetch live prices for every distinct base asset these bots track
+    const coinIds = Array.from(
+      new Set(bots.map((bot) => bot.coinId).filter((id): id is string => !!id))
+    );
+    const prices = coinIds.length > 0 ? await getCoinPrices(coinIds) : {};
+
     // Transform to match frontend format
-    const formattedBots = bots.map((bot) => ({
-      id: bot._id.toString(),
-      type: bot.type,
-      pair: bot.pair,
-      confidence: bot.confidence,
-      status: bot.status,
-      pnl: bot.pnl || '+0.0%',
-    }));
+    const formattedBots = bots.map((bot) => {
+      const currentPrice = bot.coinId ? prices[bot.coinId]?.usd : undefined;
+      const pnl =
+        bot.coinId && bot.entryPrice && currentPrice
+          ? formatPnl(computePnlPercent(bot.entryPrice, currentPrice, bot.confidence))
+          : bot.pnl || '+0.0%';
+
+      return {
+        id: bot._id.toString(),
+        type: bot.type,
+        pair: bot.pair,
+        confidence: bot.confidence,
+        status: bot.status,
+        pnl,
+      };
+    });
 
     return NextResponse.json(formattedBots);
   } catch (error) {
@@ -89,14 +106,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Database connection unavailable' }, { status: 503 });
     }
 
+    // Resolve the base asset to a live CoinGecko price so P&L can be tracked
+    // against real market movement from this point forward. Pairs we don't
+    // recognize fall back to the static placeholder pnl.
+    const pair = body.pair.toUpperCase();
+    const coinId = resolveBaseCoinId(pair);
+    let entryPrice: number | null = null;
+    if (coinId) {
+      const prices = await getCoinPrices([coinId]);
+      entryPrice = prices[coinId]?.usd || null;
+    }
+
     // Create new bot for the user
     const newBot = new TradingBotModel({
       type: body.type,
-      pair: body.pair.toUpperCase(), // Ensure pair is uppercase
+      pair, // Ensure pair is uppercase
       userId, // Reference to the User
       confidence: body.confidence,
       status: body.status,
       pnl: body.pnl || '+0.0%',
+      coinId: entryPrice ? coinId : null,
+      entryPrice,
     });
 
     const savedBot = await newBot.save();
