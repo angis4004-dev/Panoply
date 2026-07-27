@@ -112,32 +112,32 @@ function LoginForm({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-      <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 px-3 py-3 text-sm text-amber-100">
-        <p className="font-semibold">Need an account?</p>
-        <p className="mt-1 text-xs text-amber-50/80">
+      <div className="rounded-lg border border-[#2A3542]/60 bg-[#212A35]/40 px-3 py-3 text-sm text-[#C5CCD6]">
+        <p className="font-semibold text-[#E7ECF2]">Need an account?</p>
+        <p className="mt-1 text-xs text-[#8B95A5]">
           Create one with your Google account or your email address, then return here to sign in.
         </p>
         <button
           type="button"
           onClick={onSwitchToSignup}
-          className="mt-2 text-xs font-semibold text-amber-200 underline decoration-amber-300/60 underline-offset-2"
+          className="mt-2 text-xs font-semibold text-[#3D77FF] underline decoration-[#1E63FF]/40 underline-offset-2"
         >
           Create an account
         </button>
       </div>
       {/* Email */}
       <div>
-        <label className="block text-xs font-semibold text-zinc-400 mb-1.5 tracking-wide uppercase">
+        <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 tracking-wide uppercase">
           Email Address
         </label>
         <div className="relative">
-          <Mail size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+          <Mail size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8B95A5]" />
           <input
             type="email"
             autoComplete="email"
             placeholder="you@cryptotradeai.io"
-            className={`w-full bg-zinc-800 border rounded-lg pl-9 pr-4 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-teal-500/50 transition-all ${
-              errors.email ? 'border-red-500/60' : 'border-zinc-700'
+            className={`w-full bg-[#212A35] border rounded-lg pl-9 pr-4 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-[#1E63FF]/50 transition-all ${
+              errors.email ? 'border-red-500/60' : 'border-[#2A3542]'
             }`}
             {...register('email', {
               required: 'Email is required',
@@ -158,24 +158,24 @@ function LoginForm({
 
       {/* Password */}
       <div>
-        <label className="block text-xs font-semibold text-zinc-400 mb-1.5 tracking-wide uppercase">
+        <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 tracking-wide uppercase">
           Password
         </label>
         <div className="relative">
-          <Lock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+          <Lock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8B95A5]" />
           <input
             type={showPassword ? 'text' : 'password'}
             autoComplete="current-password"
             placeholder="••••••••••••"
-            className={`w-full bg-zinc-800 border rounded-lg pl-9 pr-10 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-teal-500/50 transition-all ${
-              errors.password ? 'border-red-500/60' : 'border-zinc-700'
+            className={`w-full bg-[#212A35] border rounded-lg pl-9 pr-10 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-[#1E63FF]/50 transition-all ${
+              errors.password ? 'border-red-500/60' : 'border-[#2A3542]'
             }`}
             {...register('password', { required: 'Password is required' })}
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8B95A5] hover:text-[#C5CCD6] transition-colors"
           >
             {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
           </button>
@@ -195,40 +195,46 @@ function LoginForm({
             type="checkbox"
             checked={showOTP}
             onChange={(e) => setShowOTP(e.target.checked)}
-            className="w-3.5 h-3.5 rounded border-zinc-600 bg-zinc-800 accent-teal-500"
+            className="w-3.5 h-3.5 rounded border-[#5C6675] bg-[#212A35] accent-[#1E63FF]"
           />
-          <span className="text-xs text-zinc-500">Use MFA / OTP</span>
+          <span className="text-xs text-[#8B95A5]">Use MFA / OTP</span>
         </label>
         <label className="flex items-center gap-2 cursor-pointer">
           <input
             type="checkbox"
             {...register('rememberMe')}
-            className="w-3.5 h-3.5 rounded border-zinc-600 bg-zinc-800 accent-teal-500"
+            className="w-3.5 h-3.5 rounded border-[#5C6675] bg-[#212A35] accent-[#1E63FF]"
           />
-          <span className="text-xs text-zinc-500">Remember me</span>
+          <span className="text-xs text-[#8B95A5]">Remember me</span>
         </label>
+      </div>
+
+      <div className="flex justify-end -mt-2">
+        <Link href="/forgot-password" className="text-xs text-[#3D77FF] hover:text-[#00D4FF]">
+          Forgot your password?
+        </Link>
       </div>
 
       {/* OTP field (conditional) */}
       {showOTP && (
         <div className="animate-fade-in">
-          <label className="block text-xs font-semibold text-zinc-400 mb-1.5 tracking-wide uppercase">
+          <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 tracking-wide uppercase">
             One-Time Password (OTP)
           </label>
-          <p className="text-xs text-zinc-600 mb-1.5">
+          <p className="text-xs text-[#5C6675] mb-1.5">
             Enter the 6-digit code from your authenticator app or email
           </p>
           <div className="relative">
             <KeyRound
               size={15}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8B95A5]"
             />
             <input
               type="text"
               inputMode="numeric"
               maxLength={6}
               placeholder="000000"
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg pl-9 pr-4 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-teal-500/50 font-mono tracking-[0.3em] transition-all"
+              className="w-full bg-[#212A35] border border-[#2A3542] rounded-lg pl-9 pr-4 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-[#1E63FF]/50 font-mono tracking-[0.3em] transition-all"
               {...register('otp')}
             />
           </div>
@@ -239,7 +245,7 @@ function LoginForm({
       <button
         type="submit"
         disabled={loading}
-        className="w-full flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-400 disabled:bg-teal-500/40 disabled:cursor-not-allowed text-zinc-950 font-semibold text-sm rounded-lg py-2.5 transition-all duration-150 active:scale-[0.98]"
+        className="w-full flex items-center justify-center gap-2 bg-[#1E63FF] hover:bg-[#3D77FF] disabled:bg-[#1E63FF]/40 disabled:cursor-not-allowed text-[#0A0E13] font-semibold text-sm rounded-lg py-2.5 transition-all duration-150 active:scale-[0.98]"
         style={{ minHeight: '42px' }}
       >
         {loading ? (
@@ -337,14 +343,14 @@ function SignupForm() {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       {/* Full Name */}
       <div>
-        <label className="block text-xs font-semibold text-zinc-400 mb-1.5 tracking-wide uppercase">
+        <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 tracking-wide uppercase">
           Full Name
         </label>
         <input
           type="text"
           placeholder="Alex Thornton"
-          className={`w-full bg-zinc-800 border rounded-lg px-4 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-teal-500/50 transition-all ${
-            errors.fullName ? 'border-red-500/60' : 'border-zinc-700'
+          className={`w-full bg-[#212A35] border rounded-lg px-4 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-[#1E63FF]/50 transition-all ${
+            errors.fullName ? 'border-red-500/60' : 'border-[#2A3542]'
           }`}
           {...register('fullName', { required: 'Full name is required' })}
         />
@@ -358,14 +364,14 @@ function SignupForm() {
 
       {/* Email */}
       <div>
-        <label className="block text-xs font-semibold text-zinc-400 mb-1.5 tracking-wide uppercase">
+        <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 tracking-wide uppercase">
           Email Address
         </label>
         <input
           type="email"
           placeholder="you@cryptotradeai.io"
-          className={`w-full bg-zinc-800 border rounded-lg px-4 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-teal-500/50 transition-all ${
-            errors.email ? 'border-red-500/60' : 'border-zinc-700'
+          className={`w-full bg-[#212A35] border rounded-lg px-4 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-[#1E63FF]/50 transition-all ${
+            errors.email ? 'border-red-500/60' : 'border-[#2A3542]'
           }`}
           {...register('email', {
             required: 'Email is required',
@@ -385,18 +391,18 @@ function SignupForm() {
 
       {/* Password */}
       <div>
-        <label className="block text-xs font-semibold text-zinc-400 mb-1.5 tracking-wide uppercase">
+        <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 tracking-wide uppercase">
           Password
         </label>
-        <p className="text-[11px] text-zinc-600 mb-1.5">
+        <p className="text-[11px] text-[#5C6675] mb-1.5">
           Minimum 8 characters, one uppercase, one number
         </p>
         <div className="relative">
           <input
             type={showPassword ? 'text' : 'password'}
             placeholder="••••••••••••"
-            className={`w-full bg-zinc-800 border rounded-lg px-4 pr-10 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-teal-500/50 transition-all ${
-              errors.password ? 'border-red-500/60' : 'border-zinc-700'
+            className={`w-full bg-[#212A35] border rounded-lg px-4 pr-10 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-[#1E63FF]/50 transition-all ${
+              errors.password ? 'border-red-500/60' : 'border-[#2A3542]'
             }`}
             {...register('password', {
               required: 'Password is required',
@@ -410,7 +416,7 @@ function SignupForm() {
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8B95A5] hover:text-[#C5CCD6]"
           >
             {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
           </button>
@@ -425,15 +431,15 @@ function SignupForm() {
 
       {/* Confirm Password */}
       <div>
-        <label className="block text-xs font-semibold text-zinc-400 mb-1.5 tracking-wide uppercase">
+        <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 tracking-wide uppercase">
           Confirm Password
         </label>
         <div className="relative">
           <input
             type={showConfirm ? 'text' : 'password'}
             placeholder="••••••••••••"
-            className={`w-full bg-zinc-800 border rounded-lg px-4 pr-10 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-teal-500/50 transition-all ${
-              errors.confirmPassword ? 'border-red-500/60' : 'border-zinc-700'
+            className={`w-full bg-[#212A35] border rounded-lg px-4 pr-10 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-[#1E63FF]/50 transition-all ${
+              errors.confirmPassword ? 'border-red-500/60' : 'border-[#2A3542]'
             }`}
             {...register('confirmPassword', {
               required: 'Please confirm your password',
@@ -443,7 +449,7 @@ function SignupForm() {
           <button
             type="button"
             onClick={() => setShowConfirm(!showConfirm)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8B95A5] hover:text-[#C5CCD6]"
           >
             {showConfirm ? <EyeOff size={15} /> : <Eye size={15} />}
           </button>
@@ -461,18 +467,18 @@ function SignupForm() {
         <label className="flex items-start gap-2 cursor-pointer">
           <input
             type="checkbox"
-            className="mt-0.5 w-3.5 h-3.5 rounded border-zinc-600 bg-zinc-800 accent-teal-500 flex-shrink-0"
+            className="mt-0.5 w-3.5 h-3.5 rounded border-[#5C6675] bg-[#212A35] accent-[#1E63FF] flex-shrink-0"
             {...register('agreeTerms', {
               required: 'You must accept the terms',
             })}
           />
-          <span className="text-xs text-zinc-500 leading-relaxed">
+          <span className="text-xs text-[#8B95A5] leading-relaxed">
             I agree to the{' '}
-            <Link href="#" className="text-teal-400 hover:underline">
+            <Link href="#" className="text-[#3D77FF] hover:underline">
               Terms of Service
             </Link>{' '}
             and{' '}
-            <Link href="#" className="text-teal-400 hover:underline">
+            <Link href="#" className="text-[#3D77FF] hover:underline">
               Privacy Policy
             </Link>
             . I understand this platform involves financial risk.
@@ -490,7 +496,7 @@ function SignupForm() {
       <button
         type="submit"
         disabled={loading}
-        className="w-full flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-400 disabled:bg-teal-500/40 disabled:cursor-not-allowed text-zinc-950 font-semibold text-sm rounded-lg py-2.5 transition-all duration-150 active:scale-[0.98]"
+        className="w-full flex items-center justify-center gap-2 bg-[#1E63FF] hover:bg-[#3D77FF] disabled:bg-[#1E63FF]/40 disabled:cursor-not-allowed text-[#0A0E13] font-semibold text-sm rounded-lg py-2.5 transition-all duration-150 active:scale-[0.98]"
         style={{ minHeight: '42px' }}
       >
         {loading ? (
@@ -548,11 +554,11 @@ function SignUpLoginPageContent() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex">
+    <div className="min-h-screen bg-[#0A0E13] flex">
       <Toaster position="bottom-right" theme="dark" richColors />
 
       {/* Left brand panel */}
-      <div className="hidden lg:flex lg:w-[52%] xl:w-[55%] flex-col relative overflow-hidden bg-gradient-to-br from-zinc-900 via-zinc-950 to-zinc-900">
+      <div className="hidden lg:flex lg:w-[52%] xl:w-[55%] flex-col relative overflow-hidden bg-gradient-to-br from-[#122131] via-[#0A0E13] to-[#122131]">
         {/* Grid background */}
         <div
           className="absolute inset-0 opacity-[0.04]"
@@ -564,33 +570,33 @@ function SignUpLoginPageContent() {
         />
 
         {/* Glow orbs */}
-        <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-teal-500/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl" />
+        <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-[#1E63FF]/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-[#1E63FF]/5 rounded-full blur-3xl" />
 
         <div className="relative z-10 flex flex-col h-full p-12">
           {/* Logo */}
           <div className="flex items-center gap-3">
             <AppLogo size={40} />
-            <span className="text-xl font-bold text-zinc-100 tracking-tight">Aegis</span>
+            <span className="text-xl font-bold text-[#E7ECF2] tracking-tight">Aegis</span>
           </div>
 
           {/* Hero text */}
           <div className="flex-1 flex flex-col justify-center">
-            <div className="inline-flex items-center gap-2 bg-teal-500/10 border border-teal-500/20 rounded-full px-3 py-1.5 mb-6 w-fit">
-              <span className="w-1.5 h-1.5 rounded-full bg-teal-400 pulse-glow" />
-              <span className="text-xs font-semibold text-teal-400 tracking-wide">
+            <div className="inline-flex items-center gap-2 bg-[#1E63FF]/10 border border-[#1E63FF]/20 rounded-full px-3 py-1.5 mb-6 w-fit">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#3D77FF] pulse-glow" />
+              <span className="text-xs font-semibold text-[#3D77FF] tracking-wide">
                 AEGIS — AI-FIRST CRYPTO INTELLIGENCE
               </span>
             </div>
-            <h1 className="text-4xl xl:text-5xl font-bold text-zinc-100 leading-tight mb-4">
+            <h1 className="text-4xl xl:text-5xl font-bold text-[#E7ECF2] leading-tight mb-4">
               Securely access
               <br />
               your{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-teal-300">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#3D77FF] to-[#00D4FF]">
                 Aegis workspace
               </span>
             </h1>
-            <p className="text-zinc-400 text-base leading-relaxed max-w-sm">
+            <p className="text-[#8B95A5] text-base leading-relaxed max-w-sm">
               Sign in with Google or your email address to view portfolio intelligence, yield
               opportunities, and workflow tools in one calm environment.
             </p>
@@ -607,10 +613,10 @@ function SignUpLoginPageContent() {
                 return (
                   <div
                     key={`feature-${f.label}`}
-                    className="flex items-center gap-1.5 bg-zinc-800/60 border border-zinc-700/50 rounded-lg px-3 py-1.5"
+                    className="flex items-center gap-1.5 bg-[#212A35]/60 border border-[#2A3542]/50 rounded-lg px-3 py-1.5"
                   >
-                    <Icon size={13} className="text-teal-400" />
-                    <span className="text-xs text-zinc-300 font-medium">{f.label}</span>
+                    <Icon size={13} className="text-[#3D77FF]" />
+                    <span className="text-xs text-[#C5CCD6] font-medium">{f.label}</span>
                   </div>
                 );
               })}
@@ -618,15 +624,15 @@ function SignUpLoginPageContent() {
           </div>
 
           {/* Primary action */}
-          <div className="mt-auto rounded-2xl border border-zinc-800/80 bg-zinc-900/60 px-5 py-4 backdrop-blur-sm">
-            <p className="text-[10px] uppercase tracking-[0.35em] text-zinc-500 mb-2">
+          <div className="mt-auto rounded-2xl border border-[#212A35]/80 bg-[#122131]/60 px-5 py-4 backdrop-blur-sm">
+            <p className="text-[10px] uppercase tracking-[0.35em] text-[#8B95A5] mb-2">
               Continue to Aegis
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <button
                 type="button"
                 onClick={handleGoogleEntry}
-                className="rounded-full bg-teal-500 px-4 py-2 text-sm font-semibold text-zinc-950 transition hover:bg-teal-400"
+                className="rounded-full bg-[#1E63FF] px-4 py-2 text-sm font-semibold text-[#0A0E13] transition hover:bg-[#3D77FF]"
               >
                 Sign in with Google
               </button>
@@ -636,7 +642,7 @@ function SignUpLoginPageContent() {
                   setMode('signup');
                   router.replace('/sign-up-login-screen?mode=signup');
                 }}
-                className="rounded-full border border-zinc-700 px-4 py-2 text-sm font-semibold text-zinc-300 transition hover:border-zinc-500 hover:text-white"
+                className="rounded-full border border-[#2A3542] px-4 py-2 text-sm font-semibold text-[#C5CCD6] transition hover:border-[#8B95A5] hover:text-white"
               >
                 Sign up with email
               </button>
@@ -651,7 +657,7 @@ function SignUpLoginPageContent() {
           {/* Mobile logo */}
           <div className="flex items-center gap-2.5 mb-8 lg:hidden">
             <AppLogo size={32} />
-            <span className="font-bold text-zinc-100">Aegis</span>
+            <span className="font-bold text-[#E7ECF2]">Aegis</span>
           </div>
 
           {/* Security badge */}
@@ -663,13 +669,13 @@ function SignUpLoginPageContent() {
           </div>
 
           {/* Tab switcher */}
-          <div className="flex bg-zinc-900 border border-zinc-800 rounded-xl p-1 mb-6">
+          <div className="flex bg-[#122131] border border-[#212A35] rounded-xl p-1 mb-6">
             {(['login', 'signup'] as AuthMode[]).map((m) => (
               <button
                 key={`tab-${m}`}
                 onClick={() => setMode(m)}
                 className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all duration-200 ${
-                  mode === m ? 'bg-teal-500 text-zinc-950' : 'text-zinc-400 hover:text-zinc-200'
+                  mode === m ? 'bg-[#1E63FF] text-[#0A0E13]' : 'text-[#8B95A5] hover:text-[#E7ECF2]'
                 }`}
               >
                 {m === 'login' ? 'Sign In' : 'Create Account'}
@@ -678,15 +684,49 @@ function SignUpLoginPageContent() {
           </div>
 
           {/* Form */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
-            <h2 className="text-lg font-bold text-zinc-100 mb-1">
+          <div className="bg-[#122131] border border-[#212A35] rounded-xl p-6">
+            <h2 className="text-lg font-bold text-[#E7ECF2] mb-1">
               {mode === 'login' ? 'Welcome back' : 'Create your Aegis workspace'}
             </h2>
-            <p className="text-sm text-zinc-500 mb-5">
+            <p className="text-sm text-[#8B95A5] mb-5">
               {mode === 'login'
                 ? 'Sign in to your secure Aegis workspace.'
                 : 'Use Google or your email address to create your account.'}
             </p>
+
+            <button
+              type="button"
+              onClick={handleGoogleEntry}
+              className="w-full flex items-center justify-center gap-2 rounded-lg border border-[#2A3542] bg-[#212A35]/60 px-4 py-2.5 text-sm font-semibold text-[#E7ECF2] transition hover:border-[#8B95A5] hover:bg-[#212A35] lg:hidden"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  fill="#4285F4"
+                  d="M23.52 12.27c0-.85-.08-1.67-.22-2.45H12v4.64h6.47a5.54 5.54 0 0 1-2.4 3.63v3.02h3.89c2.28-2.1 3.56-5.19 3.56-8.84Z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 24c3.24 0 5.96-1.07 7.95-2.9l-3.89-3.02c-1.08.72-2.46 1.15-4.06 1.15-3.13 0-5.78-2.11-6.73-4.96H1.26v3.12A11.99 11.99 0 0 0 12 24Z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M5.27 14.27a7.2 7.2 0 0 1 0-4.54V6.61H1.26a12 12 0 0 0 0 10.78l4.01-3.12Z"
+                />
+                <path
+                  fill="#EA4335"
+                  d="M12 4.77c1.76 0 3.34.6 4.59 1.79l3.44-3.44C17.95 1.19 15.23 0 12 0 7.31 0 3.26 2.69 1.26 6.61l4.01 3.12C6.22 6.88 8.87 4.77 12 4.77Z"
+                />
+              </svg>
+              Continue with Google
+            </button>
+
+            <div className="flex items-center gap-3 my-5 lg:hidden">
+              <div className="h-px flex-1 bg-[#212A35]" />
+              <span className="text-[11px] uppercase tracking-wider text-[#8B95A5]">
+                or continue with email
+              </span>
+              <div className="h-px flex-1 bg-[#212A35]" />
+            </div>
 
             {mode === 'login' ? (
               <LoginForm
@@ -707,7 +747,7 @@ export default function SignUpLoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-zinc-950 text-sm text-zinc-400">
+        <div className="flex min-h-screen items-center justify-center bg-[#0A0E13] text-sm text-[#8B95A5]">
           Loading your secure sign-in experience…
         </div>
       }

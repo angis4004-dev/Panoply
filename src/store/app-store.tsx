@@ -31,28 +31,53 @@ export interface Report {
   recommendations?: string[];
 }
 
+export interface VaultInvestment {
+  id: string;
+  vaultId: string;
+  vaultName: string;
+  strategy: string;
+  riskLevel: string;
+  managerScore: number;
+  tvl: string;
+  apy: number;
+  investedAmount: number;
+  vaultTokens: number;
+  investedAt: string;
+}
+
 interface AppStoreState {
   user: AuthUser | null;
   botModalOpen: boolean;
   bots: Bot[];
+  botsLoading: boolean;
   toasts: Toast[];
   reports: Report[];
-  vaults: unknown[];
-  yields: unknown[];
+  vaultInvestments: VaultInvestment[];
+  vaultInvestmentsLoading: boolean;
   tab: string;
   reportsLoading: boolean;
 }
 
+export interface NewBotInput {
+  type: string;
+  pair: string;
+  confidence: number;
+  status: string;
+}
+
 interface AppStoreActions {
   setBotModalOpen: (open: boolean) => void;
-  addBot: (bot: Bot) => void;
+  fetchBots: () => Promise<void>;
+  addBot: (bot: NewBotInput) => Promise<Bot>;
   addToast: (message: string, type?: string) => void;
   setTab: (tab: string) => void;
   addReport: (report: Partial<Report>) => Promise<Report>;
-  toggleBot: (botId: string) => void;
-  deleteBot: (botId: string) => void;
+  toggleBot: (botId: string) => Promise<void>;
+  deleteBot: (botId: string) => Promise<void>;
   removeToast: (toastId: number) => void;
   fetchReports: () => Promise<void>;
+  fetchVaultInvestments: () => Promise<void>;
+  addVaultInvestment: (vaultId: string, amount: number) => Promise<void>;
 }
 
 type AppStoreContextType = AppStoreState & AppStoreActions;
@@ -64,10 +89,11 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     user: null,
     botModalOpen: false,
     bots: [],
+    botsLoading: false,
     toasts: [],
     reports: [],
-    vaults: [],
-    yields: [],
+    vaultInvestments: [],
+    vaultInvestmentsLoading: false,
     tab: 'dashboard',
     reportsLoading: false,
   });
@@ -135,10 +161,73 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Fetch the logged-in user's bots from the API
+  const fetchBots = async () => {
+    setState((prev) => ({ ...prev, botsLoading: true }));
+    try {
+      const response = await fetch('/api/bots');
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          setState((prev) => ({ ...prev, bots: [], botsLoading: false }));
+          return;
+        }
+        throw new Error(`Failed to fetch bots: ${response.status}`);
+      }
+
+      const botsData: Bot[] = await response.json();
+      setState((prev) => ({ ...prev, bots: botsData, botsLoading: false }));
+    } catch (err) {
+      console.error('Error fetching bots:', err);
+      setState((prev) => ({ ...prev, bots: [], botsLoading: false }));
+    }
+  };
+
+  // Fetch the logged-in user's vault investments from the API
+  const fetchVaultInvestments = async () => {
+    setState((prev) => ({ ...prev, vaultInvestmentsLoading: true }));
+    try {
+      const response = await fetch('/api/user/vault-investments');
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          setState((prev) => ({ ...prev, vaultInvestments: [], vaultInvestmentsLoading: false }));
+          return;
+        }
+        throw new Error(`Failed to fetch vault investments: ${response.status}`);
+      }
+
+      const data: VaultInvestment[] = await response.json();
+      setState((prev) => ({ ...prev, vaultInvestments: data, vaultInvestmentsLoading: false }));
+    } catch (err) {
+      console.error('Error fetching vault investments:', err);
+      setState((prev) => ({ ...prev, vaultInvestments: [], vaultInvestmentsLoading: false }));
+    }
+  };
+
+  const addVaultInvestment = async (vaultId: string, amount: number): Promise<void> => {
+    const response = await fetch('/api/user/vault-investments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ vaultId, amount }),
+    });
+
+    if (!response.ok) {
+      const payload = await response.json().catch(() => ({}));
+      throw new Error(payload.error || `Failed to invest in vault: ${response.status}`);
+    }
+
+    // The POST response doesn't include vault details, so refresh from the
+    // list endpoint (which populates them) rather than shaping a partial one.
+    await fetchVaultInvestments();
+  };
+
   useEffect(() => {
-    // Fetch reports when user changes
+    // Fetch reports, bots, and vault investments when user changes
     if (user) {
       fetchReports();
+      fetchBots();
+      fetchVaultInvestments();
     }
   }, [user]);
 
@@ -146,8 +235,21 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     setState((prev) => ({ ...prev, botModalOpen: open }));
   };
 
-  const addBot = (bot: Bot) => {
-    setState((prev) => ({ ...prev, bots: [...prev.bots, bot] }));
+  const addBot = async (bot: NewBotInput): Promise<Bot> => {
+    const response = await fetch('/api/bots', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(bot),
+    });
+
+    if (!response.ok) {
+      const payload = await response.json().catch(() => ({}));
+      throw new Error(payload.error || `Failed to create bot: ${response.status}`);
+    }
+
+    const newBot: Bot = await response.json();
+    setState((prev) => ({ ...prev, bots: [...prev.bots, newBot] }));
+    return newBot;
   };
 
   const addToast = (message: string, type: string = 'info') => {
@@ -159,14 +261,38 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     setState((prev) => ({ ...prev, tab: tab }));
   };
 
-  const toggleBot = (botId: string) => {
+  const toggleBot = async (botId: string) => {
+    const current = state.bots.find((bot) => bot.id === botId);
+    if (!current) return;
+
+    const nextStatus = current.status === 'running' ? 'paused' : 'running';
+
+    const response = await fetch(`/api/bots/${botId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: nextStatus }),
+    });
+
+    if (!response.ok) {
+      console.error('Failed to toggle bot status');
+      return;
+    }
+
+    const updated: Bot = await response.json();
     setState((prev) => ({
       ...prev,
-      bots: prev.bots.map((bot) => (bot.id === botId ? { ...bot, active: !bot.active } : bot)),
+      bots: prev.bots.map((bot) => (bot.id === botId ? updated : bot)),
     }));
   };
 
-  const deleteBot = (botId: string) => {
+  const deleteBot = async (botId: string) => {
+    const response = await fetch(`/api/bots/${botId}`, { method: 'DELETE' });
+
+    if (!response.ok) {
+      console.error('Failed to delete bot');
+      return;
+    }
+
     setState((prev) => ({
       ...prev,
       bots: prev.bots.filter((bot) => bot.id !== botId),
@@ -183,6 +309,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
   const storeValue: AppStoreContextType = {
     ...state,
     setBotModalOpen,
+    fetchBots,
     addBot,
     addToast,
     setTab,
@@ -191,6 +318,8 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     deleteBot,
     removeToast,
     fetchReports,
+    fetchVaultInvestments,
+    addVaultInvestment,
   };
 
   return <AppStoreContext.Provider value={storeValue}>{children}</AppStoreContext.Provider>;

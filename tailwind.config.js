@@ -8,8 +8,8 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        display: ['Space Grotesk', 'sans-serif'],
+        sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
+        display: ['var(--font-sans)', 'system-ui', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
       },
       colors: {
@@ -17,10 +17,19 @@ module.exports = {
         background: '#0A0E13',
         foreground: '#E7ECF2',
         primary: {
-          DEFAULT: '#D9A94E',
-          foreground: '#1A1305',
+          DEFAULT: '#1E63FF',
+          foreground: '#F2F5FA',
         },
         accent: '#212A35',
+        brand: {
+          ink: '#0A0F1C',
+          blue: '#1E63FF',
+          cyan: '#00D4FF',
+          purple: '#7B61FF',
+          green: '#00C896',
+          gray: '#64748B',
+          paper: '#F2F5FA',
+        },
         teal: {
           300: '#5EEAD4',
           400: '#2DD4BF',

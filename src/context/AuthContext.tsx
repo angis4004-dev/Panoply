@@ -1,9 +1,6 @@
 'use client';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-// Import cookie utilities for client-side cookie reading
-import { getCookie } from '@/lib/cookie-utils.client';
-
 export type UserRole = 'Admin' | 'Trader' | null;
 
 export interface AuthUser {
@@ -14,30 +11,31 @@ export interface AuthUser {
 
 interface AuthContextValue {
   user: AuthUser | null;
+  loading: boolean;
   setUser: (user: AuthUser | null) => void;
   logout: () => void;
 }
 
 export const AuthContext = createContext<AuthContextValue>({
   user: null,
+  loading: true,
   setUser: () => {},
   logout: () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUserState] = useState<AuthUser | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Try to get user from cookie on client side
-    const userData = getCookie('auth_user');
-    if (userData) {
-      try {
-        const parsed = JSON.parse(userData);
-        setUserState(parsed);
-      } catch (e) {
-        console.error('Failed to parse user from cookie:', e);
-      }
-    }
+    // Rehydrate the logged-in user from the server-verified session cookie.
+    // The session cookie itself is httpOnly, so this is the only way the
+    // client can know who's signed in after a hard page load/refresh.
+    fetch('/api/auth/session')
+      .then((res) => (res.ok ? res.json() : { user: null }))
+      .then((data) => setUserState(data.user))
+      .catch(() => setUserState(null))
+      .finally(() => setLoading(false));
   }, []);
 
   const setUser = (u: AuthUser | null) => {
@@ -48,11 +46,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     setUser(null);
-    // In a real implementation, we might want to call an API to clear the session
-    // For now, we rely on the cookie expiration or manual clearance
+    fetch('/api/auth/logout', { method: 'POST' }).catch(() => {
+      // Client state is already cleared; a failed request just leaves the
+      // cookie to expire naturally rather than blocking the UI logout.
+    });
   };
 
-  return <AuthContext.Provider value={{ user, setUser, logout }}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ user, loading, setUser, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
