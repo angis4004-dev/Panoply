@@ -1,7 +1,14 @@
 import crypto from 'crypto';
 
-// Configuration
-const SESSION_SECRET = process.env.SESSION_SECRET || 'fallback-secret-key-change-in-production';
+// Configuration. No fallback: signing session cookies (including Admin-role
+// sessions) with a hardcoded, publicly-known secret would let anyone forge a
+// valid cookie by computing the same HMAC, so fail closed instead.
+const SESSION_SECRET = process.env.SESSION_SECRET;
+if (!SESSION_SECRET) {
+  throw new Error(
+    'SESSION_SECRET environment variable is required to sign and verify session cookies.'
+  );
+}
 const SESSION_COOKIE_NAME = 'auth_session';
 const SESSION_COOKIE_OPTIONS = {
   httpOnly: true,
