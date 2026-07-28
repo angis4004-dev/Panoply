@@ -67,6 +67,10 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const walletAddressNowSet = !!updatedUser.walletAddress;
     if (walletAddressWasEmpty && walletAddressNowSet) {
       await grantAchievement(id, 'wallet_connected');
+      // computeTier doesn't read walletAddress, so this is a defensive no-op
+      // for tier itself; kept because it also re-checks for a milestone
+      // achievement grant if kycStatus/lifetimeDeposited already qualify but
+      // the persisted `tier` field hadn't been recalculated yet.
       await recalculateTier(id);
     }
 

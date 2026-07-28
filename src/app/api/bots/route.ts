@@ -5,7 +5,7 @@ import { getSessionFromRequest } from '@/lib/session';
 import { getCoinPrices } from '@/lib/coingecko';
 import { resolveBaseCoinId } from '@/lib/coin-symbols';
 import { computePnlPercent, formatPnl } from '@/lib/bot-pnl';
-import { grantAchievement, TIER_SLOT_LIMITS, type Tier } from '@/lib/achievements/engine';
+import { computeTier, grantAchievement, TIER_SLOT_LIMITS } from '@/lib/achievements/engine';
 
 // GET /api/bots - Returns ONLY the bots belonging to the currently logged-in user
 export async function GET(request: NextRequest) {
@@ -123,8 +123,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Database connection unavailable' }, { status: 503 });
     }
 
-    const currentUser = await userModel.findById(userId).select('tier').lean();
-    const userTier: Tier = (currentUser?.tier as Tier) || 'unverified';
+    // Computed live from kycStatus/lifetimeDeposited rather than trusting the
+    // cached `tier` field: accounts created before this field existed have no
+    // `tier` in their raw Mongo document (Mongoose .lean() does not backfill
+    // schema defaults for missing fields), so trusting a stored `tier` would
+    // wrongly gate already-verified legacy users as unverified.
+    const currentUser = await userModel
+      .findById(userId)
+      .select('kycStatus lifetimeDeposited')
+      .lean();
+    const userTier = computeTier(
+      currentUser?.kycStatus || 'unverified',
+      currentUser?.lifetimeDeposited || 0
+    );
     const slotLimit = TIER_SLOT_LIMITS[userTier];
 
     if (slotLimit === 0) {

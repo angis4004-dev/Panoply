@@ -3,7 +3,7 @@ import type { PortfolioReport, Holding, RiskProfile } from '@/lib/types';
 import { Resend } from 'resend';
 import { getSessionFromRequest } from '@/lib/session';
 import { getUserModel } from '@/lib/models';
-import { grantAchievement, TIER_RANK, type Tier } from '@/lib/achievements/engine';
+import { computeTier, grantAchievement, TIER_RANK } from '@/lib/achievements/engine';
 
 // Email service using Resend
 async function sendEmailReport(email: string, htmlContent: string): Promise<boolean> {
@@ -211,12 +211,16 @@ export async function POST(request: Request) {
     }
     const dbUser = await userModel
       .findById(session.user.id)
-      .select('tier portfolioReportCount distinctPortfolioAssets')
+      .select('kycStatus lifetimeDeposited portfolioReportCount distinctPortfolioAssets')
       .lean();
     if (!dbUser) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
-    const userTier: Tier = (dbUser.tier as Tier) || 'unverified';
+    // Computed live from kycStatus/lifetimeDeposited rather than trusting a
+    // cached `tier` field: accounts created before this field existed have no
+    // `tier` in their raw Mongo document, so trusting a stored value would
+    // wrongly gate already-verified legacy users as unverified.
+    const userTier = computeTier(dbUser.kycStatus || 'unverified', dbUser.lifetimeDeposited || 0);
     const recommendationsUnlocked = TIER_RANK[userTier] >= TIER_RANK.amateur;
 
     const body = await request.json();

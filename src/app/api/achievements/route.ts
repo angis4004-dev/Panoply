@@ -5,6 +5,7 @@ import { UserAchievementModel } from '@/lib/models/UserAchievement';
 import { ACHIEVEMENT_CATALOG } from '@/lib/achievements/catalog';
 import {
   computeIdentityScore,
+  computeTier,
   TIER_DEPOSIT_THRESHOLDS,
   type Tier,
 } from '@/lib/achievements/engine';
@@ -70,15 +71,21 @@ export async function GET(request: NextRequest) {
     };
   });
 
-  const currentTierIndex = TIER_SEQUENCE.indexOf(user.tier as Tier);
+  // Computed live from kycStatus/lifetimeDeposited rather than trusting the
+  // cached `tier` field: accounts created before this field existed have no
+  // `tier` in their raw Mongo document (Mongoose .lean() does not backfill
+  // schema defaults for missing fields), so trusting a stored value would
+  // wrongly show already-verified legacy users as unverified.
+  const tier = computeTier(user.kycStatus, user.lifetimeDeposited || 0);
+  const currentTierIndex = TIER_SEQUENCE.indexOf(tier as Tier);
   const nextTier = currentTierIndex >= 0 ? TIER_SEQUENCE[currentTierIndex + 1] : 'novice';
 
   return NextResponse.json({
-    xp: user.xp,
-    tier: user.tier,
+    xp: user.xp || 0,
+    tier,
     identityScore,
     tierProgress: {
-      lifetimeDeposited: user.lifetimeDeposited,
+      lifetimeDeposited: user.lifetimeDeposited || 0,
       nextTier: nextTier || null,
       nextThreshold: nextTier ? TIER_DEPOSIT_THRESHOLDS[nextTier] : null,
       kycRequired: user.kycStatus !== 'verified',
