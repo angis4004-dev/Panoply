@@ -7,6 +7,8 @@ import { ArrowUpRight, Bot as BotIcon, Vault } from 'lucide-react';
 import MetricsBentoGrid from '@/app/dashboard/components/MetricsBentoGrid';
 import { PageHeader } from '@/components/dashboard/page-header';
 import { DepositWalletModal } from '@/components/dashboard/deposit-wallet-modal';
+import { IdentityScore } from '@/components/dashboard/identity-score';
+import { TierBadge } from '@/components/dashboard/tier-badge';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useAppStore } from '@/store/app-store';
 import { useAuth } from '@/hooks/use-auth';
@@ -31,6 +33,18 @@ interface TopYield {
   apy: number;
 }
 
+interface IdentitySummary {
+  xp: number;
+  tier: string;
+  identityScore: number;
+  tierProgress: {
+    lifetimeDeposited: number;
+    nextTier: string | null;
+    nextThreshold: number | null;
+    kycRequired: boolean;
+  };
+}
+
 const YIELD_COLORS = ['#2EBAC6', '#FF6B35', '#1E63FF'];
 
 export default function DashboardPage() {
@@ -40,6 +54,8 @@ export default function DashboardPage() {
   const [topYields, setTopYields] = useState<TopYield[]>([]);
   const [yieldsLoading, setYieldsLoading] = useState(true);
   const [depositOpen, setDepositOpen] = useState(false);
+  const [identity, setIdentity] = useState<IdentitySummary | null>(null);
+  const [identityLoading, setIdentityLoading] = useState(true);
 
   useEffect(() => {
     fetch('/api/yield')
@@ -47,6 +63,14 @@ export default function DashboardPage() {
       .then((data: TopYield[]) => setTopYields([...data].sort((a, b) => b.apy - a.apy).slice(0, 3)))
       .catch(() => setTopYields([]))
       .finally(() => setYieldsLoading(false));
+  }, []);
+
+  useEffect(() => {
+    fetch('/api/achievements')
+      .then((res) => (res.ok ? res.json() : null))
+      .then(setIdentity)
+      .catch(() => setIdentity(null))
+      .finally(() => setIdentityLoading(false));
   }, []);
 
   return (
@@ -127,6 +151,45 @@ export default function DashboardPage() {
       </section>
 
       {depositOpen && <DepositWalletModal onClose={() => setDepositOpen(false)} />}
+
+      {/* Identity & tier widget */}
+      <section className="mb-6 flex flex-col gap-4 rounded-xl border border-[#212A35] bg-[#122131]/50 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+        <div className="flex items-center gap-4">
+          {identityLoading ? (
+            <Skeleton className="h-14 w-40" />
+          ) : (
+            <IdentityScore score={identity?.identityScore ?? 0} size="sm" />
+          )}
+          <div>
+            <div className="mb-1 flex items-center gap-2">
+              <TierBadge tier={identity?.tier || user?.tier || 'unverified'} />
+              {identity && (
+                <span className="font-mono text-sm font-semibold text-white">{identity.xp} XP</span>
+              )}
+            </div>
+            {identity?.tierProgress.kycRequired ? (
+              <p className="text-xs text-[#8B95A5]">
+                Complete KYC verification to unlock tier progress.
+              </p>
+            ) : identity?.tierProgress.nextTier && identity.tierProgress.nextThreshold != null ? (
+              <p className="text-xs text-[#8B95A5]">
+                ${identity.tierProgress.lifetimeDeposited.toLocaleString()} of $
+                {identity.tierProgress.nextThreshold.toLocaleString()} deposited toward{' '}
+                {identity.tierProgress.nextTier}
+              </p>
+            ) : identity ? (
+              <p className="text-xs text-[#8B95A5]">Highest tier reached.</p>
+            ) : null}
+          </div>
+        </div>
+        <Link
+          href="/dashboard/achievements"
+          className="inline-flex items-center gap-1.5 rounded text-xs font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#122131]"
+        >
+          View achievements
+          <ArrowUpRight className="h-3.5 w-3.5" />
+        </Link>
+      </section>
 
       {/* Live metrics bento */}
       <MetricsBentoGrid />

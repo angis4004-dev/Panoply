@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { AegisMark } from '@/components/ui/AegisLogo';
+import { TierBadge } from '@/components/dashboard/tier-badge';
 
 const navItems = [
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard, exact: true },
@@ -45,6 +46,8 @@ export default function DashboardSidebar({ onNavigate }: DashboardSidebarProps) 
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const kycDotClass = user?.kycStatus ? KYC_DOT_STYLES[user.kycStatus] : undefined;
+  const initial =
+    user?.name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'A';
 
   const isActive = (href: string, exact?: boolean) =>
     exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
@@ -90,6 +93,17 @@ export default function DashboardSidebar({ onNavigate }: DashboardSidebarProps) 
       </nav>
 
       <div className="border-t border-[#212A35] p-3">
+        {user && (
+          <div className="mb-2 flex items-center gap-2.5 rounded-lg px-2 py-2">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/15 text-xs font-bold text-primary">
+              {initial}
+            </div>
+            <p className="min-w-0 flex-1 truncate text-sm font-medium text-[#E7ECF2]">
+              {user.name || user.email?.split('@')[0] || 'User'}
+            </p>
+            <TierBadge tier={user.tier || 'unverified'} />
+          </div>
+        )}
         <button
           onClick={() => {
             logout();
