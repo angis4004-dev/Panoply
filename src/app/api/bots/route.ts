@@ -5,6 +5,7 @@ import { getSessionFromRequest } from '@/lib/session';
 import { getCoinPrices } from '@/lib/coingecko';
 import { resolveBaseCoinId } from '@/lib/coin-symbols';
 import { computePnlPercent, formatPnl } from '@/lib/bot-pnl';
+import { grantAchievement, TIER_SLOT_LIMITS, type Tier } from '@/lib/achievements/engine';
 
 // GET /api/bots - Returns ONLY the bots belonging to the currently logged-in user
 export async function GET(request: NextRequest) {
@@ -121,6 +122,28 @@ export async function POST(request: NextRequest) {
     if (!userModel) {
       return NextResponse.json({ error: 'Database connection unavailable' }, { status: 503 });
     }
+
+    const currentUser = await userModel.findById(userId).select('tier').lean();
+    const userTier: Tier = (currentUser?.tier as Tier) || 'unverified';
+    const slotLimit = TIER_SLOT_LIMITS[userTier];
+
+    if (slotLimit === 0) {
+      return NextResponse.json(
+        { error: 'Complete identity verification to activate signal flows.' },
+        { status: 403 }
+      );
+    }
+
+    const activeBotCount = await TradingBotModel.countDocuments({ userId });
+    if (activeBotCount >= slotLimit) {
+      return NextResponse.json(
+        {
+          error: `Your ${userTier} tier allows up to ${slotLimit} signal flow(s). Upgrade your tier to activate more.`,
+        },
+        { status: 403 }
+      );
+    }
+
     const debited = await userModel.findOneAndUpdate(
       { _id: userId, walletBalance: { $gte: allocatedAmount } },
       { $inc: { walletBalance: -allocatedAmount } }
@@ -158,6 +181,19 @@ export async function POST(request: NextRequest) {
       });
 
       const savedBot = await newBot.save();
+
+      await grantAchievement(userId, 'first_strategy_activated');
+
+      await userModel.findByIdAndUpdate(userId, {
+        $addToSet: { distinctBotStrategyTypes: body.type },
+      });
+      const updatedUser = await userModel
+        .findById(userId)
+        .select('distinctBotStrategyTypes')
+        .lean();
+      if (updatedUser && updatedUser.distinctBotStrategyTypes.length >= 2) {
+        await grantAchievement(userId, 'strategy_builder');
+      }
 
       // Return the created bot in frontend format
       return NextResponse.json(
