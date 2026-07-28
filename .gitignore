@@ -66,3 +66,6 @@ out.txt
 # Editor/local backup files
 *.bak
 *.backup
+
+# Isolated git worktrees for subagent-driven feature work
+.worktrees/
