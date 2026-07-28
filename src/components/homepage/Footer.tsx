@@ -9,7 +9,9 @@ export function Footer() {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <AegisMark size={22} />
-              <span className="text-lg font-bold text-white tracking-wide">AEGIS</span>
+              <span className="font-wordmark text-lg font-extrabold uppercase tracking-[0.12em] text-white">
+                AEGIS
+              </span>
             </div>
             <p className="text-sm text-[#8B95A5] leading-relaxed">
               Quantitative Intelligence for Decentralized Finance — signal-driven automation, vault
@@ -27,7 +29,7 @@ export function Footer() {
                 href="/dashboard/bots"
                 className="text-[#8B95A5] hover:text-[#E7ECF2] transition-colors"
               >
-                Trading Bots
+                Signal Flows
               </Link>
               <Link
                 href="/dashboard/vaults"
@@ -65,15 +67,24 @@ export function Footer() {
           <div>
             <h3 className="text-sm font-semibold text-white mb-4">Legal</h3>
             <nav className="flex flex-col gap-2 text-sm">
-              <a href="#" className="text-[#8B95A5] hover:text-[#E7ECF2] transition-colors">
+              <Link
+                href="/privacy"
+                className="rounded text-[#8B95A5] hover:text-[#E7ECF2] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+              >
                 Privacy Policy
-              </a>
-              <a href="#" className="text-[#8B95A5] hover:text-[#E7ECF2] transition-colors">
+              </Link>
+              <Link
+                href="/terms"
+                className="rounded text-[#8B95A5] hover:text-[#E7ECF2] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+              >
                 Terms of Service
-              </a>
-              <a href="#" className="text-[#8B95A5] hover:text-[#E7ECF2] transition-colors">
+              </Link>
+              <Link
+                href="/disclaimer"
+                className="rounded text-[#8B95A5] hover:text-[#E7ECF2] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+              >
                 Disclaimer
-              </a>
+              </Link>
             </nav>
           </div>
         </div>

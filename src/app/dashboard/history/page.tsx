@@ -1,6 +1,7 @@
 'use client';
 
 import { FileText } from 'lucide-react';
+import Link from 'next/link';
 import { PageHeader } from '@/components/dashboard/page-header';
 import { useAppStore } from '@/store/app-store';
 
@@ -21,12 +22,12 @@ export default function HistoryPage() {
           <p className="mt-2 max-w-sm text-sm text-[#8B95A5]">
             Run the Portfolio Builder to generate your first AI portfolio analysis.
           </p>
-          <a
+          <Link
             href="/dashboard/builder"
-            className="mt-6 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-[#F2F5FA] hover:bg-[#3D77FF] transition-colors"
+            className="mt-6 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-[#F2F5FA] hover:bg-[#3D77FF] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
           >
             Open Builder
-          </a>
+          </Link>
         </div>
       ) : (
         <div className="space-y-3">
@@ -44,7 +45,9 @@ export default function HistoryPage() {
                   </p>
                 </div>
               </div>
-              <button className="text-sm font-medium text-primary hover:underline">View</button>
+              <button className="rounded text-sm font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]">
+                View
+              </button>
             </div>
           ))}
         </div>

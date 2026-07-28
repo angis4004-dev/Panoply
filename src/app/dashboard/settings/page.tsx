@@ -43,18 +43,21 @@ export default function SettingsPage() {
             Notifications
           </h2>
           <div className="space-y-3">
-            {['Bot alerts', 'Yield opportunities', 'Portfolio reports', 'Security alerts'].map(
-              (label) => (
-                <label key={label} className="flex items-center justify-between">
-                  <span className="text-sm text-[#E7ECF2]">{label}</span>
-                  <input
-                    type="checkbox"
-                    defaultChecked
-                    className="h-4 w-4 rounded border-[#212A35] accent-primary"
-                  />
-                </label>
-              )
-            )}
+            {[
+              'Signal flow alerts',
+              'Yield opportunities',
+              'Portfolio reports',
+              'Security alerts',
+            ].map((label) => (
+              <label key={label} className="flex items-center justify-between">
+                <span className="text-sm text-[#E7ECF2]">{label}</span>
+                <input
+                  type="checkbox"
+                  defaultChecked
+                  className="h-4 w-4 rounded border-[#212A35] accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#122131]"
+                />
+              </label>
+            ))}
           </div>
         </section>
       </div>

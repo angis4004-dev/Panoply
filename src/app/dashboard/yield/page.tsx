@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Zap } from 'lucide-react';
 import { PageHeader } from '@/components/dashboard/page-header';
+import { Skeleton } from '@/components/ui/Skeleton';
 
 interface YieldOpportunity {
   id: string;
@@ -33,7 +34,53 @@ export default function YieldPage() {
       />
 
       {loading ? (
-        <p className="text-sm text-[#8B95A5]">Loading yield opportunities...</p>
+        <div className="overflow-hidden rounded-xl border border-[#212A35]">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-[#212A35] bg-[#17202e]/60 text-left">
+                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-[#8B95A5]">
+                  Protocol
+                </th>
+                <th className="hidden px-4 py-3 text-xs font-medium uppercase tracking-wider text-[#8B95A5] sm:table-cell">
+                  Chain
+                </th>
+                <th className="hidden px-4 py-3 text-xs font-medium uppercase tracking-wider text-[#8B95A5] md:table-cell">
+                  Risk
+                </th>
+                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-[#8B95A5]">
+                  APY
+                </th>
+                <th className="hidden px-4 py-3 text-xs font-medium uppercase tracking-wider text-[#8B95A5] lg:table-cell">
+                  TVL
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {[...Array(5)].map((_, i) => (
+                <tr
+                  key={i}
+                  className={`border-b border-[#212A35]/60 ${i % 2 === 0 ? 'bg-[#122131]/30' : 'bg-transparent'}`}
+                >
+                  <td className="px-4 py-3.5">
+                    <Skeleton className="h-4 w-24" />
+                  </td>
+                  <td className="hidden px-4 py-3.5 sm:table-cell">
+                    <Skeleton className="h-4 w-16" />
+                  </td>
+                  <td className="hidden px-4 py-3.5 md:table-cell">
+                    <Skeleton className="h-4 w-12" />
+                  </td>
+                  <td className="px-4 py-3.5">
+                    <Skeleton className="h-4 w-10" />
+                  </td>
+                  <td className="hidden px-4 py-3.5 lg:table-cell">
+                    <Skeleton className="h-4 w-14" />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       ) : opportunities.length === 0 ? (
         <div className="rounded-xl border border-[#212A35] bg-[#122131]/50 p-10 text-center">
           <Zap className="mx-auto mb-3 h-8 w-8 text-[#4b5563]" />

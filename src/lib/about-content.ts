@@ -185,7 +185,7 @@ export const ROADMAP = [
     phase: 'Phase 1 — Foundation',
     status: 'Current',
     items: [
-      'Core signal generation and automated bot execution',
+      'Core signal generation and automated signal flow execution',
       'Risk-managed vault infrastructure',
       'Portfolio Builder and yield discovery tools',
       'Real-time portfolio analytics dashboard',
@@ -235,7 +235,7 @@ export const FAQ_ITEMS = [
   {
     question: 'Can I customize a strategy?',
     answer:
-      'Yes. The Portfolio Builder and bot configuration tools let you set risk parameters, allocation limits, and strategy type rather than relying on a single fixed approach.',
+      'Yes. The Portfolio Builder and signal flow configuration tools let you set risk parameters, allocation limits, and strategy type rather than relying on a single fixed approach.',
   },
   {
     question: 'Can I stop or withdraw at any time?',

@@ -28,7 +28,7 @@ export function StatsTicker() {
     { label: 'Trades', value: '2.4M' },
     { label: 'Uptime', value: '99.9%' },
     { label: 'Volume', value: '$850M' },
-    { label: 'Active Bots', value: '12,400' },
+    { label: 'Active Signal Flows', value: '12,400' },
     { label: 'Chains Supported', value: '6+' },
     { label: 'Strategy Categories', value: '10+' },
   ];

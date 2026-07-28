@@ -5,9 +5,9 @@ import { Reveal } from '@/components/ui/Reveal';
 const features = [
   {
     icon: Bot,
-    title: 'AI-Powered Bots',
+    title: 'AI-Powered Signal Flows',
     description:
-      'Grid, DCA, and arbitrage bots that adapt to market conditions with automated parameter tuning.',
+      'Grid, DCA, and arbitrage signal flows that adapt to market conditions with automated parameter tuning.',
     href: '/dashboard/bots',
   },
   {
@@ -42,9 +42,9 @@ export function FeaturesGrid() {
             Automated Strategies, or Build Your Own
           </h2>
           <p className="text-[#8B95A5] max-w-2xl mx-auto">
-            Deploy quantitatively-managed bots and vaults, or configure a custom allocation with the
-            Portfolio Builder. Every strategy runs non-custodially, with you in control of risk
-            parameters throughout.
+            Deploy quantitatively-managed signal flows and vaults, or configure a custom allocation
+            with the Portfolio Builder. Every strategy runs non-custodially, with you in control of
+            risk parameters throughout.
           </p>
         </div>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">

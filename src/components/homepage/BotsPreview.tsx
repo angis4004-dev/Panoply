@@ -29,11 +29,11 @@ export function BotsPreview() {
             Live preview
           </p>
           <h2 className="text-3xl font-bold text-white mb-4">
-            Trading bots and market data, ready when you are
+            Signal flows and market data, ready when you are
           </h2>
           <p className="text-[#8B95A5] leading-relaxed">
-            Browse the bot library and market charts below — sign in to deploy a bot, customize
-            parameters, or track your own portfolio&apos;s P&amp;L.
+            Browse the signal flow library and market charts below — sign in to deploy a signal
+            flow, customize parameters, or track your own portfolio&apos;s P&amp;L.
           </p>
         </div>
 

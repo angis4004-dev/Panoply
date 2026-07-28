@@ -7,7 +7,7 @@ import { PageHeader } from '@/components/dashboard/page-header';
 const suggestions = [
   'How can I improve yield without increasing risk?',
   'Should I rebalance my ETH allocation?',
-  'What bots fit a moderate risk profile?',
+  'What signal flows fit a moderate risk profile?',
 ];
 
 export default function AIPage() {
@@ -42,7 +42,7 @@ export default function AIPage() {
               <p className="text-sm leading-relaxed text-[#E7ECF2]">
                 I found 3 opportunities that may improve estimated yield while maintaining your
                 current risk profile — Aave USDC (5.2%), Curve 3Pool (8.1%), and a low-volatility
-                grid bot on WBTC. Want a detailed breakdown?
+                grid signal flow on WBTC. Want a detailed breakdown?
               </p>
             </div>
           </div>
@@ -53,7 +53,7 @@ export default function AIPage() {
             <button
               key={s}
               onClick={() => setInput(s)}
-              className="rounded-full border border-[#212A35] px-3 py-1.5 text-xs text-[#8B95A5] hover:border-primary/40 hover:text-[#E7ECF2] transition-colors"
+              className="rounded-full border border-[#212A35] px-3 py-1.5 text-xs text-[#8B95A5] hover:border-primary/40 hover:text-[#E7ECF2] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
             >
               {s}
             </button>
@@ -64,10 +64,10 @@ export default function AIPage() {
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask about your portfolio, bots, or yield..."
-            className="flex-1 bg-transparent px-3 py-2 text-sm text-[#E7ECF2] placeholder:text-[#8B95A5] outline-none"
+            placeholder="Ask about your portfolio, signal flows, or yield..."
+            className="flex-1 rounded-lg bg-transparent px-3 py-2 text-sm text-[#E7ECF2] placeholder:text-[#8B95A5] outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
           />
-          <button className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-[#F2F5FA] hover:bg-[#3D77FF] transition-colors">
+          <button className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-[#F2F5FA] hover:bg-[#3D77FF] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]">
             <Send className="h-4 w-4" />
             Send
           </button>

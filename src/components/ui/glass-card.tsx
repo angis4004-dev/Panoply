@@ -13,8 +13,8 @@ export function GlassCard({
   return (
     <div
       className={cn(
-        'bg-[#10151C] border border-[1px] solid #212A35 rounded-[10px]',
-        hover && 'hover:bg-[#161D26]/50',
+        'bg-[#122131]/50 border border-[#212A35] rounded-xl',
+        hover && 'transition-colors hover:bg-[#17202e]/50',
         className
       )}
     >

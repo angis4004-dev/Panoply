@@ -10,12 +10,12 @@ export function HowItWorks() {
     {
       num: '2',
       title: 'Configure',
-      desc: 'Choose a bot strategy, invest in a vault, or run the Portfolio Builder for a tailored report.',
+      desc: 'Choose a signal flow strategy, invest in a vault, or run the Portfolio Builder for a tailored report.',
     },
     {
       num: '3',
       title: 'Grow',
-      desc: 'Bots execute 24/7, vaults compound, and yields auto-track across your holdings.',
+      desc: 'Signal flows execute 24/7, vaults compound, and yields auto-track across your holdings.',
     },
   ];
 

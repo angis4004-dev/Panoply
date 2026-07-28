@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import AppLogo from '@/components/ui/AppLogo';
 import FlowFieldBackground from '@/components/ui/flow-field-background';
-import { Toaster, toast } from 'sonner';
+import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
 
 type AuthMode = 'login' | 'signup';
@@ -90,6 +90,7 @@ function LoginForm({
         email: payload.user.email,
         role: payload.user.role as 'Admin' | 'Trader',
         name: payload.user.name,
+        kycStatus: payload.user.kycStatus || 'unverified',
       });
 
       toast.success(`Welcome back, ${payload.user.name}!`, {
@@ -323,6 +324,7 @@ function SignupForm() {
         email: payload.user.email,
         role: 'Trader',
         name: payload.user.name,
+        kycStatus: 'unverified',
       });
 
       toast.success('Account created!', {
@@ -475,11 +477,11 @@ function SignupForm() {
           />
           <span className="text-xs text-[#8B95A5] leading-relaxed">
             I agree to the{' '}
-            <Link href="#" className="text-[#3D77FF] hover:underline">
+            <Link href="/terms" target="_blank" className="text-[#3D77FF] hover:underline">
               Terms of Service
             </Link>{' '}
             and{' '}
-            <Link href="#" className="text-[#3D77FF] hover:underline">
+            <Link href="/privacy" target="_blank" className="text-[#3D77FF] hover:underline">
               Privacy Policy
             </Link>
             . I understand this platform involves financial risk.
@@ -556,8 +558,6 @@ function SignUpLoginPageContent() {
 
   return (
     <div className="min-h-screen bg-[#0A0E13] flex">
-      <Toaster position="bottom-right" theme="dark" richColors />
-
       {/* Left brand panel */}
       <div className="hidden lg:flex lg:w-[52%] xl:w-[55%] flex-col relative overflow-hidden bg-gradient-to-br from-[#122131] via-[#0A0E13] to-[#122131]">
         {/* Ambient particle flow field */}

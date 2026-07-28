@@ -8,14 +8,19 @@ const plans = [
     price: '$0',
     badge: 'Free Forever',
     featured: false,
-    features: ['Up to 5 wallets', '1 active bot', 'Basic analytics', 'Community support'],
+    features: ['Up to 5 wallets', '1 active signal flow', 'Basic analytics', 'Community support'],
   },
   {
     name: 'Pro',
     price: '$49',
     badge: 'Most Popular',
     featured: true,
-    features: ['Unlimited wallets', '10 active bots', 'Advanced analytics', 'Priority support'],
+    features: [
+      'Unlimited wallets',
+      '10 active signal flows',
+      'Advanced analytics',
+      'Priority support',
+    ],
   },
   {
     name: 'Enterprise',
