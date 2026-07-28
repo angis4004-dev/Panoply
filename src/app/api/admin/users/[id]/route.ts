@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserModel } from '@/lib/models';
 import { verifyAdminAccess } from '@/lib/auth-middleware';
+import { grantAchievement, recalculateTier } from '@/lib/achievements/engine';
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   // Verify admin access
@@ -48,6 +49,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       }
     }
 
+    // Fetch pre-update state to detect wallet address transition
+    const beforeUpdate = await userModel.findById(id).select('walletAddress').lean();
+
     // Update the user
     const updatedUser = await userModel
       .findByIdAndUpdate(id, { $set: filteredUpdates }, { new: true, runValidators: true })
@@ -56,6 +60,14 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     if (!updatedUser) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    // Detect wallet address transition and grant achievement
+    const walletAddressWasEmpty = !beforeUpdate?.walletAddress;
+    const walletAddressNowSet = !!updatedUser.walletAddress;
+    if (walletAddressWasEmpty && walletAddressNowSet) {
+      await grantAchievement(id, 'wallet_connected');
+      await recalculateTier(id);
     }
 
     // Transform to match frontend format
