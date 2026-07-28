@@ -21,6 +21,7 @@ import {
   Cpu,
   DollarSign,
   Search,
+  Menu,
   Bell,
   TrendingUp,
   AlertTriangle,
@@ -219,7 +220,7 @@ function Td({ children, style, ...rest }) {
 }
 
 /* ---------------------------------- form elements ---------------------------------- */
-function Button({ children, onClick, variant = 'ghost', icon: Icon, style }) {
+function Button({ children, onClick, variant = 'ghost', icon: Icon, style, disabled }) {
   const variants = {
     primary: { background: C.primary, color: '#F2F5FA', border: `1px solid ${C.primary}` },
     ghost: { background: 'transparent', color: C.textDim, border: `1px solid ${C.border}` },
@@ -228,12 +229,14 @@ function Button({ children, onClick, variant = 'ghost', icon: Icon, style }) {
   return (
     <button
       onClick={onClick}
+      disabled={disabled}
+      className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13] disabled:cursor-not-allowed disabled:opacity-50"
       style={{
         ...mono,
         fontSize: 11.5,
         borderRadius: 6,
         padding: '8px 13px',
-        cursor: 'pointer',
+        cursor: disabled ? 'not-allowed' : 'pointer',
         display: 'inline-flex',
         alignItems: 'center',
         gap: 6,
@@ -334,11 +337,14 @@ function Modal({ title, onClose, children, footer }) {
           <h3 style={{ ...display, fontSize: 15, fontWeight: 600, color: C.text }}>{title}</h3>
           <button
             onClick={onClose}
+            aria-label="Close"
+            className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#10151C]"
             style={{
               background: 'transparent',
               border: 'none',
               cursor: 'pointer',
               color: C.textFaint,
+              borderRadius: 4,
             }}
           >
             <X size={17} />
@@ -407,13 +413,22 @@ function UserDetailModal({ user, onClose, onSave }) {
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Active bots">
+        <Field label="Active signal flows">
           <TextInput value={form.bots} onChange={set('bots')} type="number" />
         </Field>
         <Field label="Portfolio value">
           <TextInput value={form.value} onChange={set('value')} />
         </Field>
       </div>
+
+      <Field label="Wallet balance (USD)">
+        <TextInput
+          value={form.walletBalance}
+          onChange={set('walletBalance')}
+          type="number"
+          min="0"
+        />
+      </Field>
 
       <Field label="Wallet address">
         <TextInput value={form.wallet} onChange={set('wallet')} style={mono} />
@@ -449,7 +464,7 @@ function AddBotModal({ onClose, onAdd }) {
 
   return (
     <Modal
-      title="Add trading bot"
+      title="Add signal flow"
       onClose={onClose}
       footer={
         <>
@@ -457,7 +472,7 @@ function AddBotModal({ onClose, onAdd }) {
             Cancel
           </Button>
           <Button variant="primary" onClick={() => onAdd(form)} disabled={!form.user}>
-            Create bot
+            Create signal flow
           </Button>
         </>
       }
@@ -500,8 +515,53 @@ function AddBotModal({ onClose, onAdd }) {
         </Field>
       </div>
       <div style={{ fontSize: 11.5, color: C.textFaint }}>
-        Bots below 70% confidence automatically revert to static parameters per the fallback policy.
+        Signal flows below 70% confidence automatically revert to static parameters per the fallback policy.
       </div>
+    </Modal>
+  );
+}
+
+/* ---------------------------------- reject kyc modal ---------------------------------- */
+function RejectKycModal({ onClose, onReject }) {
+  const [reason, setReason] = useState('');
+  const [error, setError] = useState('');
+
+  const handleSubmit = () => {
+    if (!reason.trim()) {
+      setError('A rejection reason is required.');
+      return;
+    }
+    onReject(reason.trim());
+  };
+
+  return (
+    <Modal
+      title="Reject verification"
+      onClose={onClose}
+      footer={
+        <>
+          <Button variant="ghost" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={handleSubmit}>
+            Reject application
+          </Button>
+        </>
+      }
+    >
+      <Field label="Reason (shown to the user)">
+        <textarea
+          value={reason}
+          onChange={(e) => {
+            setReason(e.target.value);
+            setError('');
+          }}
+          rows={3}
+          placeholder="e.g. ID document image was unreadable — please resubmit a clearer photo."
+          style={{ ...inputStyle, resize: 'vertical' }}
+        />
+      </Field>
+      {error && <div style={{ ...body, color: C.red, fontSize: 12 }}>{error}</div>}
     </Modal>
   );
 }
@@ -596,7 +656,7 @@ const flaggedActivity = [
   {
     id: 'FA-1041',
     type: 'Fallback',
-    detail: 'Grid bot confidence 61% — reverted to static params',
+    detail: 'Grid signal flow confidence 61% — reverted to static params',
     user: '0x1b2…6f21',
     sev: 'med',
     time: '22m ago',
@@ -612,7 +672,7 @@ const flaggedActivity = [
   {
     id: 'FA-1039',
     type: 'Anomaly',
-    detail: 'Arbitrage bot latency spike on routing venue',
+    detail: 'Arbitrage signal flow latency spike on routing venue',
     user: 'system',
     sev: 'med',
     time: '1h ago',
@@ -800,7 +860,7 @@ const vaultsQueue = [
 const initialMlModels = [
   {
     name: 'Volatility Forecast (LSTM)',
-    scope: 'Grid bots',
+    scope: 'Grid signal flows',
     confidence: 84,
     drift: 'stable',
     retrained: '3 days ago',
@@ -814,7 +874,7 @@ const initialMlModels = [
   },
   {
     name: 'Execution Routing (RL)',
-    scope: 'Arbitrage bots',
+    scope: 'Arbitrage signal flows',
     confidence: 88,
     drift: 'watch',
     retrained: '1 day ago',
@@ -861,7 +921,8 @@ const tierBreakdown = [
 const NAV = [
   { key: 'overview', label: 'Overview', icon: LayoutDashboard },
   { key: 'users', label: 'Users', icon: Users },
-  { key: 'bots', label: 'Trading Bots', icon: Bot },
+  { key: 'kyc', label: 'Verification', icon: ShieldCheck },
+  { key: 'bots', label: 'Signal Flows', icon: Bot },
   { key: 'vaults', label: 'Vaults', icon: Landmark },
   { key: 'reports', label: 'Portfolio Reports', icon: FileText },
   { key: 'models', label: 'ML Models', icon: Cpu },
@@ -874,7 +935,15 @@ function AdminSidebarContent({ tab, setTab, onNavigate }) {
       <div style={{ padding: '22px 20px', borderBottom: `1px solid ${C.borderSoft}` }}>
         <div className="flex items-center gap-2">
           <ShieldCheck size={18} color={C.primary} />
-          <span style={{ ...display, fontSize: 16, fontWeight: 700, letterSpacing: 0.4 }}>
+          <span
+            style={{
+              fontFamily: 'var(--font-wordmark), Orbitron, sans-serif',
+              fontSize: 16,
+              fontWeight: 800,
+              letterSpacing: 1.5,
+              textTransform: 'uppercase',
+            }}
+          >
             AEGIS
           </span>
         </div>
@@ -892,6 +961,7 @@ function AdminSidebarContent({ tab, setTab, onNavigate }) {
                 setTab(key);
                 onNavigate?.();
               }}
+              className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#10151C]"
               style={{
                 width: '100%',
                 display: 'flex',
@@ -952,16 +1022,19 @@ export default function AegisAdminDashboard() {
   const [users, setUsers] = useState([]);
   const [bots, setBots] = useState([]);
   const [mlModels, setMlModels] = useState([]);
+  const [kycSubmissions, setKycSubmissions] = useState([]);
 
   const [selectedUser, setSelectedUser] = useState(null);
   const [showAddBot, setShowAddBot] = useState(false);
   const [showAddModel, setShowAddModel] = useState(false);
+  const [rejectTarget, setRejectTarget] = useState(null);
 
   // Fetch data on component mount and when tab changes (if needed)
   useEffect(() => {
     fetchUsers();
     fetchBots();
     fetchMLModels();
+    fetchKycSubmissions();
   }, []);
 
   const sevTone = { high: 'red', med: 'primary', low: 'blue' };
@@ -977,6 +1050,9 @@ export default function AegisAdminDashboard() {
     review: 'blue',
     delivered: 'teal',
     bounced: 'red',
+    verified: 'teal',
+    rejected: 'red',
+    unverified: 'neutral',
   };
 
   // Fetch functions
@@ -1020,6 +1096,48 @@ export default function AegisAdminDashboard() {
     }
   };
 
+  const fetchKycSubmissions = async () => {
+    try {
+      const response = await fetch('/api/admin/kyc');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      setKycSubmissions(data);
+    } catch (error) {
+      console.error('Failed to fetch KYC submissions:', error);
+    }
+  };
+
+  const handleApproveKyc = async (id) => {
+    try {
+      const response = await fetch(`/api/admin/kyc/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'approve' }),
+      });
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      await fetchKycSubmissions();
+    } catch (error) {
+      console.error('Failed to approve KYC submission:', error);
+    }
+  };
+
+  const handleRejectKyc = async (id, reason) => {
+    try {
+      const response = await fetch(`/api/admin/kyc/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'reject', reason }),
+      });
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      await fetchKycSubmissions();
+      setRejectTarget(null);
+    } catch (error) {
+      console.error('Failed to reject KYC submission:', error);
+    }
+  };
+
   const handleSaveUser = async (updated) => {
     try {
       const response = await fetch(`/api/admin/users/${updated.id}`, {
@@ -1036,6 +1154,7 @@ export default function AegisAdminDashboard() {
           value: updated.value,
           wallet: updated.wallet,
           notes: updated.notes,
+          walletBalance: updated.walletBalance,
         })
       });
 
@@ -1121,6 +1240,7 @@ export default function AegisAdminDashboard() {
         ::-webkit-scrollbar-thumb { background: #232B36; border-radius: 4px; }
         tr:hover td { background: rgba(255,255,255,0.015); }
         tr.clickable:hover { cursor: pointer; }
+        tr.clickable:focus-visible { outline: 2px solid #1E63FF; outline-offset: -2px; }
         select option { background: #161D26; }
       `}</style>
 
@@ -1174,15 +1294,21 @@ export default function AegisAdminDashboard() {
           }}
         >
           <button
-            className="lg:hidden"
+            className="lg:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
             onClick={() => setMobileNavOpen(true)}
             aria-label="Open menu"
-            style={{ background: 'transparent', border: 'none', color: C.text, flexShrink: 0 }}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: C.text,
+              flexShrink: 0,
+              borderRadius: 4,
+            }}
           >
-            <LayoutDashboard size={18} />
+            <Menu size={18} />
           </button>
           <div
-            className="hidden sm:flex"
+            className="hidden sm:flex focus-within:ring-2 focus-within:ring-primary/50"
             style={{
               alignItems: 'center',
               gap: 8,
@@ -1197,7 +1323,7 @@ export default function AegisAdminDashboard() {
           >
             <Search size={14} color={C.textFaint} style={{ flexShrink: 0 }} />
             <input
-              placeholder="Search users, bots, vaults, reports…"
+              placeholder="Search users, signal flows, vaults, reports…"
               style={{
                 background: 'transparent',
                 border: 'none',
@@ -1243,6 +1369,16 @@ export default function AegisAdminDashboard() {
             />
           )}
           {tab === 'users' && <UsersTab {...{ users, statusTone, onSelect: setSelectedUser }} />}
+          {tab === 'kyc' && (
+            <KycTab
+              {...{
+                submissions: kycSubmissions,
+                statusTone,
+                onApprove: handleApproveKyc,
+                onReject: setRejectTarget,
+              }}
+            />
+          )}
           {tab === 'bots' && (
             <BotsTab {...{ bots, statusTone, onAddClick: () => setShowAddBot(true) }} />
           )}
@@ -1262,6 +1398,12 @@ export default function AegisAdminDashboard() {
           user={selectedUser}
           onClose={() => setSelectedUser(null)}
           onSave={handleSaveUser}
+        />
+      )}
+      {rejectTarget && (
+        <RejectKycModal
+          onClose={() => setRejectTarget(null)}
+          onReject={(reason) => handleRejectKyc(rejectTarget, reason)}
         />
       )}
       {showAddBot && <AddBotModal onClose={() => setShowAddBot(false)} onAdd={handleAddBot} />}
@@ -1290,7 +1432,7 @@ function OverviewTab({
         </p>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <KpiCard
           label="Monthly active users"
           value="14,650"
@@ -1317,7 +1459,7 @@ function OverviewTab({
         />
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Panel style={{ padding: 18, gridColumn: 'span 2' }}>
           <SectionLabel right={<Pill tone="primary">6-month trend</Pill>}>
             Monthly Active Users
@@ -1377,7 +1519,7 @@ function OverviewTab({
         </Panel>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Panel style={{ padding: 18 }}>
           <SectionLabel>Revenue by Stream</SectionLabel>
           <ResponsiveContainer width="100%" height={170}>
@@ -1490,19 +1632,33 @@ function UsersTab({ users, statusTone, onSelect }) {
             'Name',
             'Email',
             'Risk profile',
-            'Active bots',
+            'Active signal flows',
             'Portfolio value',
+            'Wallet balance',
             'Status',
             'Joined',
             '',
           ]}
           rows={users.map((u) => (
-            <tr key={u.id} className="clickable" onClick={() => onSelect(u)}>
+            <tr
+              key={u.id}
+              className="clickable"
+              onClick={() => onSelect(u)}
+              tabIndex={0}
+              role="button"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onSelect(u);
+                }
+              }}
+            >
               <Td style={{ fontWeight: 500 }}>{u.name}</Td>
               <Td style={{ color: C.textDim }}>{u.email}</Td>
               <Td>{u.risk}</Td>
               <Td style={{ ...mono }}>{u.bots}</Td>
               <Td style={{ ...mono }}>{u.value}</Td>
+              <Td style={{ ...mono }}>${Number(u.walletBalance || 0).toLocaleString()}</Td>
               <Td>
                 <Pill tone={statusTone[u.status]}>{u.status}</Pill>
               </Td>
@@ -1518,6 +1674,76 @@ function UsersTab({ users, statusTone, onSelect }) {
   );
 }
 
+const ID_TYPE_LABELS = {
+  passport: 'Passport',
+  drivers_license: "Driver's License",
+  national_id: 'National ID',
+};
+
+function KycTab({ submissions, statusTone, onApprove, onReject }) {
+  const pending = submissions.filter((s) => s.status === 'pending').length;
+  const verified = submissions.filter((s) => s.status === 'verified').length;
+  const rejected = submissions.filter((s) => s.status === 'rejected').length;
+
+  return (
+    <div className="flex flex-col gap-5">
+      <div>
+        <h1 style={{ ...display, fontSize: 20, fontWeight: 600 }}>Verification</h1>
+        <p style={{ color: C.textDim, fontSize: 12.5 }}>Review submitted identity verification applications.</p>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <KpiCard label="Pending review" value={pending} delta="Needs action" sub="" />
+        <KpiCard label="Verified" value={verified} delta="Approved" positive sub="" />
+        <KpiCard label="Rejected" value={rejected} delta="Declined" sub="" />
+      </div>
+      <Panel style={{ padding: 18 }}>
+        <DataTable
+          columns={['Name', 'Email', 'Country', 'ID Type', 'Submitted', 'Status', '']}
+          rows={submissions
+            .filter((s) => s.status !== 'unverified')
+            .map((s) => (
+              <tr key={s.id}>
+                <Td style={{ fontWeight: 500 }}>{s.fullName || s.name}</Td>
+                <Td style={{ color: C.textDim }}>{s.email}</Td>
+                <Td>{s.country || '—'}</Td>
+                <Td>{ID_TYPE_LABELS[s.idType] || '—'}</Td>
+                <Td style={{ color: C.textFaint }}>
+                  {s.submittedAt
+                    ? new Date(s.submittedAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                      })
+                    : '—'}
+                </Td>
+                <Td>
+                  <Pill tone={statusTone[s.status]}>{s.status}</Pill>
+                </Td>
+                <Td>
+                  {s.status === 'pending' && (
+                    <div className="flex items-center gap-2">
+                      <Button variant="primary" onClick={() => onApprove(s.id)}>
+                        Approve
+                      </Button>
+                      <Button variant="ghost" onClick={() => onReject(s.id)}>
+                        Reject
+                      </Button>
+                    </div>
+                  )}
+                </Td>
+              </tr>
+            ))}
+        />
+        {submissions.filter((s) => s.status !== 'unverified').length === 0 && (
+          <div style={{ ...body, color: C.textFaint, fontSize: 12.5, padding: '18px 0 4px' }}>
+            No verification applications submitted yet.
+          </div>
+        )}
+      </Panel>
+    </div>
+  );
+}
+
 function BotsTab({ bots, statusTone, onAddClick }) {
   const active = bots.filter((b) => b.status === 'running').length;
   const fallback = bots.filter((b) => b.status === 'fallback').length;
@@ -1526,13 +1752,13 @@ function BotsTab({ bots, statusTone, onAddClick }) {
   return (
     <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between">
-        <h1 style={{ ...display, fontSize: 20, fontWeight: 600 }}>Trading Bots</h1>
+        <h1 style={{ ...display, fontSize: 20, fontWeight: 600 }}>Signal Flows</h1>
         <Button variant="primary" icon={Plus} onClick={onAddClick}>
-          Add bot
+          Add signal flow
         </Button>
         </div>
-      <div className="grid grid-cols-3 gap-4">
-        <KpiCard label="Active bots" value={active} delta="+3" positive sub="today" />
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <KpiCard label="Active signal flows" value={active} delta="+3" positive sub="today" />
         <KpiCard
           label="In fallback mode"
           value={fallback}
@@ -1549,13 +1775,16 @@ function BotsTab({ bots, statusTone, onAddClick }) {
       </div>
       <Panel style={{ padding: 18 }}>
         <DataTable
-          columns={['Bot ID', 'Type', 'Pair', 'User', 'Confidence', 'Status', 'PnL']}
+          columns={['Signal Flow ID', 'Type', 'Pair', 'User', 'Allocated', 'Confidence', 'Status', 'PnL']}
           rows={bots.map((b) => (
             <tr key={b.id}>
               <Td style={{ ...mono, fontSize: 11.5 }}>{b.id}</Td>
               <Td>{b.type}</Td>
               <Td style={{ ...mono }}>{b.pair}</Td>
               <Td style={{ color: C.textDim }}>{b.user}</Td>
+              <Td style={{ ...mono }}>
+                {b.allocatedAmount != null ? `$${Number(b.allocatedAmount).toLocaleString()}` : '—'}
+              </Td>
               <Td
                 style={{
                   ...mono,
@@ -1633,7 +1862,7 @@ function ReportsTab({ reportStats, recentReports, statusTone }) {
   return (
     <div className="flex flex-col gap-5">
       <h1 style={{ ...display, fontSize: 20, fontWeight: 600 }}>Portfolio Reports</h1>
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {reportStats.map((r) => (
           <Panel key={r.k} style={{ padding: '16px 18px' }}>
             <div style={{ color: C.textDim, fontSize: 12, marginBottom: 8 }}>{r.k}</div>
@@ -1674,7 +1903,7 @@ function ModelsTab({ mlModels, onAddClick }) {
           Register model
         </Button>
       </div>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {mlModels.map((m) => (
           <Panel key={m.name} style={{ padding: 18 }}>
             <div className="flex items-center justify-between" style={{ marginBottom: 10 }}>
@@ -1716,7 +1945,7 @@ function RevenueTab({ mrrTrend, tierBreakdown }) {
   return (
     <div className="flex flex-col gap-5">
       <h1 style={{ ...display, fontSize: 20, fontWeight: 600 }}>Revenue</h1>
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <KpiCard label="MRR" value="$76,748" delta="+21.9%" positive sub="vs last month" />
         <KpiCard label="ARPU (Pro)" value="$29.00" delta="flat" sub="tier price" />
         <KpiCard label="Institutional accounts" value="14" delta="+2" positive sub="this quarter" />

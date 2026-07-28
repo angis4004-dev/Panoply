@@ -8,7 +8,7 @@ export function useAuth() {
     throw new Error('useAuth must be used within an AuthProvider');
   }
 
-  const { user, setUser } = context;
+  const { user, setUser, loading } = context;
 
   const signIn = async (email: string, password: string) => {
     const res = await fetch('/api/auth/signin', {
@@ -36,6 +36,7 @@ export function useAuth() {
   return {
     user,
     setUser,
+    loading,
     logout: context.logout,
     signIn,
     signInDemo,

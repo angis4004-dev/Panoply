@@ -7,6 +7,7 @@ export interface AuthUser {
   email: string;
   role: UserRole;
   name: string;
+  kycStatus?: 'unverified' | 'pending' | 'verified' | 'rejected';
 }
 
 interface AuthContextValue {

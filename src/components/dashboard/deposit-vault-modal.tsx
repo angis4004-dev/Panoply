@@ -48,7 +48,7 @@ export function DepositVaultModal({ vaultId, vaultName, apy, onClose }: DepositV
           <button
             type="button"
             onClick={onClose}
-            className="text-[#8B95A5] hover:text-white transition-colors"
+            className="rounded text-[#8B95A5] hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0D131C]"
             aria-label="Close"
           >
             <X className="h-4 w-4" />
@@ -76,7 +76,7 @@ export function DepositVaultModal({ vaultId, vaultName, apy, onClose }: DepositV
           <button
             type="submit"
             disabled={submitting}
-            className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-[#F2F5FA] hover:bg-[#3D77FF] disabled:opacity-50 transition-colors"
+            className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-[#F2F5FA] hover:bg-[#3D77FF] disabled:opacity-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0D131C]"
           >
             {submitting ? 'Depositing...' : 'Deposit'}
           </button>

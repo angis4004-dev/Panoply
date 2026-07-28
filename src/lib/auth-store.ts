@@ -199,7 +199,7 @@ export async function signInUser(payload: LoginPayload) {
         throw new Error('Invalid credentials.');
       }
 
-      const { _id, email, name, role, createdAt } = userRecord.toObject();
+      const { _id, email, name, role, createdAt, kycStatus } = userRecord.toObject();
       return {
         user: {
           id: _id.toString(),
@@ -207,6 +207,7 @@ export async function signInUser(payload: LoginPayload) {
           name,
           role,
           createdAt,
+          kycStatus: kycStatus || 'unverified',
         },
         // Token is kept for API compatibility but not used for authentication
         token: '',

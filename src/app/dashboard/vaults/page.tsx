@@ -1,10 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Shield, TrendingUp } from 'lucide-react';
 import { PageHeader } from '@/components/dashboard/page-header';
 import { DepositVaultModal } from '@/components/dashboard/deposit-vault-modal';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { useAppStore } from '@/store/app-store';
+import { useAuth } from '@/hooks/use-auth';
 
 interface VaultCatalogEntry {
   id: string;
@@ -18,6 +21,8 @@ interface VaultCatalogEntry {
 
 export default function VaultsPage() {
   const { vaultInvestments, vaultInvestmentsLoading, addToast } = useAppStore();
+  const { user } = useAuth();
+  const isVerified = user?.kycStatus === 'verified';
   const [vaults, setVaults] = useState<VaultCatalogEntry[]>([]);
   const [catalogLoading, setCatalogLoading] = useState(true);
   const [depositTarget, setDepositTarget] = useState<VaultCatalogEntry | null>(null);
@@ -39,8 +44,48 @@ export default function VaultsPage() {
         description="Invest in tokenized strategies with transparent performance tracking."
       />
 
+      {!isVerified && (
+        <div className="mb-6 flex items-center justify-between gap-3 rounded-lg border border-primary/20 bg-primary/5 px-4 py-2.5">
+          <p className="text-xs font-medium text-primary">
+            Complete identity verification to unlock vault deposits.
+          </p>
+          <Link
+            href="/dashboard/kyc"
+            className="shrink-0 rounded text-xs font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+          >
+            Verify now
+          </Link>
+        </div>
+      )}
+
       {loading ? (
-        <p className="text-sm text-[#8B95A5]">Loading vaults...</p>
+        <div className="space-y-3">
+          {[...Array(4)].map((_, i) => (
+            <div
+              key={i}
+              className="flex flex-col gap-4 rounded-xl border border-[#212A35] bg-[#122131]/50 p-5 sm:flex-row sm:items-center sm:justify-between"
+            >
+              <div className="flex items-center gap-4">
+                <Skeleton className="h-11 w-11 rounded-lg" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-3 w-24" />
+                </div>
+              </div>
+              <div className="flex items-center gap-6 sm:gap-10">
+                <div className="space-y-2">
+                  <Skeleton className="h-3 w-8" />
+                  <Skeleton className="h-5 w-12" />
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-3 w-16" />
+                  <Skeleton className="h-5 w-14" />
+                </div>
+                <Skeleton className="h-9 w-24 rounded-lg" />
+              </div>
+            </div>
+          ))}
+        </div>
       ) : vaults.length === 0 ? (
         <div className="rounded-xl border border-[#212A35] bg-[#122131]/50 p-10 text-center">
           <Shield className="mx-auto mb-3 h-8 w-8 text-[#4b5563]" />
@@ -88,9 +133,16 @@ export default function VaultsPage() {
                         );
                         return;
                       }
+                      if (!isVerified) {
+                        addToast(
+                          'Complete identity verification before depositing into a vault.',
+                          'info'
+                        );
+                        return;
+                      }
                       setDepositTarget(vault);
                     }}
-                    className="rounded-lg border border-primary/40 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 transition-colors"
+                    className="rounded-lg border border-primary/40 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
                   >
                     {investment ? 'Manage' : 'Deposit'}
                   </button>

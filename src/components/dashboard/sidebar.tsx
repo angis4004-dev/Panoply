@@ -9,6 +9,7 @@ import {
   List,
   LogOut,
   Settings,
+  ShieldCheck,
   SlidersHorizontal,
   Vault,
   Zap,
@@ -19,13 +20,20 @@ import { AegisMark } from '@/components/ui/AegisLogo';
 const navItems = [
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard, exact: true },
   { href: '/dashboard/ai', label: 'AI Center', icon: Brain },
-  { href: '/dashboard/bots', label: 'Trading Bots', icon: Bot },
+  { href: '/dashboard/bots', label: 'Signal Flows', icon: Bot },
   { href: '/dashboard/vaults', label: 'Vaults', icon: Vault },
   { href: '/dashboard/yield', label: 'Yield', icon: Zap },
   { href: '/dashboard/builder', label: 'Portfolio Builder', icon: SlidersHorizontal },
   { href: '/dashboard/history', label: 'Report History', icon: List },
+  { href: '/dashboard/kyc', label: 'Verification', icon: ShieldCheck },
   { href: '/dashboard/settings', label: 'Settings', icon: Settings },
 ];
+
+const KYC_DOT_STYLES: Record<string, string> = {
+  unverified: 'bg-[#8B95A5]',
+  pending: 'bg-primary',
+  rejected: 'bg-red-400',
+};
 
 interface DashboardSidebarProps {
   onNavigate?: () => void;
@@ -33,7 +41,8 @@ interface DashboardSidebarProps {
 
 export default function DashboardSidebar({ onNavigate }: DashboardSidebarProps) {
   const pathname = usePathname();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
+  const kycDotClass = user?.kycStatus ? KYC_DOT_STYLES[user.kycStatus] : undefined;
 
   const isActive = (href: string, exact?: boolean) =>
     exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
@@ -46,7 +55,7 @@ export default function DashboardSidebar({ onNavigate }: DashboardSidebarProps) 
           <Link
             href="/"
             onClick={onNavigate}
-            className="text-base font-bold text-white tracking-wide"
+            className="rounded font-wordmark text-base font-extrabold uppercase tracking-[0.12em] text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#10151C]"
           >
             AEGIS
           </Link>
@@ -62,14 +71,17 @@ export default function DashboardSidebar({ onNavigate }: DashboardSidebarProps) 
               key={href}
               href={href}
               onClick={onNavigate}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#10151C] ${
                 active
                   ? 'bg-primary/12 text-primary border-l-2 border-primary pl-[10px]'
                   : 'text-[#8B95A5] hover:bg-[#17202e] hover:text-[#E7ECF2] border-l-2 border-transparent pl-[10px]'
               }`}
             >
               <Icon className="h-4 w-4 shrink-0" />
-              {label}
+              <span className="flex-1">{label}</span>
+              {href === '/dashboard/kyc' && kycDotClass && (
+                <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${kycDotClass}`} />
+              )}
             </Link>
           );
         })}
@@ -81,7 +93,7 @@ export default function DashboardSidebar({ onNavigate }: DashboardSidebarProps) 
             logout();
             window.location.href = '/sign-up-login-screen';
           }}
-          className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm text-[#8B95A5] hover:bg-[#17202e] hover:text-[#E7ECF2] transition-colors"
+          className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm text-[#8B95A5] hover:bg-[#17202e] hover:text-[#E7ECF2] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#10151C]"
         >
           <LogOut className="h-4 w-4" />
           Sign Out
