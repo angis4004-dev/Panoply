@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongo';
-import { TradingBotModel } from '@/lib/models';
+import { TradingBotModel, getUserModel } from '@/lib/models';
 import { getSessionFromRequest } from '@/lib/session';
 import { getCoinPrices } from '@/lib/coingecko';
 import { resolveBaseCoinId } from '@/lib/coin-symbols';
@@ -46,6 +46,7 @@ export async function GET(request: NextRequest) {
         confidence: bot.confidence,
         status: bot.status,
         pnl,
+        allocatedAmount: bot.allocatedAmount ?? null,
       };
     });
 
@@ -69,11 +70,19 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     // Validate required fields
-    const requiredFields = ['type', 'pair', 'confidence', 'status'];
+    const requiredFields = ['type', 'pair', 'confidence', 'status', 'allocatedAmount'];
     for (const field of requiredFields) {
       if (!(field in body)) {
         return NextResponse.json({ error: `Missing required field: ${field}` }, { status: 400 });
       }
+    }
+
+    const allocatedAmount = Number(body.allocatedAmount);
+    if (!Number.isFinite(allocatedAmount) || allocatedAmount <= 0) {
+      return NextResponse.json(
+        { error: 'allocatedAmount must be a positive number' },
+        { status: 400 }
+      );
     }
 
     // Validate enum values
@@ -106,43 +115,68 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Database connection unavailable' }, { status: 503 });
     }
 
-    // Resolve the base asset to a live CoinGecko price so P&L can be tracked
-    // against real market movement from this point forward. Pairs we don't
-    // recognize fall back to the static placeholder pnl.
-    const pair = body.pair.toUpperCase();
-    const coinId = resolveBaseCoinId(pair);
-    let entryPrice: number | null = null;
-    if (coinId) {
-      const prices = await getCoinPrices([coinId]);
-      entryPrice = prices[coinId]?.usd || null;
+    // Atomically debit the wallet balance, guarded by $gte so concurrent
+    // requests can't over-allocate more capital than is actually available.
+    const userModel = await getUserModel();
+    if (!userModel) {
+      return NextResponse.json({ error: 'Database connection unavailable' }, { status: 503 });
+    }
+    const debited = await userModel.findOneAndUpdate(
+      { _id: userId, walletBalance: { $gte: allocatedAmount } },
+      { $inc: { walletBalance: -allocatedAmount } }
+    );
+    if (!debited) {
+      return NextResponse.json(
+        { error: 'Insufficient wallet balance. Deposit more funds before allocating capital.' },
+        { status: 400 }
+      );
     }
 
-    // Create new bot for the user
-    const newBot = new TradingBotModel({
-      type: body.type,
-      pair, // Ensure pair is uppercase
-      userId, // Reference to the User
-      confidence: body.confidence,
-      status: body.status,
-      pnl: body.pnl || '+0.0%',
-      coinId: entryPrice ? coinId : null,
-      entryPrice,
-    });
+    try {
+      // Resolve the base asset to a live CoinGecko price so P&L can be tracked
+      // against real market movement from this point forward. Pairs we don't
+      // recognize fall back to the static placeholder pnl.
+      const pair = body.pair.toUpperCase();
+      const coinId = resolveBaseCoinId(pair);
+      let entryPrice: number | null = null;
+      if (coinId) {
+        const prices = await getCoinPrices([coinId]);
+        entryPrice = prices[coinId]?.usd || null;
+      }
 
-    const savedBot = await newBot.save();
+      // Create new bot for the user
+      const newBot = new TradingBotModel({
+        type: body.type,
+        pair, // Ensure pair is uppercase
+        userId, // Reference to the User
+        confidence: body.confidence,
+        status: body.status,
+        pnl: body.pnl || '+0.0%',
+        coinId: entryPrice ? coinId : null,
+        entryPrice,
+        allocatedAmount,
+      });
 
-    // Return the created bot in frontend format
-    return NextResponse.json(
-      {
-        id: savedBot._id.toString(),
-        type: savedBot.type,
-        pair: savedBot.pair,
-        confidence: savedBot.confidence,
-        status: savedBot.status,
-        pnl: savedBot.pnl || '+0.0%',
-      },
-      { status: 201 }
-    );
+      const savedBot = await newBot.save();
+
+      // Return the created bot in frontend format
+      return NextResponse.json(
+        {
+          id: savedBot._id.toString(),
+          type: savedBot.type,
+          pair: savedBot.pair,
+          confidence: savedBot.confidence,
+          status: savedBot.status,
+          pnl: savedBot.pnl || '+0.0%',
+          allocatedAmount: savedBot.allocatedAmount,
+        },
+        { status: 201 }
+      );
+    } catch (creationError) {
+      // The wallet was already debited - refund it since no bot was created.
+      await userModel.findByIdAndUpdate(userId, { $inc: { walletBalance: allocatedAmount } });
+      throw creationError;
+    }
   } catch (error) {
     console.error('Error creating bot:', error);
     return NextResponse.json({ error: 'Failed to create bot' }, { status: 500 });

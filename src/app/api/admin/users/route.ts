@@ -33,6 +33,7 @@ export async function GET(request: NextRequest) {
         : 'Unknown',
       wallet: user.walletAddress || '',
       notes: user.notes || '',
+      walletBalance: user.walletBalance || 0,
     }));
 
     return NextResponse.json(formattedUsers);

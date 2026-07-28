@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongo';
-import { TradingBotModel } from '@/lib/models';
+import { TradingBotModel, getUserModel } from '@/lib/models';
 import { getSessionFromRequest } from '@/lib/session';
 
 // PATCH /api/bots/[id] - Update a bot the logged-in user owns (e.g. toggle status)
@@ -58,6 +58,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       confidence: bot.confidence,
       status: bot.status,
       pnl: bot.pnl || '+0.0%',
+      allocatedAmount: bot.allocatedAmount ?? null,
     });
   } catch (error) {
     console.error('Error updating bot:', error);
@@ -93,6 +94,17 @@ export async function DELETE(
     }
 
     await bot.deleteOne();
+
+    // Refund the allocated capital to the bot owner's wallet balance now that
+    // it's no longer tied up in this signal flow.
+    if (bot.allocatedAmount) {
+      const userModel = await getUserModel();
+      if (userModel) {
+        await userModel.findByIdAndUpdate(bot.userId, {
+          $inc: { walletBalance: bot.allocatedAmount },
+        });
+      }
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

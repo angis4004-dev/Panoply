@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { useAuth, type AuthUser } from '@/context/AuthContext';
 
 export interface Bot {
@@ -10,13 +11,8 @@ export interface Bot {
   confidence: number;
   status: string;
   pnl: string;
+  allocatedAmount?: number | null;
   active?: boolean;
-}
-
-export interface Toast {
-  id: number;
-  message: string;
-  type: string;
 }
 
 export interface Report {
@@ -50,10 +46,11 @@ interface AppStoreState {
   botModalOpen: boolean;
   bots: Bot[];
   botsLoading: boolean;
-  toasts: Toast[];
   reports: Report[];
   vaultInvestments: VaultInvestment[];
   vaultInvestmentsLoading: boolean;
+  walletBalance: number;
+  walletBalanceLoading: boolean;
   tab: string;
   reportsLoading: boolean;
 }
@@ -63,6 +60,7 @@ export interface NewBotInput {
   pair: string;
   confidence: number;
   status: string;
+  allocatedAmount: number;
 }
 
 interface AppStoreActions {
@@ -74,10 +72,11 @@ interface AppStoreActions {
   addReport: (report: Partial<Report>) => Promise<Report>;
   toggleBot: (botId: string) => Promise<void>;
   deleteBot: (botId: string) => Promise<void>;
-  removeToast: (toastId: number) => void;
   fetchReports: () => Promise<void>;
   fetchVaultInvestments: () => Promise<void>;
   addVaultInvestment: (vaultId: string, amount: number) => Promise<void>;
+  fetchWalletBalance: () => Promise<void>;
+  depositToWallet: (amount: number) => Promise<void>;
 }
 
 type AppStoreContextType = AppStoreState & AppStoreActions;
@@ -90,10 +89,11 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     botModalOpen: false,
     bots: [],
     botsLoading: false,
-    toasts: [],
     reports: [],
     vaultInvestments: [],
     vaultInvestmentsLoading: false,
+    walletBalance: 0,
+    walletBalanceLoading: false,
     tab: 'dashboard',
     reportsLoading: false,
   });
@@ -222,12 +222,50 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     await fetchVaultInvestments();
   };
 
+  const fetchWalletBalance = async () => {
+    setState((prev) => ({ ...prev, walletBalanceLoading: true }));
+    try {
+      const response = await fetch('/api/wallet');
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          setState((prev) => ({ ...prev, walletBalance: 0, walletBalanceLoading: false }));
+          return;
+        }
+        throw new Error(`Failed to fetch wallet balance: ${response.status}`);
+      }
+
+      const data: { balance: number } = await response.json();
+      setState((prev) => ({ ...prev, walletBalance: data.balance, walletBalanceLoading: false }));
+    } catch (err) {
+      console.error('Error fetching wallet balance:', err);
+      setState((prev) => ({ ...prev, walletBalance: 0, walletBalanceLoading: false }));
+    }
+  };
+
+  const depositToWallet = async (amount: number): Promise<void> => {
+    const response = await fetch('/api/wallet', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount }),
+    });
+
+    if (!response.ok) {
+      const payload = await response.json().catch(() => ({}));
+      throw new Error(payload.error || `Failed to deposit: ${response.status}`);
+    }
+
+    const data: { balance: number } = await response.json();
+    setState((prev) => ({ ...prev, walletBalance: data.balance }));
+  };
+
   useEffect(() => {
-    // Fetch reports, bots, and vault investments when user changes
+    // Fetch reports, bots, vault investments, and wallet balance when user changes
     if (user) {
       fetchReports();
       fetchBots();
       fetchVaultInvestments();
+      fetchWalletBalance();
     }
   }, [user]);
 
@@ -249,12 +287,15 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
 
     const newBot: Bot = await response.json();
     setState((prev) => ({ ...prev, bots: [...prev.bots, newBot] }));
+    // Creating a bot debits the wallet balance server-side - refresh it here
+    // rather than computing the new value client-side.
+    await fetchWalletBalance();
     return newBot;
   };
 
   const addToast = (message: string, type: string = 'info') => {
-    const id = Date.now() + Math.random();
-    setState((prev) => ({ ...prev, toasts: [...prev.toasts, { id, message, type }] }));
+    const toastFn = type === 'success' || type === 'error' ? toast[type] : toast;
+    toastFn(message);
   };
 
   const setTab = (tab: string) => {
@@ -297,13 +338,9 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       ...prev,
       bots: prev.bots.filter((bot) => bot.id !== botId),
     }));
-  };
-
-  const removeToast = (toastId: number) => {
-    setState((prev) => ({
-      ...prev,
-      toasts: prev.toasts.filter((t) => t.id !== toastId),
-    }));
+    // Deleting a bot refunds its allocated capital server-side - refresh the
+    // wallet balance to reflect that.
+    await fetchWalletBalance();
   };
 
   const storeValue: AppStoreContextType = {
@@ -316,10 +353,11 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     addReport: addReport, // Reference to the async function defined above
     toggleBot,
     deleteBot,
-    removeToast,
     fetchReports,
     fetchVaultInvestments,
     addVaultInvestment,
+    fetchWalletBalance,
+    depositToWallet,
   };
 
   return <AppStoreContext.Provider value={storeValue}>{children}</AppStoreContext.Provider>;

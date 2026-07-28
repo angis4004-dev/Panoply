@@ -1,12 +1,28 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { ArrowUpRight, Bot as BotIcon, TrendingUp, Vault } from 'lucide-react';
+import { ArrowUpRight, Bot as BotIcon, Vault } from 'lucide-react';
 import MetricsBentoGrid from '@/app/dashboard/components/MetricsBentoGrid';
-import PnLAreaChart from '@/app/dashboard/components/PnLAreaChart';
 import { PageHeader } from '@/components/dashboard/page-header';
+import { DepositWalletModal } from '@/components/dashboard/deposit-wallet-modal';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { useAppStore } from '@/store/app-store';
+import { useAuth } from '@/hooks/use-auth';
+
+// Recharts pulls in a meaningful amount of JS - load it only once this chart
+// is actually needed rather than blocking the rest of the dashboard's paint.
+const PnLAreaChart = dynamic(() => import('@/app/dashboard/components/PnLAreaChart'), {
+  ssr: false,
+  loading: () => (
+    <div className="bg-[#122131] border border-[#212A35] rounded-2xl p-5 h-[289px]">
+      <Skeleton className="h-4 w-32 mb-2" />
+      <Skeleton className="h-3 w-24 mb-6" />
+      <Skeleton className="h-[190px] w-full" />
+    </div>
+  ),
+});
 
 interface TopYield {
   id: string;
@@ -18,9 +34,12 @@ interface TopYield {
 const YIELD_COLORS = ['#2EBAC6', '#FF6B35', '#1E63FF'];
 
 export default function DashboardPage() {
-  const { bots, botsLoading } = useAppStore();
+  const { bots, botsLoading, walletBalance, addToast } = useAppStore();
+  const { user } = useAuth();
+  const isVerified = user?.kycStatus === 'verified';
   const [topYields, setTopYields] = useState<TopYield[]>([]);
   const [yieldsLoading, setYieldsLoading] = useState(true);
+  const [depositOpen, setDepositOpen] = useState(false);
 
   useEffect(() => {
     fetch('/api/yield')
@@ -34,7 +53,7 @@ export default function DashboardPage() {
     <div className="p-4 sm:p-6 lg:p-8">
       <PageHeader
         title="Portfolio Overview"
-        description="Your AI-managed DeFi command center — bots, vaults, and yield in one view."
+        description="Your AI-managed DeFi command center — signal flows, vaults, and yield in one view."
       />
 
       {/* Dry-run strip */}
@@ -50,37 +69,64 @@ export default function DashboardPage() {
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="text-xs font-medium uppercase tracking-wider text-[#8B95A5]">
-              Total Balance
+              Wallet Balance
             </p>
             <div className="mt-1 flex flex-wrap items-baseline gap-3">
               <span className="font-mono text-4xl font-bold tabular-nums text-white sm:text-5xl">
-                $84,230.15
-              </span>
-              <span className="inline-flex items-center gap-1 rounded-full bg-green-400/10 px-2.5 py-0.5 text-sm font-semibold text-green-400">
-                <TrendingUp className="h-3.5 w-3.5" />
-                +4.2%
+                $
+                {walletBalance.toLocaleString('en-US', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </span>
             </div>
-            <p className="mt-2 text-sm text-[#8B95A5]">+$3,412.40 this week · 3 bots active</p>
+            <p className="mt-2 text-sm text-[#8B95A5]">
+              {bots.length} signal flow{bots.length === 1 ? '' : 's'} active
+            </p>
           </div>
           <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => {
+                if (!isVerified) {
+                  addToast('Complete identity verification before depositing funds.', 'info');
+                  return;
+                }
+                setDepositOpen(true);
+              }}
+              className="inline-flex items-center gap-2 rounded-lg border border-[#212A35] px-4 py-2 text-sm font-medium text-[#E7ECF2] hover:border-primary/40 hover:bg-[#17202e] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+            >
+              Deposit
+            </button>
             <Link
               href="/dashboard/bots"
-              className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-[#F2F5FA] hover:bg-[#3D77FF] transition-colors"
+              className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-[#F2F5FA] hover:bg-[#3D77FF] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
             >
               <BotIcon className="h-4 w-4" />
-              Create Bot
+              Create Signal Flow
             </Link>
             <Link
               href="/dashboard/builder"
-              className="inline-flex items-center gap-2 rounded-lg border border-[#212A35] px-4 py-2 text-sm font-medium text-[#E7ECF2] hover:border-primary/40 hover:bg-[#17202e] transition-colors"
+              className="inline-flex items-center gap-2 rounded-lg border border-[#212A35] px-4 py-2 text-sm font-medium text-[#E7ECF2] hover:border-primary/40 hover:bg-[#17202e] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
             >
               Run Builder
               <ArrowUpRight className="h-3.5 w-3.5" />
             </Link>
           </div>
         </div>
+        {!isVerified && (
+          <p className="mt-4 text-xs text-[#8B95A5]">
+            <Link
+              href="/dashboard/kyc"
+              className="rounded text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+            >
+              Complete identity verification
+            </Link>{' '}
+            to deposit funds and allocate capital to signal flows.
+          </p>
+        )}
       </section>
+
+      {depositOpen && <DepositWalletModal onClose={() => setDepositOpen(false)} />}
 
       {/* Live metrics bento */}
       <MetricsBentoGrid />
@@ -91,24 +137,37 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Active bots */}
+        {/* Active signal flows */}
         <section>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-white">Active Bots</h2>
+            <h2 className="text-lg font-semibold text-white">Active Signal Flows</h2>
             <Link
               href="/dashboard/bots"
-              className="text-xs font-medium text-primary hover:underline"
+              className="rounded text-xs font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
             >
               View all
             </Link>
           </div>
           <div className="space-y-3">
             {botsLoading ? (
-              <p className="text-sm text-[#8B95A5]">Loading bots...</p>
+              [...Array(2)].map((_, i) => (
+                <div key={i} className="rounded-xl border border-[#212A35] bg-[#122131]/50 p-4">
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="h-9 w-9 rounded-lg" />
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-20" />
+                      <Skeleton className="h-3 w-16" />
+                    </div>
+                  </div>
+                </div>
+              ))
             ) : bots.length === 0 ? (
               <p className="text-sm text-[#8B95A5]">
-                No bots deployed yet.{' '}
-                <Link href="/dashboard/bots" className="text-primary hover:underline">
+                No signal flows deployed yet.{' '}
+                <Link
+                  href="/dashboard/bots"
+                  className="rounded text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+                >
                   Create one
                 </Link>
                 .
@@ -142,6 +201,14 @@ export default function DashboardPage() {
                         {bot.pnl}
                       </p>
                     </div>
+                    <div>
+                      <p className="text-[#8B95A5]">Allocated</p>
+                      <p className="font-mono font-semibold text-white">
+                        {bot.allocatedAmount != null
+                          ? `$${bot.allocatedAmount.toLocaleString()}`
+                          : '—'}
+                      </p>
+                    </div>
                     <div className="text-right">
                       <p className="text-[#8B95A5]">Confidence</p>
                       <p className="font-mono font-semibold text-white">{bot.confidence}%</p>
@@ -159,14 +226,28 @@ export default function DashboardPage() {
             <h2 className="text-lg font-semibold text-white">Top Yields</h2>
             <Link
               href="/dashboard/yield"
-              className="text-xs font-medium text-primary hover:underline"
+              className="rounded text-xs font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
             >
               Explore all
             </Link>
           </div>
           <div className="space-y-3">
             {yieldsLoading ? (
-              <p className="text-sm text-[#8B95A5]">Loading yields...</p>
+              [...Array(2)].map((_, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between rounded-xl border border-[#212A35] bg-[#122131]/50 p-4"
+                >
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-20" />
+                      <Skeleton className="h-3 w-14" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-5 w-10" />
+                </div>
+              ))
             ) : topYields.length === 0 ? (
               <p className="text-sm text-[#8B95A5]">No yield opportunities available yet.</p>
             ) : (

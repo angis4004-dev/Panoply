@@ -36,6 +36,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       portfolioValue: 'portfolioValue',
       walletAddress: 'walletAddress',
       notes: 'notes',
+      walletBalance: 'walletBalance',
     };
 
     // Filter updates to only allowed fields
@@ -75,6 +76,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         : 'Unknown',
       wallet: updatedUser.walletAddress || '',
       notes: updatedUser.notes || '',
+      walletBalance: updatedUser.walletBalance || 0,
     };
 
     return NextResponse.json(formattedUser);

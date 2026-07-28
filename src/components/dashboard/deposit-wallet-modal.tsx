@@ -1,0 +1,81 @@
+'use client';
+
+import { useState } from 'react';
+import { X } from 'lucide-react';
+import { useAppStore } from '@/store/app-store';
+
+interface DepositWalletModalProps {
+  onClose: () => void;
+}
+
+export function DepositWalletModal({ onClose }: DepositWalletModalProps) {
+  const { depositToWallet, addToast } = useAppStore();
+  const [amount, setAmount] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const parsed = Number(amount);
+    if (!amount || parsed <= 0) {
+      setError('Enter an amount greater than 0');
+      return;
+    }
+
+    setSubmitting(true);
+    setError(null);
+    try {
+      await depositToWallet(parsed);
+      addToast(`Deposited $${parsed.toLocaleString()} to your wallet`, 'success');
+      onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to deposit');
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="w-full max-w-sm rounded-xl border border-[#212A35] bg-[#0D131C] p-6">
+        <div className="mb-5 flex items-center justify-between">
+          <h2 className="text-lg font-bold text-white">Deposit funds</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded text-[#8B95A5] hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0D131C]"
+            aria-label="Close"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 uppercase tracking-wide">
+              Amount (USD)
+            </label>
+            <input
+              type="number"
+              min={0}
+              step="0.01"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="1000"
+              className="w-full rounded-lg border border-[#212A35] bg-[#122131] px-3 py-2.5 text-sm text-white placeholder-[#4b5563] focus:outline-none focus:ring-2 focus:ring-primary/50"
+            />
+          </div>
+
+          {error && <p className="text-xs text-red-400">{error}</p>}
+
+          <button
+            type="submit"
+            disabled={submitting}
+            className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-[#F2F5FA] hover:bg-[#3D77FF] disabled:opacity-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0D131C]"
+          >
+            {submitting ? 'Depositing...' : 'Deposit'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}

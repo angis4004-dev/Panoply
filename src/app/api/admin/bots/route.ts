@@ -34,6 +34,7 @@ export async function GET(request: NextRequest) {
       confidence: bot.confidence,
       status: bot.status,
       pnl: bot.pnl || '+0.0%',
+      allocatedAmount: bot.allocatedAmount ?? null,
     }));
 
     return NextResponse.json(formattedBots);

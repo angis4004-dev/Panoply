@@ -11,10 +11,11 @@ interface CreateBotModalProps {
 }
 
 export function CreateBotModal({ onClose }: CreateBotModalProps) {
-  const { addBot, addToast } = useAppStore();
+  const { addBot, addToast, walletBalance } = useAppStore();
   const [type, setType] = useState<(typeof BOT_TYPES)[number]>('Grid');
   const [pair, setPair] = useState('');
   const [confidence, setConfidence] = useState(70);
+  const [allocatedAmount, setAllocatedAmount] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,14 +26,32 @@ export function CreateBotModal({ onClose }: CreateBotModalProps) {
       return;
     }
 
+    const amount = Number(allocatedAmount);
+    if (!allocatedAmount || !Number.isFinite(amount) || amount <= 0) {
+      setError('Enter an amount of capital to allocate');
+      return;
+    }
+    if (amount > walletBalance) {
+      setError(
+        `Insufficient wallet balance — available: $${walletBalance.toLocaleString()}. Deposit more funds first.`
+      );
+      return;
+    }
+
     setSubmitting(true);
     setError(null);
     try {
-      await addBot({ type, pair: pair.trim(), confidence, status: 'running' });
-      addToast('Bot created', 'success');
+      await addBot({
+        type,
+        pair: pair.trim(),
+        confidence,
+        status: 'running',
+        allocatedAmount: amount,
+      });
+      addToast('Signal flow created', 'success');
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create bot');
+      setError(err instanceof Error ? err.message : 'Failed to create signal flow');
       setSubmitting(false);
     }
   };
@@ -41,11 +60,11 @@ export function CreateBotModal({ onClose }: CreateBotModalProps) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <div className="w-full max-w-sm rounded-xl border border-[#212A35] bg-[#0D131C] p-6">
         <div className="mb-5 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-white">New Bot</h2>
+          <h2 className="text-lg font-bold text-white">New Signal Flow</h2>
           <button
             type="button"
             onClick={onClose}
-            className="text-[#8B95A5] hover:text-white transition-colors"
+            className="rounded text-[#8B95A5] hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0D131C]"
             aria-label="Close"
           >
             <X className="h-4 w-4" />
@@ -85,6 +104,21 @@ export function CreateBotModal({ onClose }: CreateBotModalProps) {
 
           <div>
             <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 uppercase tracking-wide">
+              Allocated capital (USD) — available: ${walletBalance.toLocaleString()}
+            </label>
+            <input
+              type="number"
+              min={0}
+              step="0.01"
+              value={allocatedAmount}
+              onChange={(e) => setAllocatedAmount(e.target.value)}
+              placeholder="1000"
+              className="w-full rounded-lg border border-[#212A35] bg-[#122131] px-3 py-2.5 text-sm text-white placeholder-[#4b5563] focus:outline-none focus:ring-2 focus:ring-primary/50"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 uppercase tracking-wide">
               Confidence threshold — {confidence}%
             </label>
             <input
@@ -93,7 +127,7 @@ export function CreateBotModal({ onClose }: CreateBotModalProps) {
               max={100}
               value={confidence}
               onChange={(e) => setConfidence(Number(e.target.value))}
-              className="w-full accent-primary"
+              className="w-full accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
             />
           </div>
 
@@ -102,9 +136,9 @@ export function CreateBotModal({ onClose }: CreateBotModalProps) {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-[#F2F5FA] hover:bg-[#3D77FF] disabled:opacity-50 transition-colors"
+            className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-[#F2F5FA] hover:bg-[#3D77FF] disabled:opacity-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0D131C]"
           >
-            {submitting ? 'Creating...' : 'Create Bot'}
+            {submitting ? 'Creating...' : 'Create Signal Flow'}
           </button>
         </form>
       </div>
