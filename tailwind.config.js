@@ -11,6 +11,7 @@ module.exports = {
         sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
         display: ['var(--font-sans)', 'system-ui', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
+        wordmark: ['var(--font-wordmark)', 'var(--font-sans)', 'sans-serif'],
       },
       colors: {
         border: '#212A35',

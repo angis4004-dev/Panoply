@@ -19,14 +19,19 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
       <div className="flex items-center gap-3">
         <button
           onClick={onMenuClick}
-          className="rounded-lg p-2 text-[#8B95A5] hover:bg-[#17202e] hover:text-[#E7ECF2] lg:hidden"
+          className="rounded-lg p-2 text-[#8B95A5] hover:bg-[#17202e] hover:text-[#E7ECF2] lg:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
           aria-label="Open menu"
         >
           <Menu className="h-5 w-5" />
         </button>
-        <Link href="/" className="flex items-center gap-2 lg:hidden">
+        <Link
+          href="/"
+          className="flex items-center gap-2 rounded lg:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+        >
           <AegisMark size={20} />
-          <span className="font-semibold text-white tracking-wide">AEGIS</span>
+          <span className="font-wordmark font-extrabold uppercase tracking-[0.12em] text-white">
+            AEGIS
+          </span>
         </Link>
         <div className="hidden items-center gap-2 sm:flex">
           <span className="relative flex h-2 w-2">
@@ -39,7 +44,7 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
 
       <div className="flex items-center gap-3">
         <button
-          className="relative rounded-lg p-2 text-[#8B95A5] hover:bg-[#17202e] hover:text-[#E7ECF2] transition-colors"
+          className="relative rounded-lg p-2 text-[#8B95A5] hover:bg-[#17202e] hover:text-[#E7ECF2] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
           aria-label="Notifications"
         >
           <Bell className="h-4 w-4" />
@@ -58,7 +63,7 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
         ) : (
           <Link
             href="/sign-up-login-screen"
-            className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-[#F2F5FA] hover:bg-[#3D77FF] transition-colors"
+            className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-[#F2F5FA] hover:bg-[#3D77FF] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
           >
             Sign In
           </Link>

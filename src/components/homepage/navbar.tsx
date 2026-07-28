@@ -14,7 +14,7 @@ export function Navbar() {
 
   const navLinks = [
     { href: '/', label: 'Home' },
-    { href: '#bots', label: 'Bots' },
+    { href: '#bots', label: 'Signal Flows' },
     { href: '#bots', label: 'Charts' },
     { href: '#pricing', label: 'Pricing' },
     { href: '/about', label: 'About' },
@@ -30,7 +30,9 @@ export function Navbar() {
               className="flex items-center gap-2.5 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
             >
               <AegisMark size={28} />
-              <span className="text-xl font-bold text-white tracking-wide">AEGIS</span>
+              <span className="font-wordmark text-xl font-extrabold uppercase tracking-[0.12em] text-white">
+                AEGIS
+              </span>
             </Link>
 
             <div className="hidden md:flex items-center gap-8">

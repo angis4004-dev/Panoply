@@ -1,4 +1,4 @@
-import React from 'react';
+import { useId } from 'react';
 import { BRAND_COLORS } from '@/lib/brand-colors';
 
 interface AegisMarkProps {
@@ -11,7 +11,7 @@ interface AegisMarkProps {
  * wings and a central spike, with a small diamond sparkle accent.
  */
 export function AegisMark({ size = 32, className = '' }: AegisMarkProps) {
-  const gradientId = React.useId();
+  const gradientId = useId();
 
   return (
     <svg
@@ -75,7 +75,11 @@ export default function AegisLogo({
     <div className={`flex items-center gap-2.5 ${className}`}>
       <AegisMark size={size} />
       {showWordmark && (
-        <span className={`font-bold tracking-wide text-white ${wordmarkClassName}`}>AEGIS</span>
+        <span
+          className={`font-wordmark font-extrabold uppercase tracking-[0.12em] text-white ${wordmarkClassName}`}
+        >
+          AEGIS
+        </span>
       )}
     </div>
   );
