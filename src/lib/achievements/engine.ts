@@ -126,10 +126,7 @@ export async function recalculateTier(userId: string): Promise<void> {
   const userModel = await getUserModel();
   if (!userModel) return;
 
-  const user = await userModel
-    .findById(userId)
-    .select('kycStatus lifetimeDeposited tier')
-    .lean();
+  const user = await userModel.findById(userId).select('kycStatus lifetimeDeposited tier').lean();
   if (!user) return;
 
   const newTier = computeTier(user.kycStatus, user.lifetimeDeposited || 0);
