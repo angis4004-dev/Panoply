@@ -8,6 +8,11 @@ export interface AuthUser {
   role: UserRole;
   name: string;
   kycStatus?: 'unverified' | 'pending' | 'verified' | 'rejected';
+  tier?: 'unverified' | 'novice' | 'amateur' | 'strategist' | 'vanguard';
+  xp?: number;
+  emailVerified?: boolean;
+  walletOwnershipConfirmed?: boolean;
+  walletAddress?: string;
 }
 
 interface AuthContextValue {

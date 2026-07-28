@@ -13,10 +13,23 @@ export async function GET(request: NextRequest) {
   // kycStatus can change without a re-login (submission, admin review), so
   // it's looked up fresh here rather than embedded in the signed cookie.
   let kycStatus: string | undefined;
+  let tier: string | undefined;
+  let xp: number | undefined;
+  let emailVerified: boolean | undefined;
+  let walletOwnershipConfirmed: boolean | undefined;
+  let walletAddress: string | undefined;
   const userModel = await getUserModel();
   if (userModel) {
-    const dbUser = await userModel.findById(session.user.id).select('kycStatus').lean();
+    const dbUser = await userModel
+      .findById(session.user.id)
+      .select('kycStatus tier xp emailVerified walletOwnershipConfirmed walletAddress')
+      .lean();
     kycStatus = dbUser?.kycStatus || 'unverified';
+    tier = dbUser?.tier || 'unverified';
+    xp = dbUser?.xp || 0;
+    emailVerified = dbUser?.emailVerified || false;
+    walletOwnershipConfirmed = dbUser?.walletOwnershipConfirmed || false;
+    walletAddress = dbUser?.walletAddress || undefined;
   }
 
   return NextResponse.json({
@@ -25,6 +38,11 @@ export async function GET(request: NextRequest) {
       role: session.user.role,
       name: session.user.name,
       kycStatus,
+      tier,
+      xp,
+      emailVerified,
+      walletOwnershipConfirmed,
+      walletAddress,
     },
   });
 }
