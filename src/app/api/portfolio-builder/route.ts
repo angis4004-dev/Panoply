@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import type { PortfolioReport, Holding, RiskProfile } from '@/lib/types';
 import { Resend } from 'resend';
 import { getSessionFromRequest } from '@/lib/session';
+import { getUserModel } from '@/lib/models';
+import { grantAchievement, TIER_RANK, type Tier } from '@/lib/achievements/engine';
 
 // Email service using Resend
 async function sendEmailReport(email: string, htmlContent: string): Promise<boolean> {
@@ -203,6 +205,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const userModel = await getUserModel();
+    if (!userModel) {
+      return NextResponse.json({ error: 'Database connection unavailable' }, { status: 503 });
+    }
+    const dbUser = await userModel
+      .findById(session.user.id)
+      .select('tier portfolioReportCount distinctPortfolioAssets')
+      .lean();
+    if (!dbUser) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+    const userTier: Tier = (dbUser.tier as Tier) || 'unverified';
+    const recommendationsUnlocked = TIER_RANK[userTier] >= TIER_RANK.amateur;
+
     const body = await request.json();
 
     // Validate required fields
@@ -290,6 +306,12 @@ export async function POST(request: Request) {
       recs.push('Maintain current allocation');
     }
 
+    const finalRecommendations = recommendationsUnlocked
+      ? recs
+      : [
+          'Upgrade to Amateur tier (KYC verified + $1,000 deposited) to unlock personalized recommendations.',
+        ];
+
     // Use email from session by default, but allow override from request body
     const userEmail = session.user.email;
 
@@ -301,7 +323,7 @@ export async function POST(request: Request) {
       totalValue,
       riskScore: riskScore.toFixed(1),
       holdings: validatedHoldings,
-      recommendations: recs,
+      recommendations: finalRecommendations,
       metrics: {
         concentration,
         volatility,
@@ -324,6 +346,28 @@ export async function POST(request: Request) {
     const htmlContent = generateHtmlReport(report);
     const emailSent = await sendEmailReport(report.email, htmlContent);
     const emailStatus = emailSent ? 'sent' : 'failed';
+
+    // Update portfolio stats and grant achievements
+    const newAssets = validatedHoldings
+      .map((h) => h.token)
+      .filter((t) => !dbUser.distinctPortfolioAssets.includes(t));
+    await userModel.findByIdAndUpdate(session.user.id, {
+      $inc: { portfolioReportCount: 1 },
+      $addToSet: { distinctPortfolioAssets: { $each: validatedHoldings.map((h) => h.token) } },
+    });
+
+    await grantAchievement(session.user.id, 'first_portfolio_created');
+    await grantAchievement(session.user.id, 'risk_analyst');
+
+    if (validatedHoldings.length >= 3) {
+      await grantAchievement(session.user.id, 'portfolio_diversifier');
+    }
+    if (dbUser.distinctPortfolioAssets.length + newAssets.length >= 5) {
+      await grantAchievement(session.user.id, 'asset_explorer');
+    }
+    if (dbUser.portfolioReportCount + 1 >= 3) {
+      await grantAchievement(session.user.id, 'portfolio_optimizer');
+    }
 
     // Return success with report data
     return NextResponse.json({
