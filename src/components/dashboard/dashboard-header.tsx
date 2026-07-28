@@ -63,7 +63,7 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
         ) : (
           <Link
             href="/sign-up-login-screen"
-            className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-[#F2F5FA] hover:bg-[#3D77FF] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+            className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
           >
             Sign In
           </Link>

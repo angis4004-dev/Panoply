@@ -24,7 +24,7 @@ export default function HistoryPage() {
           </p>
           <Link
             href="/dashboard/builder"
-            className="mt-6 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-[#F2F5FA] hover:bg-[#3D77FF] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+            className="mt-6 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
           >
             Open Builder
           </Link>

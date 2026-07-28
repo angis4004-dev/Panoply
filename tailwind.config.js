@@ -18,18 +18,23 @@ module.exports = {
         background: '#0A0E13',
         foreground: '#E7ECF2',
         primary: {
-          DEFAULT: '#1E63FF',
-          foreground: '#F2F5FA',
+          DEFAULT: '#FFF0C9',
+          foreground: '#243B8F',
+        },
+        navy: {
+          DEFAULT: '#243B8F',
+          foreground: '#FFF0C9',
         },
         accent: '#212A35',
         brand: {
           ink: '#0A0F1C',
-          blue: '#1E63FF',
+          blue: '#243B8F',
           cyan: '#00D4FF',
           purple: '#7B61FF',
           green: '#00C896',
           gray: '#64748B',
           paper: '#F2F5FA',
+          cream: '#FFF0C9',
         },
         teal: {
           300: '#5EEAD4',

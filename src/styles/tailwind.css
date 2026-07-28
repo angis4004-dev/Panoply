@@ -7,8 +7,8 @@
 @import "shadcn/tailwind.css";
 
 :root {
-  --primary: 162 100% 41%;
-  --primary-foreground: 0 0% 4%;
+  --primary: 43 100% 89%;
+  --primary-foreground: 227 60% 35%;
   --card: 240 5% 7%;
   --card-foreground: 0 0% 95%;
   --border: 240 4% 14%;
@@ -18,7 +18,7 @@
   --destructive: 0 72% 51%;
   --success: 142 76% 36%;
   --warning: 38 92% 50%;
-  --ring: 162 100% 41%;
+  --ring: 43 100% 89%;
 }
 
 * {
@@ -156,8 +156,8 @@ body {
     --card-foreground: #E7ECF2;
     --popover: #122131;
     --popover-foreground: #E7ECF2;
-    --primary: #1E63FF;
-    --primary-foreground: #F2F5FA;
+    --primary: #FFF0C9;
+    --primary-foreground: #243B8F;
     --secondary: #17202e;
     --secondary-foreground: #E7ECF2;
     --muted: #17202e;
@@ -167,7 +167,7 @@ body {
     --destructive: oklch(0.577 0.245 27.325);
     --border: #212A35;
     --input: #212A35;
-    --ring: #1E63FF;
+    --ring: #FFF0C9;
     --chart-1: oklch(0.87 0 0);
     --chart-2: oklch(0.556 0 0);
     --chart-3: oklch(0.439 0 0);

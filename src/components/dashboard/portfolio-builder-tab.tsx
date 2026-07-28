@@ -166,7 +166,7 @@ export default function PortfolioBuilderTab() {
             <button
               type="button"
               onClick={addRow}
-              className="mt-3 flex items-center gap-1 rounded text-sm text-primary hover:text-[#3D77FF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+              className="mt-3 flex items-center gap-1 rounded text-sm text-primary hover:text-primary/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
             >
               <Plus className="w-4 h-4" /> Add another asset
             </button>
@@ -301,7 +301,7 @@ export default function PortfolioBuilderTab() {
           <div className="flex items-center gap-3 pt-4 border-t border-[#212A35]">
             <button
               type="submit"
-              className="flex items-center gap-2 rounded-lg bg-primary px-6 py-3 font-semibold text-[#F2F5FA] transition-colors hover:bg-[#3D77FF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+              className="flex items-center gap-2 rounded-lg bg-primary px-6 py-3 font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
             >
               <Send className="w-4 h-4" /> Generate & Email Report
             </button>

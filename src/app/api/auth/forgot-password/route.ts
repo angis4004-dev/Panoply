@@ -29,7 +29,7 @@ export async function POST(request: Request) {
             <h2>Reset your password</h2>
             <p>We received a request to reset the password for your Aegis account.</p>
             <p>
-              <a href="${resetLink}" style="display:inline-block;padding:12px 20px;background:#1E63FF;color:#F2F5FA;text-decoration:none;border-radius:8px;font-weight:600;">
+              <a href="${resetLink}" style="display:inline-block;padding:12px 20px;background:#243B8F;color:#FFF0C9;text-decoration:none;border-radius:8px;font-weight:600;">
                 Reset Password
               </a>
             </p>

@@ -76,7 +76,7 @@ export function DepositVaultModal({ vaultId, vaultName, apy, onClose }: DepositV
           <button
             type="submit"
             disabled={submitting}
-            className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-[#F2F5FA] hover:bg-[#3D77FF] disabled:opacity-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0D131C]"
+            className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0D131C]"
           >
             {submitting ? 'Depositing...' : 'Deposit'}
           </button>

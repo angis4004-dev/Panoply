@@ -31,7 +31,7 @@ interface TopYield {
   apy: number;
 }
 
-const YIELD_COLORS = ['#2EBAC6', '#FF6B35', '#1E63FF'];
+const YIELD_COLORS = ['#2EBAC6', '#FF6B35', '#243B8F'];
 
 export default function DashboardPage() {
   const { bots, botsLoading, walletBalance, addToast } = useAppStore();
@@ -99,7 +99,7 @@ export default function DashboardPage() {
             </button>
             <Link
               href="/dashboard/bots"
-              className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-[#F2F5FA] hover:bg-[#3D77FF] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+              className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
             >
               <BotIcon className="h-4 w-4" />
               Create Signal Flow
@@ -295,7 +295,7 @@ export default function DashboardPage() {
                     cy="18"
                     r="15"
                     fill="none"
-                    stroke="#1E63FF"
+                    stroke="#FFF0C9"
                     strokeWidth="2.5"
                     strokeDasharray="78 100"
                     strokeLinecap="round"

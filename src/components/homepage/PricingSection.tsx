@@ -90,7 +90,7 @@ export function PricingSection() {
                   href="/sign-up-login-screen"
                   className={`w-full text-center px-4 py-3 text-sm font-semibold rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13] ${
                     plan.featured
-                      ? 'text-[#F2F5FA] bg-primary hover:bg-[#3D77FF]'
+                      ? 'text-primary-foreground bg-primary hover:bg-primary/90'
                       : 'text-[#E7ECF2] border border-[#212A35] hover:border-primary/40 hover:bg-[#17202e]'
                   }`}
                 >

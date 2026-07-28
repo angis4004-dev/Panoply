@@ -70,7 +70,7 @@ function ResetPasswordContent() {
               </p>
               <Link
                 href="/forgot-password"
-                className="inline-block rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-[#0A0E13] hover:bg-[#3D77FF]"
+                className="inline-block rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
               >
                 Request new link
               </Link>
@@ -131,7 +131,7 @@ function ResetPasswordContent() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-[#0A0E13] transition hover:bg-[#3D77FF] disabled:opacity-60"
+                  className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
                 >
                   {loading ? 'Updating...' : 'Update password'}
                 </button>
