@@ -113,9 +113,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
   const fetchReports = async () => {
     setState((prev) => ({ ...prev, reportsLoading: true }));
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:4028'}/api/reports`
-      );
+      const response = await fetch('/api/reports');
 
       if (!response.ok) {
         // If unauthorized (not logged in), just continue with empty reports
@@ -137,16 +135,13 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
   // Add a report via API
   const addReport = async (report: Partial<Report>): Promise<Report> => {
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:4028'}/api/reports`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(report),
-        }
-      );
+      const response = await fetch('/api/reports', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(report),
+      });
 
       if (!response.ok) {
         throw new Error(`Failed to create report: ${response.status}`);

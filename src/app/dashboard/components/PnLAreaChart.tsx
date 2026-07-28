@@ -93,9 +93,7 @@ export default function PnLAreaChart() {
         setLoading(true);
         setError(null);
 
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:4028'}/api/prices/chart?id=bitcoin&days=${days}`
-        );
+        const response = await fetch(`/api/prices/chart?id=bitcoin&days=${days}`);
 
         if (!response.ok) {
           throw new Error(`Failed to fetch chart data: ${response.status}`);
