@@ -1,8 +1,13 @@
 import { useState, useEffect } from 'react';
-import { getCoinPrices, getGlobalMarketData, getTrendingCoins } from '@/lib/coingecko';
 
 /**
  * Hook to get cryptocurrency prices
+ *
+ * Fetches through the app's own /api/prices route (server-side) rather than
+ * calling CoinGecko directly from the browser - a direct client-side call is
+ * subject to the browser's own network/CORS restrictions independent of the
+ * server's, and previously caused a "Failed to fetch" loop wherever those
+ * restrictions blocked the request.
  */
 export function useCoinPrices(ids: string[], vsCurrency = 'usd') {
   const [prices, setPrices] = useState<Record<string, { usd: number }>>({});
@@ -13,7 +18,11 @@ export function useCoinPrices(ids: string[], vsCurrency = 'usd') {
     async function fetchPrices() {
       try {
         setLoading(true);
-        const data = await getCoinPrices(ids, vsCurrency);
+        // /api/prices always prices in USD server-side; vsCurrency is accepted
+        // here for API-compatibility with callers but has no other effect.
+        const res = await fetch(`/api/prices?ids=${encodeURIComponent(ids.join(','))}`);
+        if (!res.ok) throw new Error(`Failed to fetch prices: ${res.status}`);
+        const data = await res.json();
         setPrices(data);
         setError(null);
       } catch (err) {
@@ -51,7 +60,9 @@ export function useGlobalMarketData() {
     async function fetchGlobalData() {
       try {
         setLoading(true);
-        const data = await getGlobalMarketData();
+        const res = await fetch('/api/global');
+        if (!res.ok) throw new Error(`Failed to fetch global market data: ${res.status}`);
+        const data = await res.json();
         setGlobalData({
           total_market_cap: { usd: data.total_market_cap.usd ?? 0 },
           total_volume: { usd: data.total_volume.usd ?? 0 },
@@ -106,7 +117,9 @@ export function useTrendingCoins() {
     async function fetchTrending() {
       try {
         setLoading(true);
-        const data = await getTrendingCoins();
+        const res = await fetch('/api/trending');
+        if (!res.ok) throw new Error(`Failed to fetch trending coins: ${res.status}`);
+        const data = await res.json();
         setTrending(data);
         setError(null);
       } catch (err) {
