@@ -27,6 +27,23 @@ export interface IUser extends Document {
   kycIdNumber?: string;
   kycDocumentProvided?: boolean;
   kycRejectionReason?: string;
+  // Achievement / tier engine
+  emailVerified: boolean;
+  emailVerificationToken?: string;
+  emailVerificationExpires?: Date;
+  profileCompletedAt?: Date;
+  walletOwnershipConfirmed: boolean;
+  walletOwnershipConfirmedAt?: Date;
+  lifetimeDeposited: number;
+  xp: number;
+  tier: 'unverified' | 'novice' | 'amateur' | 'strategist' | 'vanguard';
+  currentStreak: number;
+  longestStreak: number;
+  lastActiveDate?: Date;
+  visitedSections: string[];
+  distinctPortfolioAssets: string[];
+  portfolioReportCount: number;
+  distinctBotStrategyTypes: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -71,6 +88,27 @@ const UserSchema = new Schema<IUser>(
     kycIdNumber: { type: String },
     kycDocumentProvided: { type: Boolean, default: false },
     kycRejectionReason: { type: String },
+    // Achievement / tier engine
+    emailVerified: { type: Boolean, default: false },
+    emailVerificationToken: { type: String },
+    emailVerificationExpires: { type: Date },
+    profileCompletedAt: { type: Date },
+    walletOwnershipConfirmed: { type: Boolean, default: false },
+    walletOwnershipConfirmedAt: { type: Date },
+    lifetimeDeposited: { type: Number, default: 0, min: 0 },
+    xp: { type: Number, default: 0, min: 0 },
+    tier: {
+      type: String,
+      enum: ['unverified', 'novice', 'amateur', 'strategist', 'vanguard'],
+      default: 'unverified',
+    },
+    currentStreak: { type: Number, default: 0, min: 0 },
+    longestStreak: { type: Number, default: 0, min: 0 },
+    lastActiveDate: { type: Date },
+    visitedSections: { type: [String], default: [] },
+    distinctPortfolioAssets: { type: [String], default: [] },
+    portfolioReportCount: { type: Number, default: 0, min: 0 },
+    distinctBotStrategyTypes: { type: [String], default: [] },
   },
   {
     timestamps: true,
