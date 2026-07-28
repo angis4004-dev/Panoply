@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserModel } from '@/lib/models';
 import { verifyAdminAccess } from '@/lib/auth-middleware';
+import { grantAchievement, recalculateTier } from '@/lib/achievements/engine';
 
 // PATCH /api/admin/kyc/[id] - Approve or reject a user's KYC submission
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -49,6 +50,11 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     if (!updated) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    if (action === 'approve') {
+      await grantAchievement(id, 'verified_identity');
+      await recalculateTier(id);
     }
 
     return NextResponse.json({
