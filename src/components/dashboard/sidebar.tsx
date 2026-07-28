@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
+  Award,
   Bot,
   Brain,
   LayoutDashboard,
@@ -26,6 +27,7 @@ const navItems = [
   { href: '/dashboard/builder', label: 'Portfolio Builder', icon: SlidersHorizontal },
   { href: '/dashboard/history', label: 'Report History', icon: List },
   { href: '/dashboard/kyc', label: 'Verification', icon: ShieldCheck },
+  { href: '/dashboard/achievements', label: 'Achievements', icon: Award },
   { href: '/dashboard/settings', label: 'Settings', icon: Settings },
 ];
 

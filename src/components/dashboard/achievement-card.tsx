@@ -1,9 +1,11 @@
 import { Award, Lock } from 'lucide-react';
+import type { AchievementCategory } from '@/lib/achievements/catalog';
 
 export interface AchievementViewModel {
   key: string;
   name: string;
   description: string;
+  category: AchievementCategory;
   xp: number;
   hasCertificate: boolean;
   earned: boolean;
