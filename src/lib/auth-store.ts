@@ -367,6 +367,53 @@ export async function resetPassword(token: string, newPassword: string): Promise
   writeUsers(users);
 }
 
+/**
+ * Generates an email-verification token for the given user and persists it
+ * with a 24-hour expiry. Unlike password reset, this is keyed by user id
+ * (called right after registration, when we already have the user), not
+ * by email lookup.
+ */
+export async function requestEmailVerification(userId: string): Promise<string> {
+  const token = crypto.randomBytes(32).toString('hex');
+  const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+  const model = await getUserModel();
+  if (!model) {
+    throw new Error('Database connection unavailable');
+  }
+
+  await model.findByIdAndUpdate(userId, {
+    $set: { emailVerificationToken: token, emailVerificationExpires: expires },
+  });
+
+  return token;
+}
+
+/**
+ * Verifies an email-verification token (must be unexpired) and marks the
+ * user's email as verified, clearing the token so it can't be reused.
+ * Returns the user id on success, or null if the token is invalid/expired.
+ */
+export async function verifyEmailToken(token: string): Promise<{ userId: string } | null> {
+  const model = await getUserModel();
+  if (!model) {
+    throw new Error('Database connection unavailable');
+  }
+
+  const user = await model.findOne({
+    emailVerificationToken: token,
+    emailVerificationExpires: { $gt: new Date() },
+  });
+  if (!user) return null;
+
+  user.emailVerified = true;
+  user.emailVerificationToken = undefined;
+  user.emailVerificationExpires = undefined;
+  await user.save();
+
+  return { userId: user._id.toString() };
+}
+
 export async function createUser(
   userData: Omit<
     {
