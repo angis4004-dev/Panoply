@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionFromRequest } from '@/lib/session';
 import { getUserModel } from '@/lib/models';
+import { recalculateTier } from '@/lib/achievements/engine';
 
 // GET /api/wallet - Returns the current user's wallet balance
 export async function GET(request: NextRequest) {
@@ -54,9 +55,15 @@ export async function POST(request: NextRequest) {
   }
 
   const updated = await userModel
-    .findByIdAndUpdate(session.user.id, { $inc: { walletBalance: amount } }, { new: true })
+    .findByIdAndUpdate(
+      session.user.id,
+      { $inc: { walletBalance: amount, lifetimeDeposited: amount } },
+      { new: true }
+    )
     .select('walletBalance')
     .lean();
+
+  await recalculateTier(session.user.id);
 
   return NextResponse.json({ balance: updated?.walletBalance || 0 });
 }
