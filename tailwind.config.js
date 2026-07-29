@@ -116,6 +116,7 @@ module.exports = {
         'fade-in': 'fade-in 0.3s ease forwards',
         'slide-up': 'slide-up 0.4s ease forwards',
         'pulse-glow': 'pulse-glow 2s infinite',
+        'shimmer-sweep': 'shimmer-sweep 2.8s ease-in-out infinite',
         // Keep existing if any
       },
       keyframes: {
@@ -130,6 +131,10 @@ module.exports = {
         'pulse-glow': {
           '0%, 100%': { boxShadow: '0 0 0 0 rgba(0, 212, 170, 0.4)' },
           '50%': { boxShadow: '0 0 0 6px rgba(0, 212, 170, 0)' },
+        },
+        'shimmer-sweep': {
+          '0%': { transform: 'translateX(-130%) skewX(-20deg)' },
+          '55%, 100%': { transform: 'translateX(280%) skewX(-20deg)' },
         },
         // Keep existing if any
       },

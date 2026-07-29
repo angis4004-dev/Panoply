@@ -1,9 +1,11 @@
 'use client';
-import React, { Suspense, useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { signIn } from 'next-auth/react';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
 import {
   Eye,
   EyeOff,
@@ -23,6 +25,14 @@ import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
 
 type AuthMode = 'login' | 'signup';
+
+function ButtonShimmer() {
+  return (
+    <span className="pointer-events-none absolute inset-0 overflow-hidden rounded-lg">
+      <span className="absolute inset-y-0 left-0 w-1/3 animate-shimmer-sweep bg-gradient-to-r from-transparent via-white/35 to-transparent motion-reduce:hidden" />
+    </span>
+  );
+}
 
 interface LoginFormValues {
   email: string;
@@ -51,6 +61,8 @@ function LoginForm({
   const [showPassword, setShowPassword] = useState(false);
   const [showOTP, setShowOTP] = useState(false);
   const [loading, setLoading] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+  const otpRef = useRef<HTMLDivElement>(null);
 
   const {
     register,
@@ -58,6 +70,30 @@ function LoginForm({
     setError,
     formState: { errors },
   } = useForm<LoginFormValues>();
+
+  useGSAP(
+    () => {
+      const fields = gsap.utils.toArray<HTMLElement>('.auth-field', formRef.current!);
+      gsap.fromTo(
+        fields,
+        { opacity: 0, y: 12 },
+        { opacity: 1, y: 0, duration: 0.35, ease: 'power3.out', stagger: 0.05, delay: 0.05 }
+      );
+    },
+    { scope: formRef }
+  );
+
+  useGSAP(
+    () => {
+      if (!otpRef.current || !showOTP) return;
+      gsap.fromTo(
+        otpRef.current,
+        { opacity: 0, y: 8, height: 0 },
+        { opacity: 1, y: 0, height: 'auto', duration: 0.25, ease: 'power2.out' }
+      );
+    },
+    { dependencies: [showOTP], scope: formRef }
+  );
 
   const onSubmit = async (data: LoginFormValues) => {
     setLoading(true);
@@ -113,8 +149,8 @@ function LoginForm({
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-      <div className="rounded-lg border border-[#2A3542]/60 bg-[#212A35]/40 px-3 py-3 text-sm text-[#C5CCD6]">
+    <form ref={formRef} onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      <div className="auth-field rounded-lg border border-[#2A3542]/60 bg-[#212A35]/40 px-3 py-3 text-sm text-[#C5CCD6]">
         <p className="font-semibold text-[#E7ECF2]">Need an account?</p>
         <p className="mt-1 text-xs text-[#8B95A5]">
           Create one with your Google account or your email address, then return here to sign in.
@@ -128,7 +164,7 @@ function LoginForm({
         </button>
       </div>
       {/* Email */}
-      <div>
+      <div className="auth-field">
         <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 tracking-wide uppercase">
           Email Address
         </label>
@@ -138,7 +174,7 @@ function LoginForm({
             type="email"
             autoComplete="email"
             placeholder="you@cryptotradeai.io"
-            className={`w-full bg-[#212A35] border rounded-lg pl-9 pr-4 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${
+            className={`w-full bg-[#212A35] border rounded-lg pl-9 pr-4 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_16px_-2px_rgba(30,99,255,0.45)] transition-all duration-300 ${
               errors.email ? 'border-red-500/60' : 'border-[#2A3542]'
             }`}
             {...register('email', {
@@ -159,7 +195,7 @@ function LoginForm({
       </div>
 
       {/* Password */}
-      <div>
+      <div className="auth-field">
         <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 tracking-wide uppercase">
           Password
         </label>
@@ -169,7 +205,7 @@ function LoginForm({
             type={showPassword ? 'text' : 'password'}
             autoComplete="current-password"
             placeholder="••••••••••••"
-            className={`w-full bg-[#212A35] border rounded-lg pl-9 pr-10 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${
+            className={`w-full bg-[#212A35] border rounded-lg pl-9 pr-10 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_16px_-2px_rgba(30,99,255,0.45)] transition-all duration-300 ${
               errors.password ? 'border-red-500/60' : 'border-[#2A3542]'
             }`}
             {...register('password', { required: 'Password is required' })}
@@ -191,7 +227,7 @@ function LoginForm({
       </div>
 
       {/* MFA toggle */}
-      <div className="flex items-center justify-between">
+      <div className="auth-field flex items-center justify-between">
         <label className="flex items-center gap-2 cursor-pointer">
           <input
             type="checkbox"
@@ -211,7 +247,7 @@ function LoginForm({
         </label>
       </div>
 
-      <div className="flex justify-end -mt-2">
+      <div className="auth-field flex justify-end -mt-2">
         <Link href="/forgot-password" className="text-xs text-primary hover:text-brand-cyan">
           Forgot your password?
         </Link>
@@ -219,7 +255,7 @@ function LoginForm({
 
       {/* OTP field (conditional) */}
       {showOTP && (
-        <div className="animate-fade-in">
+        <div ref={otpRef} style={{ overflow: 'hidden' }}>
           <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 tracking-wide uppercase">
             One-Time Password (OTP)
           </label>
@@ -247,9 +283,10 @@ function LoginForm({
       <button
         type="submit"
         disabled={loading}
-        className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 disabled:bg-primary/40 disabled:cursor-not-allowed text-primary-foreground font-semibold text-sm rounded-lg py-2.5 transition-all duration-150 active:scale-[0.98]"
+        className="auth-field relative w-full flex items-center justify-center gap-2 overflow-hidden bg-primary hover:bg-primary/90 disabled:bg-primary/40 disabled:cursor-not-allowed text-primary-foreground font-semibold text-sm rounded-lg py-2.5 transition-colors duration-150 active:scale-[0.98]"
         style={{ minHeight: '42px' }}
       >
+        {!loading && <ButtonShimmer />}
         {loading ? (
           <>
             <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
@@ -295,6 +332,19 @@ function SignupForm() {
   } = useForm<SignupFormValues>();
 
   const password = watch('password');
+  const formRef = useRef<HTMLFormElement>(null);
+
+  useGSAP(
+    () => {
+      const fields = gsap.utils.toArray<HTMLElement>('.auth-field', formRef.current!);
+      gsap.fromTo(
+        fields,
+        { opacity: 0, y: 12 },
+        { opacity: 1, y: 0, duration: 0.35, ease: 'power3.out', stagger: 0.05, delay: 0.05 }
+      );
+    },
+    { scope: formRef }
+  );
 
   const onSubmit = async (data: SignupFormValues) => {
     setLoading(true);
@@ -343,16 +393,16 @@ function SignupForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form ref={formRef} onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       {/* Full Name */}
-      <div>
+      <div className="auth-field">
         <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 tracking-wide uppercase">
           Full Name
         </label>
         <input
           type="text"
           placeholder="Alex Thornton"
-          className={`w-full bg-[#212A35] border rounded-lg px-4 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${
+          className={`w-full bg-[#212A35] border rounded-lg px-4 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_16px_-2px_rgba(30,99,255,0.45)] transition-all duration-300 ${
             errors.fullName ? 'border-red-500/60' : 'border-[#2A3542]'
           }`}
           {...register('fullName', { required: 'Full name is required' })}
@@ -366,14 +416,14 @@ function SignupForm() {
       </div>
 
       {/* Email */}
-      <div>
+      <div className="auth-field">
         <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 tracking-wide uppercase">
           Email Address
         </label>
         <input
           type="email"
           placeholder="you@cryptotradeai.io"
-          className={`w-full bg-[#212A35] border rounded-lg px-4 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${
+          className={`w-full bg-[#212A35] border rounded-lg px-4 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_16px_-2px_rgba(30,99,255,0.45)] transition-all duration-300 ${
             errors.email ? 'border-red-500/60' : 'border-[#2A3542]'
           }`}
           {...register('email', {
@@ -393,7 +443,7 @@ function SignupForm() {
       </div>
 
       {/* Password */}
-      <div>
+      <div className="auth-field">
         <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 tracking-wide uppercase">
           Password
         </label>
@@ -404,7 +454,7 @@ function SignupForm() {
           <input
             type={showPassword ? 'text' : 'password'}
             placeholder="••••••••••••"
-            className={`w-full bg-[#212A35] border rounded-lg px-4 pr-10 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${
+            className={`w-full bg-[#212A35] border rounded-lg px-4 pr-10 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_16px_-2px_rgba(30,99,255,0.45)] transition-all duration-300 ${
               errors.password ? 'border-red-500/60' : 'border-[#2A3542]'
             }`}
             {...register('password', {
@@ -433,7 +483,7 @@ function SignupForm() {
       </div>
 
       {/* Confirm Password */}
-      <div>
+      <div className="auth-field">
         <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 tracking-wide uppercase">
           Confirm Password
         </label>
@@ -441,7 +491,7 @@ function SignupForm() {
           <input
             type={showConfirm ? 'text' : 'password'}
             placeholder="••••••••••••"
-            className={`w-full bg-[#212A35] border rounded-lg px-4 pr-10 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${
+            className={`w-full bg-[#212A35] border rounded-lg px-4 pr-10 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_16px_-2px_rgba(30,99,255,0.45)] transition-all duration-300 ${
               errors.confirmPassword ? 'border-red-500/60' : 'border-[#2A3542]'
             }`}
             {...register('confirmPassword', {
@@ -466,7 +516,7 @@ function SignupForm() {
       </div>
 
       {/* Terms */}
-      <div>
+      <div className="auth-field">
         <label className="flex items-start gap-2 cursor-pointer">
           <input
             type="checkbox"
@@ -499,9 +549,10 @@ function SignupForm() {
       <button
         type="submit"
         disabled={loading}
-        className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 disabled:bg-primary/40 disabled:cursor-not-allowed text-primary-foreground font-semibold text-sm rounded-lg py-2.5 transition-all duration-150 active:scale-[0.98]"
+        className="auth-field relative w-full flex items-center justify-center gap-2 overflow-hidden bg-primary hover:bg-primary/90 disabled:bg-primary/40 disabled:cursor-not-allowed text-primary-foreground font-semibold text-sm rounded-lg py-2.5 transition-colors duration-150 active:scale-[0.98]"
         style={{ minHeight: '42px' }}
       >
+        {!loading && <ButtonShimmer />}
         {loading ? (
           <>
             <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
@@ -538,11 +589,45 @@ function SignUpLoginPageContent() {
   const initialMode = searchParams.get('mode') === 'signup' ? 'signup' : 'login';
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [, setFilledEmail] = useState('');
+  const tabContainerRef = useRef<HTMLDivElement>(null);
+  const indicatorRef = useRef<HTMLSpanElement>(null);
+  const tabRefs = useRef<Record<AuthMode, HTMLButtonElement | null>>({ login: null, signup: null });
+  const formContentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const nextMode = searchParams.get('mode') === 'signup' ? 'signup' : 'login';
     setMode(nextMode);
   }, [searchParams]);
+
+  useGSAP(
+    () => {
+      const activeBtn = tabRefs.current[mode];
+      const indicator = indicatorRef.current;
+      const container = tabContainerRef.current;
+      if (!activeBtn || !indicator || !container) return;
+      const containerRect = container.getBoundingClientRect();
+      const btnRect = activeBtn.getBoundingClientRect();
+      gsap.to(indicator, {
+        x: btnRect.left - containerRect.left,
+        width: btnRect.width,
+        duration: 0.35,
+        ease: 'power3.out',
+      });
+    },
+    { dependencies: [mode], scope: tabContainerRef }
+  );
+
+  useGSAP(
+    () => {
+      if (!formContentRef.current) return;
+      gsap.fromTo(
+        formContentRef.current,
+        { opacity: 0, y: 8 },
+        { opacity: 1, y: 0, duration: 0.25, ease: 'power2.out' }
+      );
+    },
+    { dependencies: [mode], scope: formContentRef }
+  );
 
   const handleCredentialFill = (email: string, _password: string) => {
     setFilledEmail(email);
@@ -669,15 +754,24 @@ function SignUpLoginPageContent() {
           </div>
 
           {/* Tab switcher */}
-          <div className="flex bg-[#122131] border border-[#212A35] rounded-xl p-1 mb-6">
+          <div
+            ref={tabContainerRef}
+            className="relative flex bg-[#122131] border border-[#212A35] rounded-xl p-1 mb-6"
+          >
+            <span
+              ref={indicatorRef}
+              className="pointer-events-none absolute inset-y-1 left-0 rounded-lg bg-primary"
+              style={{ width: 0 }}
+            />
             {(['login', 'signup'] as AuthMode[]).map((m) => (
               <button
                 key={`tab-${m}`}
+                ref={(el) => {
+                  tabRefs.current[m] = el;
+                }}
                 onClick={() => setMode(m)}
-                className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all duration-200 ${
-                  mode === m
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-[#8B95A5] hover:text-[#E7ECF2]'
+                className={`relative z-10 flex-1 py-2 text-sm font-semibold rounded-lg transition-colors duration-200 ${
+                  mode === m ? 'text-primary-foreground' : 'text-[#8B95A5] hover:text-[#E7ECF2]'
                 }`}
               >
                 {m === 'login' ? 'Sign In' : 'Create Account'}
@@ -687,57 +781,59 @@ function SignUpLoginPageContent() {
 
           {/* Form */}
           <div className="bg-[#122131] border border-[#212A35] rounded-xl p-6">
-            <h2 className="text-lg font-bold text-[#E7ECF2] mb-1">
-              {mode === 'login' ? 'Welcome back' : 'Create your Aegis workspace'}
-            </h2>
-            <p className="text-sm text-[#8B95A5] mb-5">
-              {mode === 'login'
-                ? 'Sign in to your secure Aegis workspace.'
-                : 'Use Google or your email address to create your account.'}
-            </p>
+            <div ref={formContentRef}>
+              <h2 className="text-lg font-bold text-[#E7ECF2] mb-1">
+                {mode === 'login' ? 'Welcome back' : 'Create your Aegis workspace'}
+              </h2>
+              <p className="text-sm text-[#8B95A5] mb-5">
+                {mode === 'login'
+                  ? 'Sign in to your secure Aegis workspace.'
+                  : 'Use Google or your email address to create your account.'}
+              </p>
 
-            <button
-              type="button"
-              onClick={handleGoogleEntry}
-              className="w-full flex items-center justify-center gap-2 rounded-lg border border-[#2A3542] bg-[#212A35]/60 px-4 py-2.5 text-sm font-semibold text-[#E7ECF2] transition hover:border-[#8B95A5] hover:bg-[#212A35] lg:hidden"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-                <path
-                  fill="#4285F4"
-                  d="M23.52 12.27c0-.85-.08-1.67-.22-2.45H12v4.64h6.47a5.54 5.54 0 0 1-2.4 3.63v3.02h3.89c2.28-2.1 3.56-5.19 3.56-8.84Z"
-                />
-                <path
-                  fill="#34A853"
-                  d="M12 24c3.24 0 5.96-1.07 7.95-2.9l-3.89-3.02c-1.08.72-2.46 1.15-4.06 1.15-3.13 0-5.78-2.11-6.73-4.96H1.26v3.12A11.99 11.99 0 0 0 12 24Z"
-                />
-                <path
-                  fill="#FBBC05"
-                  d="M5.27 14.27a7.2 7.2 0 0 1 0-4.54V6.61H1.26a12 12 0 0 0 0 10.78l4.01-3.12Z"
-                />
-                <path
-                  fill="#EA4335"
-                  d="M12 4.77c1.76 0 3.34.6 4.59 1.79l3.44-3.44C17.95 1.19 15.23 0 12 0 7.31 0 3.26 2.69 1.26 6.61l4.01 3.12C6.22 6.88 8.87 4.77 12 4.77Z"
-                />
-              </svg>
-              Continue with Google
-            </button>
+              <button
+                type="button"
+                onClick={handleGoogleEntry}
+                className="w-full flex items-center justify-center gap-2 rounded-lg border border-[#2A3542] bg-[#212A35]/60 px-4 py-2.5 text-sm font-semibold text-[#E7ECF2] transition hover:border-[#8B95A5] hover:bg-[#212A35] lg:hidden"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    fill="#4285F4"
+                    d="M23.52 12.27c0-.85-.08-1.67-.22-2.45H12v4.64h6.47a5.54 5.54 0 0 1-2.4 3.63v3.02h3.89c2.28-2.1 3.56-5.19 3.56-8.84Z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 24c3.24 0 5.96-1.07 7.95-2.9l-3.89-3.02c-1.08.72-2.46 1.15-4.06 1.15-3.13 0-5.78-2.11-6.73-4.96H1.26v3.12A11.99 11.99 0 0 0 12 24Z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.27 14.27a7.2 7.2 0 0 1 0-4.54V6.61H1.26a12 12 0 0 0 0 10.78l4.01-3.12Z"
+                  />
+                  <path
+                    fill="#EA4335"
+                    d="M12 4.77c1.76 0 3.34.6 4.59 1.79l3.44-3.44C17.95 1.19 15.23 0 12 0 7.31 0 3.26 2.69 1.26 6.61l4.01 3.12C6.22 6.88 8.87 4.77 12 4.77Z"
+                  />
+                </svg>
+                Continue with Google
+              </button>
 
-            <div className="flex items-center gap-3 my-5 lg:hidden">
-              <div className="h-px flex-1 bg-[#212A35]" />
-              <span className="text-[11px] uppercase tracking-wider text-[#8B95A5]">
-                or continue with email
-              </span>
-              <div className="h-px flex-1 bg-[#212A35]" />
+              <div className="flex items-center gap-3 my-5 lg:hidden">
+                <div className="h-px flex-1 bg-[#212A35]" />
+                <span className="text-[11px] uppercase tracking-wider text-[#8B95A5]">
+                  or continue with email
+                </span>
+                <div className="h-px flex-1 bg-[#212A35]" />
+              </div>
+
+              {mode === 'login' ? (
+                <LoginForm
+                  onCredentialFill={handleCredentialFill}
+                  onSwitchToSignup={() => setMode('signup')}
+                />
+              ) : (
+                <SignupForm />
+              )}
             </div>
-
-            {mode === 'login' ? (
-              <LoginForm
-                onCredentialFill={handleCredentialFill}
-                onSwitchToSignup={() => setMode('signup')}
-              />
-            ) : (
-              <SignupForm />
-            )}
           </div>
         </div>
       </div>
