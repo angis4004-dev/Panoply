@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { X } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
 import { useAppStore } from '@/store/app-store';
 import ButtonShimmer from '@/components/ui/button-shimmer';
 
@@ -15,13 +16,35 @@ export function DepositWalletModal({ onClose }: DepositWalletModalProps) {
   const [amount, setAmount] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [open, setOpen] = useState(true);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const backdropRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
 
-  // Play the exit animation, then unmount after it's had time to finish.
-  // A plain timer (not the animation's own completion callback) so closing
-  // never depends on the browser actually painting the transition.
+  useGSAP(
+    () => {
+      gsap.fromTo(backdropRef.current, { opacity: 0 }, { opacity: 1, duration: 0.2 });
+      gsap.fromTo(
+        cardRef.current,
+        { opacity: 0, scale: 0.95, y: 8 },
+        { opacity: 1, scale: 1, y: 0, duration: 0.2, ease: 'power2.out' }
+      );
+    },
+    { scope: containerRef }
+  );
+
+  // Plays the exit animation, then calls onClose via a plain timer rather
+  // than the tween's onComplete callback - onComplete depends on GSAP's
+  // ticker actually advancing, and decoupling the close signal from that
+  // means the modal can never get stuck open if a frame never gets painted.
   const handleClose = () => {
-    setOpen(false);
+    gsap.to(backdropRef.current, { opacity: 0, duration: 0.2 });
+    gsap.to(cardRef.current, {
+      opacity: 0,
+      scale: 0.95,
+      y: 8,
+      duration: 0.2,
+      ease: 'power2.in',
+    });
     setTimeout(onClose, 200);
   };
 
@@ -46,65 +69,53 @@ export function DepositWalletModal({ onClose }: DepositWalletModalProps) {
   };
 
   return (
-    <AnimatePresence>
-      {open && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-        >
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 8 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 8 }}
-            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="relative w-full max-w-sm overflow-hidden rounded-xl border border-[#212A35] bg-[#0D131C] p-6"
+    <div ref={containerRef} className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div ref={backdropRef} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <div
+        ref={cardRef}
+        className="relative z-10 w-full max-w-sm overflow-hidden rounded-xl border border-[#212A35] bg-[#0D131C] p-6"
+      >
+        <div className="pointer-events-none absolute -top-16 left-1/2 h-32 w-64 -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" />
+        <div className="relative mb-5 flex items-center justify-between">
+          <h2 className="text-lg font-bold text-white">Deposit funds</h2>
+          <button
+            type="button"
+            onClick={handleClose}
+            className="rounded text-[#8B95A5] hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0D131C]"
+            aria-label="Close"
           >
-            <div className="pointer-events-none absolute -top-16 left-1/2 h-32 w-64 -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" />
-            <div className="relative mb-5 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-white">Deposit funds</h2>
-              <button
-                type="button"
-                onClick={handleClose}
-                className="rounded text-[#8B95A5] hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0D131C]"
-                aria-label="Close"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
+            <X className="h-4 w-4" />
+          </button>
+        </div>
 
-            <form onSubmit={handleSubmit} className="relative space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 uppercase tracking-wide">
-                  Amount (USD)
-                </label>
-                <input
-                  type="number"
-                  min={0}
-                  step="0.01"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  placeholder="1000"
-                  className="w-full rounded-lg border border-[#212A35] bg-[#122131] px-3 py-2.5 text-sm text-white placeholder-[#4b5563] focus:outline-none focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_16px_-2px_rgba(30,99,255,0.45)] transition-all duration-300"
-                />
-              </div>
+        <form onSubmit={handleSubmit} className="relative space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 uppercase tracking-wide">
+              Amount (USD)
+            </label>
+            <input
+              type="number"
+              min={0}
+              step="0.01"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="1000"
+              className="w-full rounded-lg border border-[#212A35] bg-[#122131] px-3 py-2.5 text-sm text-white placeholder-[#4b5563] focus:outline-none focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_16px_-2px_rgba(30,99,255,0.45)] transition-all duration-300"
+            />
+          </div>
 
-              {error && <p className="text-xs text-red-400">{error}</p>}
+          {error && <p className="text-xs text-red-400">{error}</p>}
 
-              <button
-                type="submit"
-                disabled={submitting}
-                className="relative w-full overflow-hidden rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-[#F2F5FA] hover:bg-[#3D77FF] disabled:opacity-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0D131C]"
-              >
-                {!submitting && <ButtonShimmer />}
-                {submitting ? 'Depositing...' : 'Deposit'}
-              </button>
-            </form>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+          <button
+            type="submit"
+            disabled={submitting}
+            className="relative w-full overflow-hidden rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-[#F2F5FA] hover:bg-[#3D77FF] disabled:opacity-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0D131C]"
+          >
+            {!submitting && <ButtonShimmer />}
+            {submitting ? 'Depositing...' : 'Deposit'}
+          </button>
+        </form>
+      </div>
+    </div>
   );
 }
