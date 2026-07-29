@@ -183,6 +183,83 @@ body {
     --sidebar-border: oklch(0.922 0 0);
     --sidebar-ring: oklch(0.556 0 0);
   }
+
+  /* ------------------------------------------------------------------
+   * Design system tokens
+   *
+   * Added alongside the existing variables rather than replacing them,
+   * so nothing re-renders until a component opts in. Migration is
+   * per-component; grep for `ds-` to see what has moved over.
+   * ------------------------------------------------------------------ */
+  :root {
+    /* Text tiers.
+     * Deliberately only three, and every one clears WCAG AA (4.5:1) on
+     * BOTH surfaces. The old palette had four greys used for type that
+     * failed - zinc-600 (2.11:1), zinc-500 (3.37:1), gray-600 (2.16:1)
+     * and #5C6675 (2.81:1) - which is why metric captions and the
+     * dry-run disclosure were the least readable text on the dashboard.
+     * Those four remain valid as BORDER colours; never as text. */
+    --ds-text-primary: #f2f5fa; /* 16.3:1 on raised, 19.4:1 on base */
+    --ds-text-secondary: #a1a1aa; /*  6.4:1 on raised,  7.6:1 on base */
+    --ds-text-muted: #8b95a5; /*  5.4:1 on raised,  6.4:1 on base */
+
+    /* Surfaces */
+    --ds-surface-base: #0a0e13;
+    --ds-surface-raised: #122131;
+    --ds-surface-overlay: #0d131c;
+    --ds-surface-inset: #17202e;
+    --ds-border-subtle: #212a35;
+    --ds-border-strong: #2a3542;
+
+    /* Brand vs. financial value.
+     * Cream is the brand/interactive accent; teal and red carry
+     * financial meaning ONLY. Previously teal did both jobs, which left
+     * the brand colour absent from the data layer and made "teal" mean
+     * two unrelated things. */
+    --ds-brand: #fff0c9; /* 14.4:1 on raised */
+    --ds-brand-ink: #243b8f;
+    --ds-value-positive: #00d4aa;
+    --ds-value-negative: #e5555a;
+    --ds-value-warning: #fbbf24;
+
+    /* Motion.
+     * The old system had exactly two durations and a single easing curve
+     * across all 58 transitioning elements, so a hover tint and a modal
+     * moved with identical weight. Distance and significance now map to
+     * duration, and exits run ~60% of their entrance so dismissal feels
+     * responsive rather than sluggish. */
+    --ds-ease-out: cubic-bezier(0.2, 0, 0, 1);
+    --ds-ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --ds-ease-in: cubic-bezier(0.4, 0, 1, 1);
+
+    --ds-dur-instant: 100ms; /* hover/active tints */
+    --ds-dur-fast: 180ms; /* buttons, toggles, tabs */
+    --ds-dur-base: 260ms; /* cards, dropdowns, accordions */
+    --ds-dur-slow: 380ms; /* modals, sheets, page transitions */
+    --ds-dur-exit-fast: 110ms;
+    --ds-dur-exit-base: 160ms;
+    --ds-dur-exit-slow: 230ms;
+
+    /* Radius - four steps, down from the six in circulation */
+    --ds-radius-sm: 8px;
+    --ds-radius-md: 12px;
+    --ds-radius-lg: 16px;
+  }
+
+  /* Honour the OS reduced-motion setting for every token-driven
+   * transition in one place, so individual components don't each have to
+   * remember to. GSAP timelines gate themselves via gsap.matchMedia(). */
+  @media (prefers-reduced-motion: reduce) {
+    :root {
+      --ds-dur-instant: 0ms;
+      --ds-dur-fast: 0ms;
+      --ds-dur-base: 0ms;
+      --ds-dur-slow: 0ms;
+      --ds-dur-exit-fast: 0ms;
+      --ds-dur-exit-base: 0ms;
+      --ds-dur-exit-slow: 0ms;
+    }
+  }
   .dark {
     --background: oklch(0.145 0 0);
     --foreground: oklch(0.985 0 0);

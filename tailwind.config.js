@@ -84,12 +84,47 @@ module.exports = {
         // Additional colors used in dashboard
         red: '#E5555A',
         blue: '#5B9BD9',
+
+        // Design system tokens. Added alongside the existing palette so
+        // nothing changes until a component opts in; see the `ds-*`
+        // custom properties in src/styles/tailwind.css for the rationale.
+        ds: {
+          text: {
+            DEFAULT: 'var(--ds-text-primary)',
+            secondary: 'var(--ds-text-secondary)',
+            muted: 'var(--ds-text-muted)',
+          },
+          surface: {
+            DEFAULT: 'var(--ds-surface-base)',
+            raised: 'var(--ds-surface-raised)',
+            overlay: 'var(--ds-surface-overlay)',
+            inset: 'var(--ds-surface-inset)',
+          },
+          border: {
+            DEFAULT: 'var(--ds-border-subtle)',
+            strong: 'var(--ds-border-strong)',
+          },
+          brand: {
+            DEFAULT: 'var(--ds-brand)',
+            ink: 'var(--ds-brand-ink)',
+          },
+          value: {
+            positive: 'var(--ds-value-positive)',
+            negative: 'var(--ds-value-negative)',
+            warning: 'var(--ds-value-warning)',
+          },
+        },
       },
       borderRadius: {
         DEFAULT: '0.25rem',
         lg: '0.5rem',
         xl: '0.75rem',
         full: '9999px',
+        // Design system radius scale - four steps, down from the six
+        // values in circulation (4, 8, 12, 16, 9999 and 4px 4px 0 0).
+        'ds-sm': 'var(--ds-radius-sm)',
+        'ds-md': 'var(--ds-radius-md)',
+        'ds-lg': 'var(--ds-radius-lg)',
       },
       spacing: {
         gutter: '24px',
@@ -111,6 +146,37 @@ module.exports = {
         'label-sm': ['12px', { lineHeight: '16px', letterSpacing: '0.04em', fontWeight: '500' }],
         'headline-md': ['24px', { lineHeight: '32px', fontWeight: '600' }],
         'body-md': ['16px', { lineHeight: '24px', fontWeight: '400' }],
+
+        // Design system type scale - seven steps, replacing the ten
+        // distinct sizes found in circulation (9/10/11/12/14/16/18/20/
+        // 24/30/36px). 12px is the floor: the dashboard's most common
+        // size was 10px, and anything under 16px in an <input> makes
+        // iOS auto-zoom on focus. Body leading is 1.5; display tightens
+        // as size grows.
+        'ds-caption': ['12px', { lineHeight: '18px', letterSpacing: '0.04em', fontWeight: '500' }],
+        'ds-label': ['14px', { lineHeight: '20px', letterSpacing: '0.02em', fontWeight: '500' }],
+        'ds-body': ['16px', { lineHeight: '24px', fontWeight: '400' }],
+        'ds-title': ['20px', { lineHeight: '28px', fontWeight: '600' }],
+        'ds-heading': ['24px', { lineHeight: '32px', letterSpacing: '-0.01em', fontWeight: '600' }],
+        'ds-display': ['32px', { lineHeight: '38px', letterSpacing: '-0.02em', fontWeight: '700' }],
+        'ds-display-lg': [
+          '48px',
+          { lineHeight: '56px', letterSpacing: '-0.02em', fontWeight: '700' },
+        ],
+      },
+      transitionDuration: {
+        instant: 'var(--ds-dur-instant)',
+        fast: 'var(--ds-dur-fast)',
+        base: 'var(--ds-dur-base)',
+        slow: 'var(--ds-dur-slow)',
+        'exit-fast': 'var(--ds-dur-exit-fast)',
+        'exit-base': 'var(--ds-dur-exit-base)',
+        'exit-slow': 'var(--ds-dur-exit-slow)',
+      },
+      transitionTimingFunction: {
+        'ds-out': 'var(--ds-ease-out)',
+        'ds-out-expo': 'var(--ds-ease-out-expo)',
+        'ds-in': 'var(--ds-ease-in)',
       },
       animation: {
         'fade-in': 'fade-in 0.3s ease forwards',
