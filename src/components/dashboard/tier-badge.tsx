@@ -1,6 +1,8 @@
 'use client';
 
-import { motion, MotionConfig } from 'framer-motion';
+import { useRef } from 'react';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
 
 const TIER_LABELS: Record<string, string> = {
   unverified: 'Unverified',
@@ -25,26 +27,52 @@ export function TierBadge({ tier }: { tier: string }) {
   const label = TIER_LABELS[tier] || 'Unverified';
   const style = TIER_STYLES[tier] || TIER_STYLES.unverified;
   const glow = GLOW_TIERS.has(tier);
+  const badgeRef = useRef<HTMLSpanElement>(null);
+  const glowRef = useRef<HTMLSpanElement>(null);
+
+  useGSAP(
+    () => {
+      if (!badgeRef.current) return;
+      gsap.fromTo(
+        badgeRef.current,
+        { opacity: 0, scale: 0.85 },
+        { opacity: 1, scale: 1, duration: 0.3, ease: 'power3.out' }
+      );
+    },
+    { dependencies: [tier], scope: badgeRef }
+  );
+
+  useGSAP(
+    () => {
+      if (!glow || !glowRef.current) return;
+      const mm = gsap.matchMedia();
+      mm.add('(prefers-reduced-motion: no-preference)', () => {
+        gsap.to(glowRef.current, {
+          opacity: 0.4,
+          duration: 1.1,
+          ease: 'sine.inOut',
+          yoyo: true,
+          repeat: -1,
+        });
+      });
+      return () => mm.revert();
+    },
+    { dependencies: [glow, tier], scope: badgeRef }
+  );
 
   return (
-    <MotionConfig reducedMotion="user">
-      <motion.span
-        key={tier}
-        initial={{ opacity: 0, scale: 0.85 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-        className={`relative inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${style}`}
-      >
-        {glow && (
-          <motion.span
-            className="pointer-events-none absolute inset-0 -z-10 rounded-full blur-md"
-            style={{ backgroundColor: 'currentColor' }}
-            animate={{ opacity: [0.2, 0.4, 0.2] }}
-            transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
-          />
-        )}
-        {label}
-      </motion.span>
-    </MotionConfig>
+    <span
+      ref={badgeRef}
+      className={`relative inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${style}`}
+    >
+      {glow && (
+        <span
+          ref={glowRef}
+          className="pointer-events-none absolute inset-0 -z-10 rounded-full blur-md"
+          style={{ backgroundColor: 'currentColor', opacity: 0.2 }}
+        />
+      )}
+      {label}
+    </span>
   );
 }

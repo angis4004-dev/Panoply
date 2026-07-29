@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
+import { useRef, useState } from 'react';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
 
 interface IdentityScoreProps {
   score: number;
@@ -15,32 +16,48 @@ export function IdentityScore({ score, size = 'lg' }: IdentityScoreProps) {
   const circumference = 2 * Math.PI * radius;
   const clampedScore = Math.max(0, Math.min(100, score));
   const targetOffset = circumference - (clampedScore / 100) * circumference;
-  const shouldReduceMotion = useReducedMotion();
 
   const [displayScore, setDisplayScore] = useState(0);
+  const circleRef = useRef<SVGCircleElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (shouldReduceMotion) {
-      setDisplayScore(clampedScore);
-      return;
-    }
-    const duration = 900;
-    const start = performance.now();
-    let frame: number;
-    const tick = (now: number) => {
-      const progress = Math.min(1, (now - start) / duration);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setDisplayScore(Math.round(eased * clampedScore));
-      if (progress < 1) frame = requestAnimationFrame(tick);
-    };
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
-  }, [clampedScore, shouldReduceMotion]);
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia();
+
+      mm.add('(prefers-reduced-motion: no-preference)', () => {
+        if (circleRef.current) {
+          gsap.fromTo(
+            circleRef.current,
+            { strokeDashoffset: circumference },
+            { strokeDashoffset: targetOffset, duration: 0.9, ease: 'power3.out' }
+          );
+        }
+        const counter = { value: 0 };
+        gsap.to(counter, {
+          value: clampedScore,
+          duration: 0.9,
+          ease: 'power3.out',
+          onUpdate: () => setDisplayScore(Math.round(counter.value)),
+        });
+      });
+
+      mm.add('(prefers-reduced-motion: reduce)', () => {
+        if (circleRef.current) {
+          gsap.set(circleRef.current, { strokeDashoffset: targetOffset });
+        }
+        setDisplayScore(clampedScore);
+      });
+
+      return () => mm.revert();
+    },
+    { dependencies: [clampedScore, targetOffset, circumference], scope: containerRef }
+  );
 
   const isHighScore = clampedScore >= 70;
 
   return (
-    <div className="flex items-center gap-3">
+    <div ref={containerRef} className="flex items-center gap-3">
       <div className="relative">
         {isHighScore && (
           <div className="absolute inset-0 -z-10 rounded-full bg-primary/25 blur-lg" />
@@ -54,7 +71,8 @@ export function IdentityScore({ score, size = 'lg' }: IdentityScoreProps) {
             stroke="#212A35"
             strokeWidth={strokeWidth}
           />
-          <motion.circle
+          <circle
+            ref={circleRef}
             cx={dimension / 2}
             cy={dimension / 2}
             r={radius}
@@ -62,12 +80,8 @@ export function IdentityScore({ score, size = 'lg' }: IdentityScoreProps) {
             stroke="#1E63FF"
             strokeWidth={strokeWidth}
             strokeDasharray={circumference}
+            strokeDashoffset={circumference}
             strokeLinecap="round"
-            initial={{ strokeDashoffset: circumference }}
-            animate={{ strokeDashoffset: targetOffset }}
-            transition={
-              shouldReduceMotion ? { duration: 0 } : { duration: 0.9, ease: [0.16, 1, 0.3, 1] }
-            }
           />
         </svg>
       </div>
