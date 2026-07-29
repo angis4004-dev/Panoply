@@ -156,9 +156,20 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Fetch the logged-in user's bots from the API
+  // Fetch the logged-in user's bots from the API.
+  //
+  // Only flips botsLoading on the *first* load (when there's nothing to show
+  // yet). Consumers - MetricsBentoGrid and the dashboard's signal-flow list -
+  // swap their entire subtree for skeletons whenever botsLoading is true, so
+  // raising it on every refetch made the dashboard visibly blink to grey
+  // blocks and back. Keeping the previous bots on screen while revalidating
+  // means a refetch updates values in place instead of flashing.
+  //
+  // This also absorbs React Strict Mode's double-invoked effect in dev, which
+  // otherwise fired this twice on mount and produced two skeleton flashes
+  // back to back.
   const fetchBots = async () => {
-    setState((prev) => ({ ...prev, botsLoading: true }));
+    setState((prev) => ({ ...prev, botsLoading: prev.bots.length === 0 }));
     try {
       const response = await fetch('/api/bots');
 
@@ -174,7 +185,9 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       setState((prev) => ({ ...prev, bots: botsData, botsLoading: false }));
     } catch (err) {
       console.error('Error fetching bots:', err);
-      setState((prev) => ({ ...prev, bots: [], botsLoading: false }));
+      // Keep whatever was already on screen rather than blanking the
+      // dashboard on a transient network failure.
+      setState((prev) => ({ ...prev, botsLoading: false }));
     }
   };
 
