@@ -122,7 +122,7 @@ function LoginForm({
         <button
           type="button"
           onClick={onSwitchToSignup}
-          className="mt-2 text-xs font-semibold text-[#3D77FF] underline decoration-primary/40 underline-offset-2"
+          className="mt-2 text-xs font-semibold text-primary underline decoration-primary/40 underline-offset-2"
         >
           Create an account
         </button>
@@ -212,7 +212,7 @@ function LoginForm({
       </div>
 
       <div className="flex justify-end -mt-2">
-        <Link href="/forgot-password" className="text-xs text-[#3D77FF] hover:text-brand-cyan">
+        <Link href="/forgot-password" className="text-xs text-primary hover:text-brand-cyan">
           Forgot your password?
         </Link>
       </div>
@@ -247,7 +247,7 @@ function LoginForm({
       <button
         type="submit"
         disabled={loading}
-        className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-[#3D77FF] disabled:bg-primary/40 disabled:cursor-not-allowed text-[#0A0E13] font-semibold text-sm rounded-lg py-2.5 transition-all duration-150 active:scale-[0.98]"
+        className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 disabled:bg-primary/40 disabled:cursor-not-allowed text-primary-foreground font-semibold text-sm rounded-lg py-2.5 transition-all duration-150 active:scale-[0.98]"
         style={{ minHeight: '42px' }}
       >
         {loading ? (
@@ -477,11 +477,11 @@ function SignupForm() {
           />
           <span className="text-xs text-[#8B95A5] leading-relaxed">
             I agree to the{' '}
-            <Link href="/terms" target="_blank" className="text-[#3D77FF] hover:underline">
+            <Link href="/terms" target="_blank" className="text-primary hover:underline">
               Terms of Service
             </Link>{' '}
             and{' '}
-            <Link href="/privacy" target="_blank" className="text-[#3D77FF] hover:underline">
+            <Link href="/privacy" target="_blank" className="text-primary hover:underline">
               Privacy Policy
             </Link>
             . I understand this platform involves financial risk.
@@ -499,7 +499,7 @@ function SignupForm() {
       <button
         type="submit"
         disabled={loading}
-        className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-[#3D77FF] disabled:bg-primary/40 disabled:cursor-not-allowed text-[#0A0E13] font-semibold text-sm rounded-lg py-2.5 transition-all duration-150 active:scale-[0.98]"
+        className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 disabled:bg-primary/40 disabled:cursor-not-allowed text-primary-foreground font-semibold text-sm rounded-lg py-2.5 transition-all duration-150 active:scale-[0.98]"
         style={{ minHeight: '42px' }}
       >
         {loading ? (
@@ -583,8 +583,8 @@ function SignUpLoginPageContent() {
           {/* Hero text */}
           <div className="flex-1 flex flex-col justify-center">
             <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-3 py-1.5 mb-6 w-fit">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#3D77FF] pulse-glow" />
-              <span className="text-xs font-semibold text-[#3D77FF] tracking-wide">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary pulse-glow" />
+              <span className="text-xs font-semibold text-primary tracking-wide">
                 AEGIS — AI-FIRST CRYPTO INTELLIGENCE
               </span>
             </div>
@@ -592,7 +592,7 @@ function SignUpLoginPageContent() {
               Securely access
               <br />
               your{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#3D77FF] to-brand-cyan">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-brand-cyan">
                 Aegis workspace
               </span>
             </h1>
@@ -615,7 +615,7 @@ function SignUpLoginPageContent() {
                     key={`feature-${f.label}`}
                     className="flex items-center gap-1.5 bg-[#212A35]/60 border border-[#2A3542]/50 rounded-lg px-3 py-1.5"
                   >
-                    <Icon size={13} className="text-[#3D77FF]" />
+                    <Icon size={13} className="text-primary" />
                     <span className="text-xs text-[#C5CCD6] font-medium">{f.label}</span>
                   </div>
                 );
@@ -632,7 +632,7 @@ function SignUpLoginPageContent() {
               <button
                 type="button"
                 onClick={handleGoogleEntry}
-                className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-[#0A0E13] transition hover:bg-[#3D77FF]"
+                className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
               >
                 Sign in with Google
               </button>
@@ -675,7 +675,9 @@ function SignUpLoginPageContent() {
                 key={`tab-${m}`}
                 onClick={() => setMode(m)}
                 className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all duration-200 ${
-                  mode === m ? 'bg-primary text-[#0A0E13]' : 'text-[#8B95A5] hover:text-[#E7ECF2]'
+                  mode === m
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-[#8B95A5] hover:text-[#E7ECF2]'
                 }`}
               >
                 {m === 'login' ? 'Sign In' : 'Create Account'}

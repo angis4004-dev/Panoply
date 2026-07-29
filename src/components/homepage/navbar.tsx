@@ -52,7 +52,7 @@ export function Navbar() {
                 <>
                   <Link
                     href="/dashboard"
-                    className="px-4 py-2 text-sm font-medium text-[#F2F5FA] bg-primary hover:bg-[#3D77FF] rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+                    className="px-4 py-2 text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
                   >
                     Launch App
                   </Link>
@@ -74,7 +74,7 @@ export function Navbar() {
                   </Link>
                   <Link
                     href="/sign-up-login-screen"
-                    className="px-4 py-2 text-sm font-semibold text-[#F2F5FA] bg-primary hover:bg-[#3D77FF] rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+                    className="px-4 py-2 text-sm font-semibold text-primary-foreground bg-primary hover:bg-primary/90 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
                   >
                     Get Started
                   </Link>
@@ -122,7 +122,7 @@ export function Navbar() {
                 <>
                   <Link
                     href="/dashboard"
-                    className="w-full text-center px-4 py-3 text-sm font-semibold text-[#F2F5FA] bg-primary rounded-lg"
+                    className="w-full text-center px-4 py-3 text-sm font-semibold text-primary-foreground bg-primary rounded-lg"
                   >
                     Launch App
                   </Link>
@@ -137,7 +137,7 @@ export function Navbar() {
                 <>
                   <Link
                     href="/sign-up-login-screen"
-                    className="w-full text-center px-4 py-3 text-sm font-semibold text-[#F2F5FA] bg-primary rounded-lg"
+                    className="w-full text-center px-4 py-3 text-sm font-semibold text-primary-foreground bg-primary rounded-lg"
                   >
                     Get Started
                   </Link>

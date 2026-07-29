@@ -67,7 +67,7 @@ export default function AIPage() {
             placeholder="Ask about your portfolio, signal flows, or yield..."
             className="flex-1 rounded-lg bg-transparent px-3 py-2 text-sm text-[#E7ECF2] placeholder:text-[#8B95A5] outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
           />
-          <button className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-[#F2F5FA] hover:bg-[#3D77FF] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]">
+          <button className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]">
             <Send className="h-4 w-4" />
             Send
           </button>
