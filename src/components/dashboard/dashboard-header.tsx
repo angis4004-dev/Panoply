@@ -19,14 +19,14 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
       <div className="flex items-center gap-3">
         <button
           onClick={onMenuClick}
-          className="rounded-lg p-2 text-[#8B95A5] hover:bg-[#17202e] hover:text-[#E7ECF2] lg:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+          className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2 text-ds-text-muted hover:bg-[#17202e] hover:text-[#E7ECF2] lg:hidden transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
           aria-label="Open menu"
         >
           <Menu className="h-5 w-5" />
         </button>
         <Link
           href="/"
-          className="flex items-center gap-2 rounded lg:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+          className="flex min-h-[44px] items-center gap-2 rounded lg:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
         >
           <AegisMark size={20} />
           <span className="font-wordmark font-extrabold uppercase tracking-[0.12em] text-white">
@@ -44,7 +44,7 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
 
       <div className="flex items-center gap-3">
         <button
-          className="relative rounded-lg p-2 text-[#8B95A5] hover:bg-[#17202e] hover:text-[#E7ECF2] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+          className="relative inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2 text-ds-text-muted hover:bg-[#17202e] hover:text-[#E7ECF2] transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
           aria-label="Notifications"
         >
           <Bell className="h-4 w-4" />

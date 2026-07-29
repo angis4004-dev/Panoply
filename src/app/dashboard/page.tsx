@@ -47,6 +47,23 @@ interface IdentitySummary {
 
 const YIELD_COLORS = ['#2EBAC6', '#FF6B35', '#243B8F'];
 
+/**
+ * Picks a readable ink for a coloured avatar chip.
+ *
+ * These three swatches span a wide luminance range, so a single hardcoded
+ * white failed on two of them - white on #2EBAC6 measures 2.35:1, well
+ * under the 4.5:1 needed at this size. Choosing per-swatch keeps every
+ * combination legible without giving up the colour coding.
+ */
+function inkFor(hex: string): string {
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+  const lin = (c: number) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+  const luminance = 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+  // 0.18 is the crossover where dark ink starts beating light ink on
+  // contrast for this palette.
+  return luminance > 0.18 ? '#0A0E13' : '#F2F5FA';
+}
+
 export default function DashboardPage() {
   const { bots, botsLoading, walletBalance, addToast } = useAppStore();
   const { user } = useAuth();
@@ -117,20 +134,20 @@ export default function DashboardPage() {
                 }
                 setDepositOpen(true);
               }}
-              className="inline-flex items-center gap-2 rounded-lg border border-[#212A35] px-4 py-2 text-sm font-medium text-[#E7ECF2] hover:border-primary/40 hover:bg-[#17202e] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+              className="inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-[#212A35] px-4 py-2 text-sm font-medium text-[#E7ECF2] hover:border-primary/40 hover:bg-[#17202e] transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
             >
               Deposit
             </button>
             <Link
               href="/dashboard/bots"
-              className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+              className="inline-flex min-h-[44px] items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
             >
               <BotIcon className="h-4 w-4" />
               Create Signal Flow
             </Link>
             <Link
               href="/dashboard/builder"
-              className="inline-flex items-center gap-2 rounded-lg border border-[#212A35] px-4 py-2 text-sm font-medium text-[#E7ECF2] hover:border-primary/40 hover:bg-[#17202e] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+              className="inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-[#212A35] px-4 py-2 text-sm font-medium text-[#E7ECF2] hover:border-primary/40 hover:bg-[#17202e] transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
             >
               Run Builder
               <ArrowUpRight className="h-3.5 w-3.5" />
@@ -184,7 +201,7 @@ export default function DashboardPage() {
         </div>
         <Link
           href="/dashboard/achievements"
-          className="inline-flex items-center gap-1.5 rounded text-xs font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#122131]"
+          className="inline-flex min-h-[44px] items-center gap-1.5 rounded text-ds-label font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#122131]"
         >
           View achievements
           <ArrowUpRight className="h-3.5 w-3.5" />
@@ -206,7 +223,7 @@ export default function DashboardPage() {
             <h2 className="text-lg font-semibold text-white">Active Signal Flows</h2>
             <Link
               href="/dashboard/bots"
-              className="rounded text-xs font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+              className="inline-flex min-h-[44px] items-center rounded text-ds-label font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
             >
               View all
             </Link>
@@ -251,7 +268,7 @@ export default function DashboardPage() {
                         <p className="text-xs text-[#8B95A5]">{bot.type} strategy</p>
                       </div>
                     </div>
-                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
+                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-ds-caption font-bold uppercase tracking-wide text-primary">
                       {bot.status}
                     </span>
                   </div>
@@ -289,7 +306,7 @@ export default function DashboardPage() {
             <h2 className="text-lg font-semibold text-white">Top Yields</h2>
             <Link
               href="/dashboard/yield"
-              className="rounded text-xs font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+              className="inline-flex min-h-[44px] items-center rounded text-ds-label font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
             >
               Explore all
             </Link>
@@ -321,8 +338,11 @@ export default function DashboardPage() {
                 >
                   <div className="flex items-center gap-3">
                     <div
-                      className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white"
-                      style={{ backgroundColor: YIELD_COLORS[i % YIELD_COLORS.length] }}
+                      className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold"
+                      style={{
+                        backgroundColor: YIELD_COLORS[i % YIELD_COLORS.length],
+                        color: inkFor(YIELD_COLORS[i % YIELD_COLORS.length]),
+                      }}
                     >
                       {yield_.protocol.charAt(0)}
                     </div>
@@ -333,7 +353,9 @@ export default function DashboardPage() {
                   </div>
                   <div className="text-right">
                     <p className="font-mono text-lg font-bold text-green-400">{yield_.apy}%</p>
-                    <p className="text-[10px] uppercase tracking-wide text-[#8B95A5]">APY</p>
+                    <p className="text-ds-caption uppercase tracking-wide text-ds-text-muted">
+                      APY
+                    </p>
                   </div>
                 </div>
               ))

@@ -28,11 +28,11 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   const value = payload[0]?.value ?? 0;
   return (
     <div className="bg-zinc-800 border border-zinc-700 rounded-xl p-3 shadow-2xl min-w-[140px]">
-      <p className="text-[11px] text-zinc-500 font-semibold mb-2">{label}</p>
+      <p className="text-ds-caption text-ds-text-secondary font-semibold mb-2">{label}</p>
       <p className="text-sm font-bold text-teal-400 font-mono tabular-nums">
         ${value.toLocaleString()}
       </p>
-      <p className="text-[10px] text-zinc-500 mt-0.5">Portfolio Value</p>
+      <p className="text-ds-caption text-ds-text-secondary mt-0.5">Portfolio Value</p>
     </div>
   );
 }
@@ -161,7 +161,7 @@ export default function PnLAreaChart() {
     return (
       <div className="bg-[#122131] border border-[#212A35] rounded-2xl p-5">
         <div className="flex flex-col items-center justify-center h-[200px]">
-          <p className="text-zinc-500">Loading chart data...</p>
+          <p className="text-ds-text-secondary">Loading chart data...</p>
         </div>
       </div>
     );
@@ -183,7 +183,9 @@ export default function PnLAreaChart() {
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-sm font-semibold text-zinc-200">Cumulative P&L</h3>
-          <p className="text-xs text-zinc-600 mt-0.5">{rangeDescription[selectedRange]} · USDT</p>
+          <p className="text-ds-caption text-ds-text-secondary mt-0.5">
+            {rangeDescription[selectedRange]} · USDT
+          </p>
         </div>
         <div className="flex items-center gap-1.5">
           {RANGES.map((r) => (
@@ -191,10 +193,13 @@ export default function PnLAreaChart() {
               key={`range-${r.label}`}
               type="button"
               onClick={() => setSelectedRange(r.label)}
-              className={`text-[11px] px-2.5 py-1 rounded-lg font-medium transition-all ${
+              aria-pressed={selectedRange === r.label}
+              // min-h/min-w carry the 44px touch target without inflating the
+              // label - these measured 34x25 before, under the 44x44 minimum.
+              className={`text-ds-caption inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-ds-sm px-2.5 font-medium transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#122131] ${
                 selectedRange === r.label
                   ? 'bg-teal-500/15 text-teal-400'
-                  : 'text-zinc-500 hover:text-zinc-300'
+                  : 'text-ds-text-secondary hover:text-ds-text'
               }`}
             >
               {r.label}
@@ -218,13 +223,13 @@ export default function PnLAreaChart() {
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
           <XAxis
             dataKey="date"
-            tick={{ fill: '#52525B', fontSize: 10 }}
+            tick={{ fill: '#A1A1AA', fontSize: 12 }}
             axisLine={false}
             tickLine={false}
             interval={xAxisInterval}
           />
           <YAxis
-            tick={{ fill: '#52525B', fontSize: 10 }}
+            tick={{ fill: '#A1A1AA', fontSize: 12 }}
             axisLine={false}
             tickLine={false}
             tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`}

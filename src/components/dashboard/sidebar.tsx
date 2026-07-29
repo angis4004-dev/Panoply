@@ -64,7 +64,9 @@ export default function DashboardSidebar({ onNavigate }: DashboardSidebarProps) 
           >
             AEGIS
           </Link>
-          <p className="text-[10px] uppercase tracking-wider text-[#8B95A5]">Command Center</p>
+          <p className="text-ds-caption uppercase tracking-wider text-ds-text-muted">
+            Command Center
+          </p>
         </div>
       </div>
 

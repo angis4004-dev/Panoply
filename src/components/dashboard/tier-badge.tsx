@@ -63,7 +63,7 @@ export function TierBadge({ tier }: { tier: string }) {
   return (
     <span
       ref={badgeRef}
-      className={`relative inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${style}`}
+      className={`relative inline-flex rounded-full px-2 py-0.5 text-ds-caption font-bold uppercase ${style}`}
     >
       {glow && (
         <span

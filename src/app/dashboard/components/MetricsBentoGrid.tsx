@@ -30,7 +30,7 @@ function DeltaBadge({ delta, dir }: { delta: string; dir: DeltaDir }) {
   };
   return (
     <span
-      className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full ${styles[dir]}`}
+      className={`inline-flex items-center gap-1 text-ds-caption font-semibold px-2 py-0.5 rounded-full ${styles[dir]}`}
     >
       {icons[dir]}
       {delta}
@@ -116,7 +116,7 @@ export default function MetricsBentoGrid() {
               <div className="w-8 h-8 rounded-lg bg-teal-500/15 flex items-center justify-center">
                 <DollarSign size={16} className="text-teal-400" />
               </div>
-              <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
+              <span className="text-xs font-semibold uppercase tracking-widest text-ds-text-secondary">
                 Realized P&L
               </span>
             </div>
@@ -129,7 +129,7 @@ export default function MetricsBentoGrid() {
               maximumFractionDigits: 2,
             })}
           </p>
-          <p className="text-xs text-zinc-600">
+          <p className="text-xs text-ds-text-secondary">
             {bots.length} signal flow{bots.length === 1 ? '' : 's'} · $
             {totalAllocated.toLocaleString()} deployed · Dry-run
           </p>
@@ -153,7 +153,7 @@ export default function MetricsBentoGrid() {
         <p className="text-2xl font-bold text-zinc-100 font-mono tabular-nums">
           {profitableRate.toFixed(0)}%
         </p>
-        <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-600 mt-1">
+        <p className="text-ds-caption font-semibold uppercase tracking-widest text-ds-text-secondary mt-1">
           Profitable Flows
         </p>
         <div className="mt-3 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
@@ -174,7 +174,7 @@ export default function MetricsBentoGrid() {
         <p className="text-2xl font-bold text-zinc-100 font-mono tabular-nums">
           {avgConfidence.toFixed(0)}%
         </p>
-        <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-600 mt-1">
+        <p className="text-ds-caption font-semibold uppercase tracking-widest text-ds-text-secondary mt-1">
           Avg Confidence
         </p>
         <div className="mt-3 flex items-center gap-1.5">
@@ -193,7 +193,7 @@ export default function MetricsBentoGrid() {
           <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center">
             <Activity size={16} className="text-zinc-400" />
           </div>
-          <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-600">
+          <span className="text-ds-caption font-bold uppercase tracking-widest text-ds-text-secondary">
             Active Position
           </span>
         </div>
@@ -210,7 +210,7 @@ export default function MetricsBentoGrid() {
           </span>
           {topBot && <span className="text-xs text-teal-400 font-mono">LONG</span>}
         </div>
-        <p className="text-[11px] text-zinc-600 mt-2">
+        <p className="text-ds-caption text-ds-text-secondary mt-2">
           {topBot
             ? `Allocated: $${(topBot.allocatedAmount || 0).toLocaleString()} · Confidence: ${topBot.confidence}%`
             : 'Deploy a signal flow to see it here'}
@@ -224,7 +224,7 @@ export default function MetricsBentoGrid() {
             <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center">
               <Zap size={16} className="text-zinc-400" />
             </div>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-600">
+            <span className="text-ds-caption font-bold uppercase tracking-widest text-ds-text-secondary">
               Signal Flows
             </span>
           </div>
@@ -236,7 +236,7 @@ export default function MetricsBentoGrid() {
             {runningCount} RUNNING
           </span>
         </div>
-        <p className="text-[10px] text-zinc-600 mt-1.5">
+        <p className="text-ds-caption text-ds-text-secondary mt-1.5">
           {pausedCount} paused · {bots.length} total
         </p>
       </div>
@@ -247,14 +247,14 @@ export default function MetricsBentoGrid() {
           <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center">
             <TrendingUp size={16} className="text-zinc-400" />
           </div>
-          <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-600">
+          <span className="text-ds-caption font-bold uppercase tracking-widest text-ds-text-secondary">
             Capital Deployed
           </span>
         </div>
         <p className="text-2xl font-bold text-zinc-100 font-mono tabular-nums">
           ${totalAllocated.toLocaleString()}
         </p>
-        <p className="text-[11px] text-zinc-600 mt-2">
+        <p className="text-ds-caption text-ds-text-secondary mt-2">
           {deployedShare.toFixed(0)}% of total capital
         </p>
       </div>
@@ -268,18 +268,18 @@ export default function MetricsBentoGrid() {
             <div className="w-8 h-8 rounded-lg bg-amber-500/15 flex items-center justify-center">
               <AlertTriangle size={16} className="text-amber-400" />
             </div>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-amber-500/70">
+            <span className="text-ds-caption font-bold uppercase tracking-widest text-amber-400">
               Drawdown
             </span>
           </div>
-          <span className="text-[10px] bg-amber-500/15 text-amber-400 px-2 py-0.5 rounded-full font-semibold">
+          <span className="text-ds-caption bg-amber-500/15 text-amber-400 px-2 py-0.5 rounded-full font-semibold">
             {drawdownDir === 'warn' ? 'NEAR LIMIT' : 'NORMAL'}
           </span>
         </div>
         <p className="text-2xl font-bold text-amber-400 font-mono tabular-nums">
           {drawdownAbs.toFixed(1)}%
         </p>
-        <p className="text-[11px] text-amber-500/60 mt-1">
+        <p className="text-ds-caption text-amber-400/90 mt-1">
           {worstBot ? `Worst flow: ${worstBot.pair}` : 'No flows yet'} · Alert fires at 5%
         </p>
         <div className="mt-3 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
