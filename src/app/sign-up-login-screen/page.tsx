@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { signIn } from 'next-auth/react';
+import { motion, MotionConfig, type Variants } from 'framer-motion';
 import {
   Eye,
   EyeOff,
@@ -23,6 +24,26 @@ import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
 
 type AuthMode = 'login' | 'signup';
+
+const fieldContainerVariants: Variants = {
+  hidden: {},
+  visible: {
+    transition: { staggerChildren: 0.05, delayChildren: 0.05 },
+  },
+};
+
+const fieldVariants: Variants = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] } },
+};
+
+function ButtonShimmer() {
+  return (
+    <span className="pointer-events-none absolute inset-0 overflow-hidden rounded-lg">
+      <span className="absolute inset-y-0 left-0 w-1/3 animate-shimmer-sweep bg-gradient-to-r from-transparent via-white/35 to-transparent motion-reduce:hidden" />
+    </span>
+  );
+}
 
 interface LoginFormValues {
   email: string;
@@ -113,8 +134,17 @@ function LoginForm({
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-      <div className="rounded-lg border border-[#2A3542]/60 bg-[#212A35]/40 px-3 py-3 text-sm text-[#C5CCD6]">
+    <motion.form
+      onSubmit={handleSubmit(onSubmit)}
+      className="space-y-5"
+      variants={fieldContainerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.div
+        variants={fieldVariants}
+        className="rounded-lg border border-[#2A3542]/60 bg-[#212A35]/40 px-3 py-3 text-sm text-[#C5CCD6]"
+      >
         <p className="font-semibold text-[#E7ECF2]">Need an account?</p>
         <p className="mt-1 text-xs text-[#8B95A5]">
           Create one with your Google account or your email address, then return here to sign in.
@@ -126,9 +156,9 @@ function LoginForm({
         >
           Create an account
         </button>
-      </div>
+      </motion.div>
       {/* Email */}
-      <div>
+      <motion.div variants={fieldVariants}>
         <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 tracking-wide uppercase">
           Email Address
         </label>
@@ -138,7 +168,7 @@ function LoginForm({
             type="email"
             autoComplete="email"
             placeholder="you@cryptotradeai.io"
-            className={`w-full bg-[#212A35] border rounded-lg pl-9 pr-4 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${
+            className={`w-full bg-[#212A35] border rounded-lg pl-9 pr-4 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_16px_-2px_rgba(30,99,255,0.45)] transition-all duration-300 ${
               errors.email ? 'border-red-500/60' : 'border-[#2A3542]'
             }`}
             {...register('email', {
@@ -156,10 +186,10 @@ function LoginForm({
             {errors.email.message}
           </p>
         )}
-      </div>
+      </motion.div>
 
       {/* Password */}
-      <div>
+      <motion.div variants={fieldVariants}>
         <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 tracking-wide uppercase">
           Password
         </label>
@@ -169,7 +199,7 @@ function LoginForm({
             type={showPassword ? 'text' : 'password'}
             autoComplete="current-password"
             placeholder="••••••••••••"
-            className={`w-full bg-[#212A35] border rounded-lg pl-9 pr-10 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${
+            className={`w-full bg-[#212A35] border rounded-lg pl-9 pr-10 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_16px_-2px_rgba(30,99,255,0.45)] transition-all duration-300 ${
               errors.password ? 'border-red-500/60' : 'border-[#2A3542]'
             }`}
             {...register('password', { required: 'Password is required' })}
@@ -188,10 +218,10 @@ function LoginForm({
             {errors.password.message}
           </p>
         )}
-      </div>
+      </motion.div>
 
       {/* MFA toggle */}
-      <div className="flex items-center justify-between">
+      <motion.div variants={fieldVariants} className="flex items-center justify-between">
         <label className="flex items-center gap-2 cursor-pointer">
           <input
             type="checkbox"
@@ -209,17 +239,22 @@ function LoginForm({
           />
           <span className="text-xs text-[#8B95A5]">Remember me</span>
         </label>
-      </div>
+      </motion.div>
 
-      <div className="flex justify-end -mt-2">
+      <motion.div variants={fieldVariants} className="flex justify-end -mt-2">
         <Link href="/forgot-password" className="text-xs text-[#3D77FF] hover:text-brand-cyan">
           Forgot your password?
         </Link>
-      </div>
+      </motion.div>
 
       {/* OTP field (conditional) */}
       {showOTP && (
-        <div className="animate-fade-in">
+        <motion.div
+          initial={{ opacity: 0, y: 8, height: 0 }}
+          animate={{ opacity: 1, y: 0, height: 'auto' }}
+          exit={{ opacity: 0, y: -8, height: 0 }}
+          transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] as const }}
+        >
           <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 tracking-wide uppercase">
             One-Time Password (OTP)
           </label>
@@ -240,16 +275,18 @@ function LoginForm({
               {...register('otp')}
             />
           </div>
-        </div>
+        </motion.div>
       )}
 
       {/* Submit */}
-      <button
+      <motion.button
+        variants={fieldVariants}
         type="submit"
         disabled={loading}
-        className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-[#3D77FF] disabled:bg-primary/40 disabled:cursor-not-allowed text-[#0A0E13] font-semibold text-sm rounded-lg py-2.5 transition-all duration-150 active:scale-[0.98]"
+        className="relative w-full flex items-center justify-center gap-2 overflow-hidden bg-primary hover:bg-[#3D77FF] disabled:bg-primary/40 disabled:cursor-not-allowed text-[#0A0E13] font-semibold text-sm rounded-lg py-2.5 transition-colors duration-150 active:scale-[0.98]"
         style={{ minHeight: '42px' }}
       >
+        {!loading && <ButtonShimmer />}
         {loading ? (
           <>
             <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
@@ -275,8 +312,8 @@ function LoginForm({
             <ChevronRight size={15} />
           </>
         )}
-      </button>
-    </form>
+      </motion.button>
+    </motion.form>
   );
 }
 
@@ -343,16 +380,22 @@ function SignupForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <motion.form
+      onSubmit={handleSubmit(onSubmit)}
+      className="space-y-4"
+      variants={fieldContainerVariants}
+      initial="hidden"
+      animate="visible"
+    >
       {/* Full Name */}
-      <div>
+      <motion.div variants={fieldVariants}>
         <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 tracking-wide uppercase">
           Full Name
         </label>
         <input
           type="text"
           placeholder="Alex Thornton"
-          className={`w-full bg-[#212A35] border rounded-lg px-4 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${
+          className={`w-full bg-[#212A35] border rounded-lg px-4 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_16px_-2px_rgba(30,99,255,0.45)] transition-all duration-300 ${
             errors.fullName ? 'border-red-500/60' : 'border-[#2A3542]'
           }`}
           {...register('fullName', { required: 'Full name is required' })}
@@ -363,17 +406,17 @@ function SignupForm() {
             {errors.fullName.message}
           </p>
         )}
-      </div>
+      </motion.div>
 
       {/* Email */}
-      <div>
+      <motion.div variants={fieldVariants}>
         <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 tracking-wide uppercase">
           Email Address
         </label>
         <input
           type="email"
           placeholder="you@cryptotradeai.io"
-          className={`w-full bg-[#212A35] border rounded-lg px-4 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${
+          className={`w-full bg-[#212A35] border rounded-lg px-4 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_16px_-2px_rgba(30,99,255,0.45)] transition-all duration-300 ${
             errors.email ? 'border-red-500/60' : 'border-[#2A3542]'
           }`}
           {...register('email', {
@@ -390,10 +433,10 @@ function SignupForm() {
             {errors.email.message}
           </p>
         )}
-      </div>
+      </motion.div>
 
       {/* Password */}
-      <div>
+      <motion.div variants={fieldVariants}>
         <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 tracking-wide uppercase">
           Password
         </label>
@@ -404,7 +447,7 @@ function SignupForm() {
           <input
             type={showPassword ? 'text' : 'password'}
             placeholder="••••••••••••"
-            className={`w-full bg-[#212A35] border rounded-lg px-4 pr-10 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${
+            className={`w-full bg-[#212A35] border rounded-lg px-4 pr-10 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_16px_-2px_rgba(30,99,255,0.45)] transition-all duration-300 ${
               errors.password ? 'border-red-500/60' : 'border-[#2A3542]'
             }`}
             {...register('password', {
@@ -430,10 +473,10 @@ function SignupForm() {
             {errors.password.message}
           </p>
         )}
-      </div>
+      </motion.div>
 
       {/* Confirm Password */}
-      <div>
+      <motion.div variants={fieldVariants}>
         <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 tracking-wide uppercase">
           Confirm Password
         </label>
@@ -441,7 +484,7 @@ function SignupForm() {
           <input
             type={showConfirm ? 'text' : 'password'}
             placeholder="••••••••••••"
-            className={`w-full bg-[#212A35] border rounded-lg px-4 pr-10 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${
+            className={`w-full bg-[#212A35] border rounded-lg px-4 pr-10 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_16px_-2px_rgba(30,99,255,0.45)] transition-all duration-300 ${
               errors.confirmPassword ? 'border-red-500/60' : 'border-[#2A3542]'
             }`}
             {...register('confirmPassword', {
@@ -463,10 +506,10 @@ function SignupForm() {
             {errors.confirmPassword.message}
           </p>
         )}
-      </div>
+      </motion.div>
 
       {/* Terms */}
-      <div>
+      <motion.div variants={fieldVariants}>
         <label className="flex items-start gap-2 cursor-pointer">
           <input
             type="checkbox"
@@ -493,15 +536,17 @@ function SignupForm() {
             {errors.agreeTerms.message}
           </p>
         )}
-      </div>
+      </motion.div>
 
       {/* Submit */}
-      <button
+      <motion.button
+        variants={fieldVariants}
         type="submit"
         disabled={loading}
-        className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-[#3D77FF] disabled:bg-primary/40 disabled:cursor-not-allowed text-[#0A0E13] font-semibold text-sm rounded-lg py-2.5 transition-all duration-150 active:scale-[0.98]"
+        className="relative w-full flex items-center justify-center gap-2 overflow-hidden bg-primary hover:bg-[#3D77FF] disabled:bg-primary/40 disabled:cursor-not-allowed text-[#0A0E13] font-semibold text-sm rounded-lg py-2.5 transition-colors duration-150 active:scale-[0.98]"
         style={{ minHeight: '42px' }}
       >
+        {!loading && <ButtonShimmer />}
         {loading ? (
           <>
             <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
@@ -527,8 +572,8 @@ function SignupForm() {
             <ChevronRight size={15} />
           </>
         )}
-      </button>
-    </form>
+      </motion.button>
+    </motion.form>
   );
 }
 
@@ -557,189 +602,205 @@ function SignUpLoginPageContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0E13] flex">
-      {/* Left brand panel */}
-      <div className="hidden lg:flex lg:w-[52%] xl:w-[55%] flex-col relative overflow-hidden bg-gradient-to-br from-[#122131] via-[#0A0E13] to-[#122131]">
-        {/* Ambient particle flow field */}
-        <FlowFieldBackground
-          className="absolute inset-0 opacity-60"
-          color="#00D4FF"
-          particleCount={130}
-          trailOpacity={0.1}
-          speed={0.6}
-        />
+    <MotionConfig reducedMotion="user">
+      <div className="min-h-screen bg-[#0A0E13] flex">
+        {/* Left brand panel */}
+        <div className="hidden lg:flex lg:w-[52%] xl:w-[55%] flex-col relative overflow-hidden bg-gradient-to-br from-[#122131] via-[#0A0E13] to-[#122131]">
+          {/* Ambient particle flow field */}
+          <FlowFieldBackground
+            className="absolute inset-0 opacity-60"
+            color="#00D4FF"
+            particleCount={130}
+            trailOpacity={0.1}
+            speed={0.6}
+          />
 
-        {/* Glow orbs */}
-        <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
+          {/* Glow orbs */}
+          <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+          <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
 
-        <div className="relative z-10 flex flex-col h-full p-12">
-          {/* Logo */}
-          <div className="flex items-center gap-3">
-            <AppLogo size={40} />
-            <span className="text-xl font-bold text-[#E7ECF2] tracking-tight">Aegis</span>
-          </div>
-
-          {/* Hero text */}
-          <div className="flex-1 flex flex-col justify-center">
-            <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-3 py-1.5 mb-6 w-fit">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#3D77FF] pulse-glow" />
-              <span className="text-xs font-semibold text-[#3D77FF] tracking-wide">
-                AEGIS — AI-FIRST CRYPTO INTELLIGENCE
-              </span>
+          <div className="relative z-10 flex flex-col h-full p-12">
+            {/* Logo */}
+            <div className="flex items-center gap-3">
+              <AppLogo size={40} />
+              <span className="text-xl font-bold text-[#E7ECF2] tracking-tight">Aegis</span>
             </div>
-            <h1 className="text-4xl xl:text-5xl font-bold text-[#E7ECF2] leading-tight mb-4">
-              Securely access
-              <br />
-              your{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#3D77FF] to-brand-cyan">
-                Aegis workspace
-              </span>
-            </h1>
-            <p className="text-[#8B95A5] text-base leading-relaxed max-w-sm">
-              Sign in with Google or your email address to view portfolio intelligence, yield
-              opportunities, and workflow tools in one calm environment.
-            </p>
 
-            {/* Feature pills */}
-            <div className="flex flex-wrap gap-2 mt-8">
-              {[
-                { icon: Cpu, label: 'AI Strategy Routing' },
-                { icon: Shield, label: 'Secure Sign-In' },
-                { icon: TrendingUp, label: 'Portfolio Insights' },
-                { icon: Activity, label: 'Yield Context' },
-              ].map((f) => {
-                const Icon = f.icon;
-                return (
-                  <div
-                    key={`feature-${f.label}`}
-                    className="flex items-center gap-1.5 bg-[#212A35]/60 border border-[#2A3542]/50 rounded-lg px-3 py-1.5"
-                  >
-                    <Icon size={13} className="text-[#3D77FF]" />
-                    <span className="text-xs text-[#C5CCD6] font-medium">{f.label}</span>
-                  </div>
-                );
-              })}
+            {/* Hero text */}
+            <div className="flex-1 flex flex-col justify-center">
+              <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-3 py-1.5 mb-6 w-fit">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#3D77FF] pulse-glow" />
+                <span className="text-xs font-semibold text-[#3D77FF] tracking-wide">
+                  AEGIS — AI-FIRST CRYPTO INTELLIGENCE
+                </span>
+              </div>
+              <h1 className="text-4xl xl:text-5xl font-bold text-[#E7ECF2] leading-tight mb-4">
+                Securely access
+                <br />
+                your{' '}
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#3D77FF] to-brand-cyan">
+                  Aegis workspace
+                </span>
+              </h1>
+              <p className="text-[#8B95A5] text-base leading-relaxed max-w-sm">
+                Sign in with Google or your email address to view portfolio intelligence, yield
+                opportunities, and workflow tools in one calm environment.
+              </p>
+
+              {/* Feature pills */}
+              <div className="flex flex-wrap gap-2 mt-8">
+                {[
+                  { icon: Cpu, label: 'AI Strategy Routing' },
+                  { icon: Shield, label: 'Secure Sign-In' },
+                  { icon: TrendingUp, label: 'Portfolio Insights' },
+                  { icon: Activity, label: 'Yield Context' },
+                ].map((f) => {
+                  const Icon = f.icon;
+                  return (
+                    <div
+                      key={`feature-${f.label}`}
+                      className="flex items-center gap-1.5 bg-[#212A35]/60 border border-[#2A3542]/50 rounded-lg px-3 py-1.5"
+                    >
+                      <Icon size={13} className="text-[#3D77FF]" />
+                      <span className="text-xs text-[#C5CCD6] font-medium">{f.label}</span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          </div>
 
-          {/* Primary action */}
-          <div className="mt-auto rounded-2xl border border-[#212A35]/80 bg-[#122131]/60 px-5 py-4 backdrop-blur-sm">
-            <p className="text-[10px] uppercase tracking-[0.35em] text-[#8B95A5] mb-2">
-              Continue to Aegis
-            </p>
-            <div className="flex flex-wrap items-center gap-3">
-              <button
-                type="button"
-                onClick={handleGoogleEntry}
-                className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-[#0A0E13] transition hover:bg-[#3D77FF]"
-              >
-                Sign in with Google
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setMode('signup');
-                  router.replace('/sign-up-login-screen?mode=signup');
-                }}
-                className="rounded-full border border-[#2A3542] px-4 py-2 text-sm font-semibold text-[#C5CCD6] transition hover:border-[#8B95A5] hover:text-white"
-              >
-                Sign up with email
-              </button>
+            {/* Primary action */}
+            <div className="mt-auto rounded-2xl border border-[#212A35]/80 bg-[#122131]/60 px-5 py-4 backdrop-blur-sm">
+              <p className="text-[10px] uppercase tracking-[0.35em] text-[#8B95A5] mb-2">
+                Continue to Aegis
+              </p>
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleGoogleEntry}
+                  className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-[#0A0E13] transition hover:bg-[#3D77FF]"
+                >
+                  Sign in with Google
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode('signup');
+                    router.replace('/sign-up-login-screen?mode=signup');
+                  }}
+                  className="rounded-full border border-[#2A3542] px-4 py-2 text-sm font-semibold text-[#C5CCD6] transition hover:border-[#8B95A5] hover:text-white"
+                >
+                  Sign up with email
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Right form panel */}
-      <div className="flex-1 flex flex-col items-center justify-center p-6 lg:p-12 overflow-y-auto">
-        <div className="w-full max-w-md">
-          {/* Mobile logo */}
-          <div className="flex items-center gap-2.5 mb-8 lg:hidden">
-            <AppLogo size={32} />
-            <span className="font-bold text-[#E7ECF2]">Aegis</span>
-          </div>
-
-          {/* Security badge */}
-          <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-3 py-2 mb-6">
-            <Shield size={13} className="text-emerald-400" />
-            <span className="text-xs text-emerald-400 font-medium">
-              Secure access for your Aegis workspace and portfolio intelligence
-            </span>
-          </div>
-
-          {/* Tab switcher */}
-          <div className="flex bg-[#122131] border border-[#212A35] rounded-xl p-1 mb-6">
-            {(['login', 'signup'] as AuthMode[]).map((m) => (
-              <button
-                key={`tab-${m}`}
-                onClick={() => setMode(m)}
-                className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all duration-200 ${
-                  mode === m ? 'bg-primary text-[#0A0E13]' : 'text-[#8B95A5] hover:text-[#E7ECF2]'
-                }`}
-              >
-                {m === 'login' ? 'Sign In' : 'Create Account'}
-              </button>
-            ))}
-          </div>
-
-          {/* Form */}
-          <div className="bg-[#122131] border border-[#212A35] rounded-xl p-6">
-            <h2 className="text-lg font-bold text-[#E7ECF2] mb-1">
-              {mode === 'login' ? 'Welcome back' : 'Create your Aegis workspace'}
-            </h2>
-            <p className="text-sm text-[#8B95A5] mb-5">
-              {mode === 'login'
-                ? 'Sign in to your secure Aegis workspace.'
-                : 'Use Google or your email address to create your account.'}
-            </p>
-
-            <button
-              type="button"
-              onClick={handleGoogleEntry}
-              className="w-full flex items-center justify-center gap-2 rounded-lg border border-[#2A3542] bg-[#212A35]/60 px-4 py-2.5 text-sm font-semibold text-[#E7ECF2] transition hover:border-[#8B95A5] hover:bg-[#212A35] lg:hidden"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-                <path
-                  fill="#4285F4"
-                  d="M23.52 12.27c0-.85-.08-1.67-.22-2.45H12v4.64h6.47a5.54 5.54 0 0 1-2.4 3.63v3.02h3.89c2.28-2.1 3.56-5.19 3.56-8.84Z"
-                />
-                <path
-                  fill="#34A853"
-                  d="M12 24c3.24 0 5.96-1.07 7.95-2.9l-3.89-3.02c-1.08.72-2.46 1.15-4.06 1.15-3.13 0-5.78-2.11-6.73-4.96H1.26v3.12A11.99 11.99 0 0 0 12 24Z"
-                />
-                <path
-                  fill="#FBBC05"
-                  d="M5.27 14.27a7.2 7.2 0 0 1 0-4.54V6.61H1.26a12 12 0 0 0 0 10.78l4.01-3.12Z"
-                />
-                <path
-                  fill="#EA4335"
-                  d="M12 4.77c1.76 0 3.34.6 4.59 1.79l3.44-3.44C17.95 1.19 15.23 0 12 0 7.31 0 3.26 2.69 1.26 6.61l4.01 3.12C6.22 6.88 8.87 4.77 12 4.77Z"
-                />
-              </svg>
-              Continue with Google
-            </button>
-
-            <div className="flex items-center gap-3 my-5 lg:hidden">
-              <div className="h-px flex-1 bg-[#212A35]" />
-              <span className="text-[11px] uppercase tracking-wider text-[#8B95A5]">
-                or continue with email
-              </span>
-              <div className="h-px flex-1 bg-[#212A35]" />
+        {/* Right form panel */}
+        <div className="flex-1 flex flex-col items-center justify-center p-6 lg:p-12 overflow-y-auto">
+          <div className="w-full max-w-md">
+            {/* Mobile logo */}
+            <div className="flex items-center gap-2.5 mb-8 lg:hidden">
+              <AppLogo size={32} />
+              <span className="font-bold text-[#E7ECF2]">Aegis</span>
             </div>
 
-            {mode === 'login' ? (
-              <LoginForm
-                onCredentialFill={handleCredentialFill}
-                onSwitchToSignup={() => setMode('signup')}
-              />
-            ) : (
-              <SignupForm />
-            )}
+            {/* Security badge */}
+            <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-3 py-2 mb-6">
+              <Shield size={13} className="text-emerald-400" />
+              <span className="text-xs text-emerald-400 font-medium">
+                Secure access for your Aegis workspace and portfolio intelligence
+              </span>
+            </div>
+
+            {/* Tab switcher */}
+            <div className="relative flex bg-[#122131] border border-[#212A35] rounded-xl p-1 mb-6">
+              {(['login', 'signup'] as AuthMode[]).map((m) => (
+                <button
+                  key={`tab-${m}`}
+                  onClick={() => setMode(m)}
+                  className={`relative z-10 flex-1 py-2 text-sm font-semibold rounded-lg transition-colors duration-200 ${
+                    mode === m ? 'text-[#0A0E13]' : 'text-[#8B95A5] hover:text-[#E7ECF2]'
+                  }`}
+                >
+                  {mode === m && (
+                    <motion.span
+                      layoutId="authTabIndicator"
+                      className="pointer-events-none absolute inset-0 -z-10 rounded-lg bg-primary"
+                      transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+                    />
+                  )}
+                  {m === 'login' ? 'Sign In' : 'Create Account'}
+                </button>
+              ))}
+            </div>
+
+            {/* Form */}
+            <motion.div layout className="bg-[#122131] border border-[#212A35] rounded-xl p-6">
+              <motion.div
+                key={mode}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25, ease: 'easeOut' }}
+              >
+                <h2 className="text-lg font-bold text-[#E7ECF2] mb-1">
+                  {mode === 'login' ? 'Welcome back' : 'Create your Aegis workspace'}
+                </h2>
+                <p className="text-sm text-[#8B95A5] mb-5">
+                  {mode === 'login'
+                    ? 'Sign in to your secure Aegis workspace.'
+                    : 'Use Google or your email address to create your account.'}
+                </p>
+
+                <button
+                  type="button"
+                  onClick={handleGoogleEntry}
+                  className="w-full flex items-center justify-center gap-2 rounded-lg border border-[#2A3542] bg-[#212A35]/60 px-4 py-2.5 text-sm font-semibold text-[#E7ECF2] transition hover:border-[#8B95A5] hover:bg-[#212A35] lg:hidden"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      fill="#4285F4"
+                      d="M23.52 12.27c0-.85-.08-1.67-.22-2.45H12v4.64h6.47a5.54 5.54 0 0 1-2.4 3.63v3.02h3.89c2.28-2.1 3.56-5.19 3.56-8.84Z"
+                    />
+                    <path
+                      fill="#34A853"
+                      d="M12 24c3.24 0 5.96-1.07 7.95-2.9l-3.89-3.02c-1.08.72-2.46 1.15-4.06 1.15-3.13 0-5.78-2.11-6.73-4.96H1.26v3.12A11.99 11.99 0 0 0 12 24Z"
+                    />
+                    <path
+                      fill="#FBBC05"
+                      d="M5.27 14.27a7.2 7.2 0 0 1 0-4.54V6.61H1.26a12 12 0 0 0 0 10.78l4.01-3.12Z"
+                    />
+                    <path
+                      fill="#EA4335"
+                      d="M12 4.77c1.76 0 3.34.6 4.59 1.79l3.44-3.44C17.95 1.19 15.23 0 12 0 7.31 0 3.26 2.69 1.26 6.61l4.01 3.12C6.22 6.88 8.87 4.77 12 4.77Z"
+                    />
+                  </svg>
+                  Continue with Google
+                </button>
+
+                <div className="flex items-center gap-3 my-5 lg:hidden">
+                  <div className="h-px flex-1 bg-[#212A35]" />
+                  <span className="text-[11px] uppercase tracking-wider text-[#8B95A5]">
+                    or continue with email
+                  </span>
+                  <div className="h-px flex-1 bg-[#212A35]" />
+                </div>
+
+                {mode === 'login' ? (
+                  <LoginForm
+                    onCredentialFill={handleCredentialFill}
+                    onSwitchToSignup={() => setMode('signup')}
+                  />
+                ) : (
+                  <SignupForm />
+                )}
+              </motion.div>
+            </motion.div>
           </div>
         </div>
       </div>
-    </div>
+    </MotionConfig>
   );
 }
 
