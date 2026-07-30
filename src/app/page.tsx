@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { Navbar } from '@/components/homepage/navbar';
-import { Hero } from '@/components/homepage/Hero';
+import { DeployEngineHero } from '@/components/homepage/deploy-engine/DeployEngineHero';
 import { StatsTicker } from '@/components/homepage/StatsTicker';
 import { SecuritySection } from '@/components/homepage/SecuritySection';
 import { FeaturesGrid } from '@/components/homepage/FeaturesGrid';
@@ -30,7 +30,7 @@ export default function HomePage() {
         COLOR_UPDATE_SPEED={10}
       />
       <Navbar />
-      <Hero />
+      <DeployEngineHero />
       <StatsTicker />
       <SecuritySection />
       <FeaturesGrid />

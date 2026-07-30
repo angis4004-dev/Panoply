@@ -303,6 +303,89 @@ body {
     @apply font-sans;
   }
 }
+/* ------------------------------------------------------------------
+ * Deploy Engine hero (homepage) - scoped range-slider styling.
+ *
+ * Scoped to .de-slider rather than a bare `input[type=range]` selector so
+ * this doesn't reach the dashboard's plain range inputs (e.g. the
+ * confidence slider in create-bot-modal.tsx), which intentionally keep the
+ * browser's default accent-primary styling.
+ * ------------------------------------------------------------------ */
+.de-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 1px;
+  background: #d4d4d4;
+  border-radius: 999px;
+  outline: none;
+}
+.de-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition:
+    transform var(--ds-dur-fast, 180ms) var(--ds-ease-out, ease-out),
+    box-shadow var(--ds-dur-fast, 180ms) var(--ds-ease-out, ease-out);
+}
+.de-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.4);
+  box-shadow: 0 0 0 4px rgba(255, 240, 201, 0.25);
+}
+.de-slider::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition:
+    transform var(--ds-dur-fast, 180ms) var(--ds-ease-out, ease-out),
+    box-shadow var(--ds-dur-fast, 180ms) var(--ds-ease-out, ease-out);
+}
+.de-slider::-moz-range-thumb:hover {
+  transform: scale(1.4);
+}
+.de-color-swatch {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid var(--ds-border-strong, rgba(255, 255, 255, 0.3));
+  padding: 0;
+  cursor: pointer;
+  background: none;
+}
+.de-color-swatch::-webkit-color-swatch-wrapper {
+  padding: 0;
+  border-radius: 999px;
+}
+.de-color-swatch::-webkit-color-swatch {
+  border: none;
+  border-radius: 999px;
+}
+
+/* Deploy Engine hero - HUD tracker-line "data flow" scan effect */
+.de-tracker-line {
+  animation: de-dash 20s linear infinite;
+}
+@keyframes de-dash {
+  to {
+    stroke-dashoffset: -120;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .de-tracker-line {
+    animation: none;
+  }
+}
+
 /* Add this to the end of the file */
 @keyframes gradientShift {
   0% {
