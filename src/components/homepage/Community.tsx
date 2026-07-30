@@ -17,7 +17,7 @@ export function Community() {
           </p>
           <Link
             href="/sign-up-login-screen"
-            className="inline-flex items-center gap-2 rounded text-sm font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+            className="inline-flex min-h-[44px] items-center gap-2 rounded text-sm font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
           >
             Create your account →
           </Link>

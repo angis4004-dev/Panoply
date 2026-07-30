@@ -43,7 +43,7 @@ export function PricingSection() {
     <section id="pricing" className="py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-14">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.35em] text-primary mb-3">
+          <p className="text-ds-caption font-semibold uppercase tracking-[0.35em] text-primary mb-3">
             Simple, transparent pricing
           </p>
           <h2 className="text-3xl font-bold text-white">Choose Your Plan</h2>

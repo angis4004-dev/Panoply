@@ -27,7 +27,7 @@ export function Navbar() {
           <div className="flex h-16 items-center justify-between">
             <Link
               href="/"
-              className="flex items-center gap-2.5 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+              className="flex min-h-[44px] items-center gap-2.5 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
             >
               <AegisMark size={28} />
               <span className="font-wordmark text-xl font-extrabold uppercase tracking-[0.12em] text-white">
@@ -40,7 +40,7 @@ export function Navbar() {
                 <Link
                   key={link.label}
                   href={link.href}
-                  className="rounded text-sm text-[#8B95A5] transition-colors hover:text-[#E7ECF2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+                  className="inline-flex min-h-[44px] items-center rounded px-1 text-sm text-ds-text-muted transition-colors duration-fast ease-ds-out hover:text-[#E7ECF2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
                 >
                   {link.label}
                 </Link>
@@ -84,7 +84,7 @@ export function Navbar() {
 
             <button
               onClick={() => setIsMenuOpen(true)}
-              className="rounded-lg p-2 text-[#E7ECF2] md:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+              className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2 text-[#E7ECF2] md:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
               aria-label="Open menu"
             >
               <Menu className="h-5 w-5" />
@@ -111,7 +111,7 @@ export function Navbar() {
                   key={link.label}
                   href={link.href}
                   onClick={() => setIsMenuOpen(false)}
-                  className="px-4 py-3 text-lg text-[#E7ECF2] hover:bg-[#17202e] rounded-lg"
+                  className="rounded-lg px-4 py-3 text-lg text-[#E7ECF2] transition-colors duration-fast ease-ds-out hover:bg-[#17202e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
                 >
                   {link.label}
                 </Link>

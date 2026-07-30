@@ -111,7 +111,7 @@ export function Hero() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-center rounded-2xl border border-[#212A35] bg-[#0D131C]/50 backdrop-blur-sm p-6 sm:p-10">
           <Reveal>
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/5 px-4 py-1.5 mb-6">
-              <span className="text-[10px] font-semibold uppercase tracking-[0.35em] text-primary">
+              <span className="text-ds-caption font-semibold uppercase tracking-[0.35em] text-primary">
                 Quantitative Intelligence for Decentralized Finance
               </span>
             </div>
@@ -165,7 +165,7 @@ export function Hero() {
           </Reveal>
         </div>
 
-        <div className="mt-6 flex flex-wrap items-center justify-between gap-3 text-[10px] uppercase tracking-[0.3em] text-[#4b5563]">
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-3 text-ds-caption uppercase tracking-[0.3em] text-ds-text-muted">
           <span>Institutional-grade infrastructure</span>
           <span>Non-custodial · Risk-managed · Always on</span>
         </div>

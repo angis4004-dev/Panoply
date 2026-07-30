@@ -13,7 +13,7 @@ function SignInBadge() {
   return (
     <div className="absolute top-3 right-3 inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-[#0A0E13]/80 px-2.5 py-1 backdrop-blur-sm">
       <Lock className="h-3 w-3 text-primary" />
-      <span className="text-[9px] font-semibold uppercase tracking-[0.2em] text-primary">
+      <span className="text-ds-caption font-semibold uppercase tracking-[0.2em] text-primary">
         Sign in to activate
       </span>
     </div>
@@ -25,7 +25,7 @@ export function BotsPreview() {
     <section id="bots" className="py-20 border-t border-[#212A35]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-12 max-w-xl">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.35em] text-primary mb-3">
+          <p className="text-ds-caption font-semibold uppercase tracking-[0.35em] text-primary mb-3">
             Live preview
           </p>
           <h2 className="text-3xl font-bold text-white mb-4">
@@ -57,7 +57,7 @@ export function BotsPreview() {
                   </div>
                   <div className="mt-3 flex items-center gap-1.5">
                     <span className="h-1.5 w-1.5 rounded-full bg-green-400" />
-                    <span className="text-[10px] uppercase tracking-wider text-[#8B95A5]">
+                    <span className="text-ds-caption uppercase tracking-wider text-[#8B95A5]">
                       {bot.status}
                     </span>
                   </div>
@@ -82,7 +82,7 @@ export function BotsPreview() {
                   />
                 ))}
               </div>
-              <p className="mt-4 text-[10px] uppercase tracking-wider text-[#4b5563]">
+              <p className="mt-4 text-ds-caption uppercase tracking-wider text-ds-text-muted">
                 Switch pairs and view live data after signing in
               </p>
             </div>

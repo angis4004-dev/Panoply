@@ -158,7 +158,7 @@ function LoginForm({
         <button
           type="button"
           onClick={onSwitchToSignup}
-          className="mt-2 text-xs font-semibold text-primary underline decoration-primary/40 underline-offset-2"
+          className="mt-2 inline-flex min-h-[44px] items-center rounded text-xs font-semibold text-primary underline decoration-primary/40 underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
         >
           Create an account
         </button>
@@ -174,7 +174,7 @@ function LoginForm({
             type="email"
             autoComplete="email"
             placeholder="you@cryptotradeai.io"
-            className={`w-full bg-[#212A35] border rounded-lg pl-9 pr-4 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_16px_-2px_rgba(30,99,255,0.45)] transition-all duration-300 ${
+            className={`w-full bg-[#212A35] border rounded-lg pl-9 pr-4 py-2.5 min-h-[44px] text-ds-body text-[#E7ECF2] placeholder-ds-text-muted focus:outline-none focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_16px_-2px_rgba(30,99,255,0.45)] transition-all duration-300 ${
               errors.email ? 'border-red-500/60' : 'border-[#2A3542]'
             }`}
             {...register('email', {
@@ -205,7 +205,7 @@ function LoginForm({
             type={showPassword ? 'text' : 'password'}
             autoComplete="current-password"
             placeholder="••••••••••••"
-            className={`w-full bg-[#212A35] border rounded-lg pl-9 pr-10 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_16px_-2px_rgba(30,99,255,0.45)] transition-all duration-300 ${
+            className={`w-full bg-[#212A35] border rounded-lg pl-9 pr-10 py-2.5 min-h-[44px] text-ds-body text-[#E7ECF2] placeholder-ds-text-muted focus:outline-none focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_16px_-2px_rgba(30,99,255,0.45)] transition-all duration-300 ${
               errors.password ? 'border-red-500/60' : 'border-[#2A3542]'
             }`}
             {...register('password', { required: 'Password is required' })}
@@ -213,7 +213,7 @@ function LoginForm({
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8B95A5] hover:text-[#C5CCD6] transition-colors"
+            className="absolute right-1 top-1/2 flex min-h-[44px] min-w-[44px] -translate-y-1/2 items-center justify-center rounded text-ds-text-muted hover:text-[#C5CCD6] transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
           >
             {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
           </button>
@@ -233,7 +233,7 @@ function LoginForm({
             type="checkbox"
             checked={showOTP}
             onChange={(e) => setShowOTP(e.target.checked)}
-            className="w-3.5 h-3.5 rounded border-[#5C6675] bg-[#212A35] accent-primary"
+            className="h-5 w-5 shrink-0 rounded border-ds-border-strong bg-[#212A35] accent-primary"
           />
           <span className="text-xs text-[#8B95A5]">Use MFA / OTP</span>
         </label>
@@ -241,14 +241,17 @@ function LoginForm({
           <input
             type="checkbox"
             {...register('rememberMe')}
-            className="w-3.5 h-3.5 rounded border-[#5C6675] bg-[#212A35] accent-primary"
+            className="h-5 w-5 shrink-0 rounded border-ds-border-strong bg-[#212A35] accent-primary"
           />
           <span className="text-xs text-[#8B95A5]">Remember me</span>
         </label>
       </div>
 
       <div className="auth-field flex justify-end -mt-2">
-        <Link href="/forgot-password" className="text-xs text-primary hover:text-brand-cyan">
+        <Link
+          href="/forgot-password"
+          className="inline-flex min-h-[44px] items-center rounded text-xs text-primary hover:text-brand-cyan focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#122131]"
+        >
           Forgot your password?
         </Link>
       </div>
@@ -259,7 +262,7 @@ function LoginForm({
           <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 tracking-wide uppercase">
             One-Time Password (OTP)
           </label>
-          <p className="text-xs text-[#5C6675] mb-1.5">
+          <p className="text-xs text-ds-text-muted mb-1.5">
             Enter the 6-digit code from your authenticator app or email
           </p>
           <div className="relative">
@@ -272,7 +275,7 @@ function LoginForm({
               inputMode="numeric"
               maxLength={6}
               placeholder="000000"
-              className="w-full bg-[#212A35] border border-[#2A3542] rounded-lg pl-9 pr-4 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 font-mono tracking-[0.3em] transition-all"
+              className="w-full bg-[#212A35] border border-[#2A3542] rounded-lg pl-9 pr-4 py-2.5 min-h-[44px] text-ds-body text-[#E7ECF2] placeholder-ds-text-muted focus:outline-none focus:ring-2 focus:ring-primary/50 font-mono tracking-[0.3em] transition-all"
               {...register('otp')}
             />
           </div>
@@ -283,8 +286,7 @@ function LoginForm({
       <button
         type="submit"
         disabled={loading}
-        className="auth-field relative w-full flex items-center justify-center gap-2 overflow-hidden bg-primary hover:bg-primary/90 disabled:bg-primary/40 disabled:cursor-not-allowed text-primary-foreground font-semibold text-sm rounded-lg py-2.5 transition-colors duration-150 active:scale-[0.98]"
-        style={{ minHeight: '42px' }}
+        className="auth-field relative w-full flex items-center justify-center gap-2 overflow-hidden bg-primary hover:bg-primary/90 disabled:bg-primary/40 disabled:cursor-not-allowed text-primary-foreground font-semibold text-sm rounded-lg py-2.5 min-h-[44px] transition-colors duration-fast ease-ds-out active:scale-[0.98]"
       >
         {!loading && <ButtonShimmer />}
         {loading ? (
@@ -447,7 +449,7 @@ function SignupForm() {
         <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 tracking-wide uppercase">
           Password
         </label>
-        <p className="text-[11px] text-[#5C6675] mb-1.5">
+        <p className="text-ds-caption text-ds-text-muted mb-1.5">
           Minimum 8 characters, one uppercase, one number
         </p>
         <div className="relative">
@@ -520,7 +522,7 @@ function SignupForm() {
         <label className="flex items-start gap-2 cursor-pointer">
           <input
             type="checkbox"
-            className="mt-0.5 w-3.5 h-3.5 rounded border-[#5C6675] bg-[#212A35] accent-primary flex-shrink-0"
+            className="mt-0.5 h-5 w-5 shrink-0 rounded border-ds-border-strong bg-[#212A35] accent-primary"
             {...register('agreeTerms', {
               required: 'You must accept the terms',
             })}
@@ -549,8 +551,7 @@ function SignupForm() {
       <button
         type="submit"
         disabled={loading}
-        className="auth-field relative w-full flex items-center justify-center gap-2 overflow-hidden bg-primary hover:bg-primary/90 disabled:bg-primary/40 disabled:cursor-not-allowed text-primary-foreground font-semibold text-sm rounded-lg py-2.5 transition-colors duration-150 active:scale-[0.98]"
-        style={{ minHeight: '42px' }}
+        className="auth-field relative w-full flex items-center justify-center gap-2 overflow-hidden bg-primary hover:bg-primary/90 disabled:bg-primary/40 disabled:cursor-not-allowed text-primary-foreground font-semibold text-sm rounded-lg py-2.5 min-h-[44px] transition-colors duration-fast ease-ds-out active:scale-[0.98]"
       >
         {!loading && <ButtonShimmer />}
         {loading ? (
@@ -710,7 +711,7 @@ function SignUpLoginPageContent() {
 
           {/* Primary action */}
           <div className="mt-auto rounded-2xl border border-[#212A35]/80 bg-[#122131]/60 px-5 py-4 backdrop-blur-sm">
-            <p className="text-[10px] uppercase tracking-[0.35em] text-[#8B95A5] mb-2">
+            <p className="text-ds-caption uppercase tracking-[0.35em] text-[#8B95A5] mb-2">
               Continue to Aegis
             </p>
             <div className="flex flex-wrap items-center gap-3">
@@ -758,10 +759,25 @@ function SignUpLoginPageContent() {
             ref={tabContainerRef}
             className="relative flex bg-[#122131] border border-[#212A35] rounded-xl p-1 mb-6"
           >
+            {/*
+              The indicator starts sized to the first tab in CSS rather than
+              at width:0. The active label is navy, which only reaches usable
+              contrast once it sits on this cream pill - starting at zero
+              width left it at 1.63:1 against the dark card until GSAP's
+              first frame landed, and permanently so if GSAP never ran. The
+              two tabs are equal flex children, so half the track minus the
+              1-unit padding is the correct resting position for 'login'.
+              GSAP measures and takes over from here on mount.
+
+              Kept at left-0 with a translate-x-1: GSAP animates `x`, which
+              is a transform relative to `left`, so anchoring at left-1
+              would double-count the container's 4px padding. translate-x-1
+              plus w-[calc(50%-0.25rem)] is exactly what GSAP computes for
+              the 'login' tab, so the handover is seamless.
+            */}
             <span
               ref={indicatorRef}
-              className="pointer-events-none absolute inset-y-1 left-0 rounded-lg bg-primary"
-              style={{ width: 0 }}
+              className="pointer-events-none absolute inset-y-1 left-0 w-[calc(50%-0.25rem)] translate-x-1 rounded-lg bg-primary"
             />
             {(['login', 'signup'] as AuthMode[]).map((m) => (
               <button
@@ -770,8 +786,10 @@ function SignUpLoginPageContent() {
                   tabRefs.current[m] = el;
                 }}
                 onClick={() => setMode(m)}
-                className={`relative z-10 flex-1 py-2 text-sm font-semibold rounded-lg transition-colors duration-200 ${
-                  mode === m ? 'text-primary-foreground' : 'text-[#8B95A5] hover:text-[#E7ECF2]'
+                role="tab"
+                aria-selected={mode === m}
+                className={`relative z-10 flex-1 min-h-[44px] py-2 text-sm font-semibold rounded-lg transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#122131] ${
+                  mode === m ? 'text-primary-foreground' : 'text-ds-text-muted hover:text-[#E7ECF2]'
                 }`}
               >
                 {m === 'login' ? 'Sign In' : 'Create Account'}
@@ -794,7 +812,7 @@ function SignUpLoginPageContent() {
               <button
                 type="button"
                 onClick={handleGoogleEntry}
-                className="w-full flex items-center justify-center gap-2 rounded-lg border border-[#2A3542] bg-[#212A35]/60 px-4 py-2.5 text-sm font-semibold text-[#E7ECF2] transition hover:border-[#8B95A5] hover:bg-[#212A35] lg:hidden"
+                className="w-full flex min-h-[44px] items-center justify-center gap-2 rounded-lg border border-[#2A3542] bg-[#212A35]/60 px-4 py-2.5 text-sm font-semibold text-[#E7ECF2] transition-colors duration-fast ease-ds-out hover:border-[#8B95A5] hover:bg-[#212A35] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#122131] lg:hidden"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
                   <path
@@ -819,7 +837,7 @@ function SignUpLoginPageContent() {
 
               <div className="flex items-center gap-3 my-5 lg:hidden">
                 <div className="h-px flex-1 bg-[#212A35]" />
-                <span className="text-[11px] uppercase tracking-wider text-[#8B95A5]">
+                <span className="text-ds-caption uppercase tracking-wider text-[#8B95A5]">
                   or continue with email
                 </span>
                 <div className="h-px flex-1 bg-[#212A35]" />

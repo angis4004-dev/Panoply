@@ -22,24 +22,27 @@ export function Footer() {
           <div>
             <h3 className="text-sm font-semibold text-white mb-4">Product</h3>
             <nav className="flex flex-col gap-2 text-sm">
-              <a href="#features" className="text-[#8B95A5] hover:text-[#E7ECF2] transition-colors">
+              <a
+                href="#features"
+                className="inline-flex min-h-[44px] items-center rounded text-ds-text-muted hover:text-[#E7ECF2] transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+              >
                 Features
               </a>
               <Link
                 href="/dashboard/bots"
-                className="text-[#8B95A5] hover:text-[#E7ECF2] transition-colors"
+                className="inline-flex min-h-[44px] items-center rounded text-ds-text-muted hover:text-[#E7ECF2] transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
               >
                 Signal Flows
               </Link>
               <Link
                 href="/dashboard/vaults"
-                className="text-[#8B95A5] hover:text-[#E7ECF2] transition-colors"
+                className="inline-flex min-h-[44px] items-center rounded text-ds-text-muted hover:text-[#E7ECF2] transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
               >
                 Vaults
               </Link>
               <Link
                 href="/dashboard/builder"
-                className="text-[#8B95A5] hover:text-[#E7ECF2] transition-colors"
+                className="inline-flex min-h-[44px] items-center rounded text-ds-text-muted hover:text-[#E7ECF2] transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
               >
                 Portfolio Builder
               </Link>
@@ -49,16 +52,28 @@ export function Footer() {
           <div>
             <h3 className="text-sm font-semibold text-white mb-4">Platform</h3>
             <nav className="flex flex-col gap-2 text-sm">
-              <Link href="/about" className="text-[#8B95A5] hover:text-[#E7ECF2] transition-colors">
+              <Link
+                href="/about"
+                className="inline-flex min-h-[44px] items-center rounded text-ds-text-muted hover:text-[#E7ECF2] transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+              >
                 About
               </Link>
-              <a href="#security" className="text-[#8B95A5] hover:text-[#E7ECF2] transition-colors">
+              <a
+                href="#security"
+                className="inline-flex min-h-[44px] items-center rounded text-ds-text-muted hover:text-[#E7ECF2] transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+              >
                 Security
               </a>
-              <a href="#pricing" className="text-[#8B95A5] hover:text-[#E7ECF2] transition-colors">
+              <a
+                href="#pricing"
+                className="inline-flex min-h-[44px] items-center rounded text-ds-text-muted hover:text-[#E7ECF2] transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+              >
                 Pricing
               </a>
-              <Link href="/prd" className="text-[#8B95A5] hover:text-[#E7ECF2] transition-colors">
+              <Link
+                href="/prd"
+                className="inline-flex min-h-[44px] items-center rounded text-ds-text-muted hover:text-[#E7ECF2] transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+              >
                 Product Docs
               </Link>
             </nav>
@@ -69,19 +84,19 @@ export function Footer() {
             <nav className="flex flex-col gap-2 text-sm">
               <Link
                 href="/privacy"
-                className="rounded text-[#8B95A5] hover:text-[#E7ECF2] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+                className="inline-flex min-h-[44px] items-center rounded text-ds-text-muted hover:text-[#E7ECF2] transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
               >
                 Privacy Policy
               </Link>
               <Link
                 href="/terms"
-                className="rounded text-[#8B95A5] hover:text-[#E7ECF2] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+                className="inline-flex min-h-[44px] items-center rounded text-ds-text-muted hover:text-[#E7ECF2] transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
               >
                 Terms of Service
               </Link>
               <Link
                 href="/disclaimer"
-                className="rounded text-[#8B95A5] hover:text-[#E7ECF2] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+                className="inline-flex min-h-[44px] items-center rounded text-ds-text-muted hover:text-[#E7ECF2] transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
               >
                 Disclaimer
               </Link>

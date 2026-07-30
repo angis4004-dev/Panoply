@@ -23,7 +23,7 @@ export function HowItWorks() {
     <section id="how-it-works" className="py-20 border-y border-[#212A35] bg-[#0D1219]">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-14">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.35em] text-primary mb-3">
+          <p className="text-ds-caption font-semibold uppercase tracking-[0.35em] text-primary mb-3">
             Getting started
           </p>
           <h2 className="text-3xl font-bold text-white">How It Works</h2>
