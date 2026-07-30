@@ -36,6 +36,14 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
           { status: 400 }
         );
       }
+      // Resuming into 'running' resets the tick anchor to now. Without this,
+      // a flow paused for hours would book one giant catch-up burst of ticks
+      // the instant it resumes, since the earnings tick engine (bot-pnl.ts)
+      // measures elapsed time since lastTickAt regardless of how it got so
+      // large.
+      if (body.status === 'running' && bot.status !== 'running') {
+        bot.lastTickAt = new Date();
+      }
       bot.status = body.status;
     }
 

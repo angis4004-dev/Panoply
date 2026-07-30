@@ -4,7 +4,7 @@ import { TradingBotModel, getUserModel } from '@/lib/models';
 import { getSessionFromRequest } from '@/lib/session';
 import { getCoinPrices } from '@/lib/coingecko';
 import { resolveBaseCoinId } from '@/lib/coin-symbols';
-import { computePnlPercent, formatPnl } from '@/lib/bot-pnl';
+import { applyPendingTicks, formatPnl } from '@/lib/bot-pnl';
 import { computeTier, grantAchievement, TIER_SLOT_LIMITS } from '@/lib/achievements/engine';
 
 // GET /api/bots - Returns ONLY the bots belonging to the currently logged-in user
@@ -26,32 +26,41 @@ export async function GET(request: NextRequest) {
     // Find bots for the specific user
     const bots = await TradingBotModel.find({ userId }).lean();
 
-    // Batch-fetch live prices for every distinct base asset these bots track
-    const coinIds = Array.from(
-      new Set(bots.map((bot) => bot.coinId).filter((id): id is string => !!id))
+    // Catch up each running bot's simulated P&L to now, persisting only the
+    // ones that actually crossed a 30s tick boundary since last read.
+    const now = new Date();
+    const results = await Promise.all(
+      bots.map(async (bot) => {
+        const tick = applyPendingTicks(
+          {
+            status: bot.status,
+            confidence: bot.confidence,
+            simulatedPnlPercent: bot.simulatedPnlPercent ?? 0,
+            lastTickAt: bot.lastTickAt ?? bot.createdAt,
+          },
+          now
+        );
+
+        if (tick.ticksApplied > 0) {
+          await TradingBotModel.findByIdAndUpdate(bot._id, {
+            simulatedPnlPercent: tick.simulatedPnlPercent,
+            lastTickAt: tick.lastTickAt,
+          });
+        }
+
+        return {
+          id: bot._id.toString(),
+          type: bot.type,
+          pair: bot.pair,
+          confidence: bot.confidence,
+          status: bot.status,
+          pnl: formatPnl(tick.simulatedPnlPercent),
+          allocatedAmount: bot.allocatedAmount ?? null,
+        };
+      })
     );
-    const prices = coinIds.length > 0 ? await getCoinPrices(coinIds) : {};
 
-    // Transform to match frontend format
-    const formattedBots = bots.map((bot) => {
-      const currentPrice = bot.coinId ? prices[bot.coinId]?.usd : undefined;
-      const pnl =
-        bot.coinId && bot.entryPrice && currentPrice
-          ? formatPnl(computePnlPercent(bot.entryPrice, currentPrice, bot.confidence))
-          : bot.pnl || '+0.0%';
-
-      return {
-        id: bot._id.toString(),
-        type: bot.type,
-        pair: bot.pair,
-        confidence: bot.confidence,
-        status: bot.status,
-        pnl,
-        allocatedAmount: bot.allocatedAmount ?? null,
-      };
-    });
-
-    return NextResponse.json(formattedBots);
+    return NextResponse.json(results);
   } catch (error) {
     console.error('Error fetching user bots:', error);
     return NextResponse.json({ error: 'Failed to fetch bots' }, { status: 500 });
