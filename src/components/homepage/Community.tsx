@@ -7,7 +7,7 @@ export function Community() {
     <section className="py-20 border-t border-[#212A35]">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <Reveal className="group">
-          <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 transition-transform duration-300 group-hover:scale-110">
+          <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 transition-transform duration-base ease-ds-out group-hover:scale-110">
             <LifeBuoy className="h-5 w-5 text-primary" />
           </div>
           <h2 className="text-2xl font-bold text-white mb-3">You&apos;re Never Trading Alone</h2>

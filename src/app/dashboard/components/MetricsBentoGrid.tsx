@@ -108,7 +108,7 @@ export default function MetricsBentoGrid() {
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-4 gap-4 mb-6">
       {/* HERO: Realized P&L — spans 2 cols */}
-      <div className="col-span-2 bg-gradient-to-br from-[#122131] to-[#122131]/80 border border-zinc-800 rounded-2xl p-5 relative overflow-hidden group hover:border-teal-500/30 transition-all duration-200">
+      <div className="col-span-2 bg-gradient-to-br from-[#122131] to-[#122131]/80 border border-zinc-800 rounded-2xl p-5 relative overflow-hidden group hover:border-teal-500/30 transition-colors duration-base ease-ds-out">
         <div className="absolute top-0 right-0 w-48 h-48 bg-teal-500/5 rounded-full -translate-y-1/2 translate-x-1/2" />
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-3">
@@ -137,7 +137,7 @@ export default function MetricsBentoGrid() {
       </div>
 
       {/* Profitable Flows (was a simulated Win Rate) */}
-      <div className="bg-[#122131] border border-zinc-800 rounded-2xl p-5 hover:border-zinc-700 transition-all duration-200 group">
+      <div className="bg-[#122131] border border-zinc-800 rounded-2xl p-5 hover:border-zinc-700 transition-colors duration-base ease-ds-out group">
         <div className="flex items-center justify-between mb-3">
           <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center">
             <Target
@@ -165,7 +165,7 @@ export default function MetricsBentoGrid() {
       </div>
 
       {/* Avg Confidence */}
-      <div className="bg-[#122131] border border-zinc-800 rounded-2xl p-5 hover:border-zinc-700 transition-all duration-200 group">
+      <div className="bg-[#122131] border border-zinc-800 rounded-2xl p-5 hover:border-zinc-700 transition-colors duration-base ease-ds-out group">
         <div className="flex items-center justify-between mb-3">
           <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center">
             <Cpu size={16} className="text-zinc-400 group-hover:text-teal-400 transition-colors" />
@@ -188,7 +188,7 @@ export default function MetricsBentoGrid() {
       </div>
 
       {/* Active Position — largest-allocation signal flow */}
-      <div className="bg-[#122131] border border-zinc-800 rounded-2xl p-5 hover:border-zinc-700 transition-all duration-200">
+      <div className="bg-[#122131] border border-zinc-800 rounded-2xl p-5 hover:border-zinc-700 transition-colors duration-base ease-ds-out">
         <div className="flex items-center gap-2 mb-3">
           <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center">
             <Activity size={16} className="text-zinc-400" />
@@ -218,7 +218,7 @@ export default function MetricsBentoGrid() {
       </div>
 
       {/* Signal Flows (was a simulated Last Signal) */}
-      <div className="bg-[#122131] border border-zinc-800 rounded-2xl p-5 hover:border-zinc-700 transition-all duration-200">
+      <div className="bg-[#122131] border border-zinc-800 rounded-2xl p-5 hover:border-zinc-700 transition-colors duration-base ease-ds-out">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center">
@@ -242,7 +242,7 @@ export default function MetricsBentoGrid() {
       </div>
 
       {/* Capital Deployed (was a simulated Trades 24h) */}
-      <div className="bg-[#122131] border border-zinc-800 rounded-2xl p-5 hover:border-zinc-700 transition-all duration-200">
+      <div className="bg-[#122131] border border-zinc-800 rounded-2xl p-5 hover:border-zinc-700 transition-colors duration-base ease-ds-out">
         <div className="flex items-center gap-2 mb-3">
           <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center">
             <TrendingUp size={16} className="text-zinc-400" />
@@ -261,7 +261,7 @@ export default function MetricsBentoGrid() {
 
       {/* Drawdown — worst-performing open flow */}
       <div
-        className={`bg-gradient-to-br from-amber-500/5 to-[#122131] border border-amber-500/30 rounded-2xl p-5 hover:border-amber-500/50 transition-all duration-200 ${drawdownDir === 'warn' ? 'border-amber-500/50' : ''}`}
+        className={`bg-gradient-to-br from-amber-500/5 to-[#122131] border border-amber-500/30 rounded-2xl p-5 hover:border-amber-500/50 transition-colors duration-base ease-ds-out ${drawdownDir === 'warn' ? 'border-amber-500/50' : ''}`}
       >
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">

@@ -56,8 +56,8 @@ export function FeaturesGrid() {
                   href={feature.href}
                   className="group block h-full rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
                 >
-                  <div className="h-full bg-[#122131]/50 border border-[#212A35] rounded-xl p-6 transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:bg-[#17202e]/50">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 mb-4 transition-transform duration-300 group-hover:scale-110">
+                  <div className="h-full bg-[#122131]/50 border border-[#212A35] rounded-xl p-6 transition duration-base ease-ds-out hover:-translate-y-1 hover:border-primary/30 hover:bg-[#17202e]/50">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 mb-4 transition-transform duration-base ease-ds-out group-hover:scale-110">
                       <Icon className="h-5 w-5 text-primary" />
                     </div>
                     <h3 className="text-lg font-semibold text-white mb-2">{feature.title}</h3>

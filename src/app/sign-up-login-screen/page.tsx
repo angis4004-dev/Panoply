@@ -174,7 +174,7 @@ function LoginForm({
             type="email"
             autoComplete="email"
             placeholder="you@cryptotradeai.io"
-            className={`w-full bg-[#212A35] border rounded-lg pl-9 pr-4 py-2.5 min-h-[44px] text-ds-body text-[#E7ECF2] placeholder-ds-text-muted focus:outline-none focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_16px_-2px_rgba(30,99,255,0.45)] transition-all duration-300 ${
+            className={`w-full bg-[#212A35] border rounded-lg pl-9 pr-4 py-2.5 min-h-[44px] text-ds-body text-[#E7ECF2] placeholder-ds-text-muted focus:outline-none focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_16px_-2px_rgba(30,99,255,0.45)] transition duration-fast ease-ds-out ${
               errors.email ? 'border-red-500/60' : 'border-[#2A3542]'
             }`}
             {...register('email', {
@@ -205,7 +205,7 @@ function LoginForm({
             type={showPassword ? 'text' : 'password'}
             autoComplete="current-password"
             placeholder="••••••••••••"
-            className={`w-full bg-[#212A35] border rounded-lg pl-9 pr-10 py-2.5 min-h-[44px] text-ds-body text-[#E7ECF2] placeholder-ds-text-muted focus:outline-none focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_16px_-2px_rgba(30,99,255,0.45)] transition-all duration-300 ${
+            className={`w-full bg-[#212A35] border rounded-lg pl-9 pr-10 py-2.5 min-h-[44px] text-ds-body text-[#E7ECF2] placeholder-ds-text-muted focus:outline-none focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_16px_-2px_rgba(30,99,255,0.45)] transition duration-fast ease-ds-out ${
               errors.password ? 'border-red-500/60' : 'border-[#2A3542]'
             }`}
             {...register('password', { required: 'Password is required' })}
@@ -275,7 +275,7 @@ function LoginForm({
               inputMode="numeric"
               maxLength={6}
               placeholder="000000"
-              className="w-full bg-[#212A35] border border-[#2A3542] rounded-lg pl-9 pr-4 py-2.5 min-h-[44px] text-ds-body text-[#E7ECF2] placeholder-ds-text-muted focus:outline-none focus:ring-2 focus:ring-primary/50 font-mono tracking-[0.3em] transition-all"
+              className="w-full bg-[#212A35] border border-[#2A3542] rounded-lg pl-9 pr-4 py-2.5 min-h-[44px] text-ds-body text-[#E7ECF2] placeholder-ds-text-muted focus:outline-none focus:ring-2 focus:ring-primary/50 font-mono tracking-[0.3em] transition duration-fast ease-ds-out"
               {...register('otp')}
             />
           </div>
@@ -404,7 +404,7 @@ function SignupForm() {
         <input
           type="text"
           placeholder="Alex Thornton"
-          className={`w-full bg-[#212A35] border rounded-lg px-4 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_16px_-2px_rgba(30,99,255,0.45)] transition-all duration-300 ${
+          className={`w-full bg-[#212A35] border rounded-lg px-4 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_16px_-2px_rgba(30,99,255,0.45)] transition duration-fast ease-ds-out ${
             errors.fullName ? 'border-red-500/60' : 'border-[#2A3542]'
           }`}
           {...register('fullName', { required: 'Full name is required' })}
@@ -425,7 +425,7 @@ function SignupForm() {
         <input
           type="email"
           placeholder="you@cryptotradeai.io"
-          className={`w-full bg-[#212A35] border rounded-lg px-4 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_16px_-2px_rgba(30,99,255,0.45)] transition-all duration-300 ${
+          className={`w-full bg-[#212A35] border rounded-lg px-4 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_16px_-2px_rgba(30,99,255,0.45)] transition duration-fast ease-ds-out ${
             errors.email ? 'border-red-500/60' : 'border-[#2A3542]'
           }`}
           {...register('email', {
@@ -456,7 +456,7 @@ function SignupForm() {
           <input
             type={showPassword ? 'text' : 'password'}
             placeholder="••••••••••••"
-            className={`w-full bg-[#212A35] border rounded-lg px-4 pr-10 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_16px_-2px_rgba(30,99,255,0.45)] transition-all duration-300 ${
+            className={`w-full bg-[#212A35] border rounded-lg px-4 pr-10 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_16px_-2px_rgba(30,99,255,0.45)] transition duration-fast ease-ds-out ${
               errors.password ? 'border-red-500/60' : 'border-[#2A3542]'
             }`}
             {...register('password', {
@@ -493,7 +493,7 @@ function SignupForm() {
           <input
             type={showConfirm ? 'text' : 'password'}
             placeholder="••••••••••••"
-            className={`w-full bg-[#212A35] border rounded-lg px-4 pr-10 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_16px_-2px_rgba(30,99,255,0.45)] transition-all duration-300 ${
+            className={`w-full bg-[#212A35] border rounded-lg px-4 pr-10 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_16px_-2px_rgba(30,99,255,0.45)] transition duration-fast ease-ds-out ${
               errors.confirmPassword ? 'border-red-500/60' : 'border-[#2A3542]'
             }`}
             {...register('confirmPassword', {

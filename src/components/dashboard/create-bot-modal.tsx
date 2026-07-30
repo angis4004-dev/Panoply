@@ -1,7 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { X } from 'lucide-react';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
 import { useAppStore } from '@/store/app-store';
 
 const BOT_TYPES = ['Grid', 'DCA', 'Arbitrage', 'Trailing Stop'] as const;
@@ -18,6 +20,31 @@ export function CreateBotModal({ onClose }: CreateBotModalProps) {
   const [allocatedAmount, setAllocatedAmount] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const backdropRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  // Durations mirror the ds-dur-slow / ds-dur-exit-slow tokens
+  // (src/styles/tailwind.css); see deposit-wallet-modal.tsx for the full
+  // rationale. handleClose is used for both the X button and a successful
+  // submit, so neither path skips the exit animation.
+  useGSAP(
+    () => {
+      gsap.fromTo(backdropRef.current, { opacity: 0 }, { opacity: 1, duration: 0.38 });
+      gsap.fromTo(
+        cardRef.current,
+        { opacity: 0, scale: 0.95, y: 8 },
+        { opacity: 1, scale: 1, y: 0, duration: 0.38, ease: 'power3.out' }
+      );
+    },
+    { scope: containerRef }
+  );
+
+  const handleClose = () => {
+    gsap.to(backdropRef.current, { opacity: 0, duration: 0.23 });
+    gsap.to(cardRef.current, { opacity: 0, scale: 0.95, y: 8, duration: 0.23, ease: 'power2.in' });
+    setTimeout(onClose, 230);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,7 +76,7 @@ export function CreateBotModal({ onClose }: CreateBotModalProps) {
         allocatedAmount: amount,
       });
       addToast('Signal flow created', 'success');
-      onClose();
+      handleClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create signal flow');
       setSubmitting(false);
@@ -57,14 +84,18 @@ export function CreateBotModal({ onClose }: CreateBotModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="w-full max-w-sm rounded-xl border border-[#212A35] bg-[#0D131C] p-6">
+    <div ref={containerRef} className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div ref={backdropRef} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <div
+        ref={cardRef}
+        className="relative z-10 w-full max-w-sm rounded-xl border border-[#212A35] bg-[#0D131C] p-6"
+      >
         <div className="mb-5 flex items-center justify-between">
           <h2 className="text-lg font-bold text-white">New Signal Flow</h2>
           <button
             type="button"
-            onClick={onClose}
-            className="rounded text-[#8B95A5] hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0D131C]"
+            onClick={handleClose}
+            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-[#8B95A5] hover:text-white transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0D131C]"
             aria-label="Close"
           >
             <X className="h-4 w-4" />
@@ -79,7 +110,7 @@ export function CreateBotModal({ onClose }: CreateBotModalProps) {
             <select
               value={type}
               onChange={(e) => setType(e.target.value as (typeof BOT_TYPES)[number])}
-              className="w-full rounded-lg border border-[#212A35] bg-[#122131] px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+              className="w-full rounded-lg border border-[#212A35] bg-[#122131] px-3 py-2.5 text-sm text-white transition-colors duration-fast ease-ds-out focus:outline-none focus:ring-2 focus:ring-primary/50"
             >
               {BOT_TYPES.map((t) => (
                 <option key={t} value={t}>
@@ -98,7 +129,7 @@ export function CreateBotModal({ onClose }: CreateBotModalProps) {
               value={pair}
               onChange={(e) => setPair(e.target.value)}
               placeholder="BTC/USDT"
-              className="w-full rounded-lg border border-[#212A35] bg-[#122131] px-3 py-2.5 text-sm text-white placeholder-[#4b5563] focus:outline-none focus:ring-2 focus:ring-primary/50"
+              className="w-full rounded-lg border border-[#212A35] bg-[#122131] px-3 py-2.5 text-sm text-white placeholder-[#4b5563] transition-colors duration-fast ease-ds-out focus:outline-none focus:ring-2 focus:ring-primary/50"
             />
           </div>
 
@@ -113,7 +144,7 @@ export function CreateBotModal({ onClose }: CreateBotModalProps) {
               value={allocatedAmount}
               onChange={(e) => setAllocatedAmount(e.target.value)}
               placeholder="1000"
-              className="w-full rounded-lg border border-[#212A35] bg-[#122131] px-3 py-2.5 text-sm text-white placeholder-[#4b5563] focus:outline-none focus:ring-2 focus:ring-primary/50"
+              className="w-full rounded-lg border border-[#212A35] bg-[#122131] px-3 py-2.5 text-sm text-white placeholder-[#4b5563] transition-colors duration-fast ease-ds-out focus:outline-none focus:ring-2 focus:ring-primary/50"
             />
           </div>
 
@@ -136,7 +167,7 @@ export function CreateBotModal({ onClose }: CreateBotModalProps) {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0D131C]"
+            className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0D131C]"
           >
             {submitting ? 'Creating...' : 'Create Signal Flow'}
           </button>

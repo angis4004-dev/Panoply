@@ -35,7 +35,7 @@ export function HowItWorks() {
           />
           {steps.map((step, i) => (
             <Reveal key={step.num} delay={i * 100} className="text-center group">
-              <div className="relative mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-[#0D1219] border border-primary/40 text-lg font-bold text-primary transition-all duration-300 group-hover:border-primary group-hover:bg-primary/15 group-hover:scale-110">
+              <div className="relative mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-[#0D1219] border border-primary/40 text-lg font-bold text-primary transition duration-base ease-ds-out group-hover:border-primary group-hover:bg-primary/15 group-hover:scale-110">
                 {step.num}
               </div>
               <h3 className="text-lg font-semibold text-white mb-2">{step.title}</h3>

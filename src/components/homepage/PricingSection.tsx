@@ -52,7 +52,7 @@ export function PricingSection() {
           {plans.map((plan, planIndex) => (
             <Reveal key={plan.name} delay={planIndex * 100} className="h-full">
               <div
-                className={`h-full rounded-xl border p-6 flex flex-col transition-all duration-300 hover:-translate-y-1 ${
+                className={`h-full rounded-xl border p-6 flex flex-col transition duration-base ease-ds-out hover:-translate-y-1 ${
                   plan.featured
                     ? 'border-primary/50 bg-[#17202e]/80 shadow-[0_0_40px_rgba(30,99,255,0.08)] hover:shadow-[0_0_50px_rgba(30,99,255,0.14)]'
                     : 'border-[#212A35] bg-[#122131]/50 hover:border-primary/25'

@@ -129,14 +129,14 @@ export function Hero() {
             <div className="flex flex-wrap gap-4">
               <Link
                 href="/sign-up-login-screen"
-                className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-primary-foreground bg-primary hover:bg-primary/90 rounded-lg transition-all active:scale-[0.97] hover:shadow-lg hover:shadow-primary/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+                className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-primary-foreground bg-primary hover:bg-primary/90 rounded-lg transition duration-fast ease-ds-out active:scale-[0.97] hover:shadow-lg hover:shadow-primary/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
               >
                 Put Your Portfolio on Autopilot
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <a
                 href="#features"
-                className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-[#E7ECF2] border border-[#212A35] hover:border-primary/50 hover:bg-[#17202e] rounded-lg transition-all active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+                className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-[#E7ECF2] border border-[#212A35] hover:border-primary/50 hover:bg-[#17202e] rounded-lg transition duration-fast ease-ds-out active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
               >
                 See How It Works
               </a>
@@ -144,7 +144,7 @@ export function Hero() {
           </Reveal>
 
           <Reveal delay={150}>
-            <div className="relative h-[320px] lg:h-[380px] rounded-xl border border-[#212A35] bg-[#122131]/60 p-4 transition-transform duration-300 hover:-translate-y-1">
+            <div className="relative h-[320px] lg:h-[380px] rounded-xl border border-[#212A35] bg-[#122131]/60 p-4 transition-transform duration-base ease-ds-out hover:-translate-y-1">
               <div className="flex items-start justify-between mb-1">
                 <div>
                   <p className="text-xs text-[#8B95A5] font-mono uppercase tracking-wider mb-1.5">

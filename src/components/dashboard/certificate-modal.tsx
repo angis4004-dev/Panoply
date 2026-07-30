@@ -1,6 +1,9 @@
 'use client';
 
+import { useRef } from 'react';
 import { X } from 'lucide-react';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
 import { AegisMark } from '@/components/ui/AegisLogo';
 
 interface CertificateModalProps {
@@ -16,13 +19,42 @@ export function CertificateModal({
   earnedAt,
   onClose,
 }: CertificateModalProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const backdropRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  // Durations mirror the ds-dur-slow / ds-dur-exit-slow tokens
+  // (src/styles/tailwind.css); see deposit-wallet-modal.tsx for the full
+  // rationale.
+  useGSAP(
+    () => {
+      gsap.fromTo(backdropRef.current, { opacity: 0 }, { opacity: 1, duration: 0.38 });
+      gsap.fromTo(
+        cardRef.current,
+        { opacity: 0, scale: 0.95, y: 8 },
+        { opacity: 1, scale: 1, y: 0, duration: 0.38, ease: 'power3.out' }
+      );
+    },
+    { scope: containerRef }
+  );
+
+  const handleClose = () => {
+    gsap.to(backdropRef.current, { opacity: 0, duration: 0.23 });
+    gsap.to(cardRef.current, { opacity: 0, scale: 0.95, y: 8, duration: 0.23, ease: 'power2.in' });
+    setTimeout(onClose, 230);
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-      <div className="relative w-full max-w-lg rounded-2xl border border-primary/30 bg-[#0D131C] p-10 text-center shadow-2xl">
+    <div ref={containerRef} className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div ref={backdropRef} className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+      <div
+        ref={cardRef}
+        className="relative z-10 w-full max-w-lg rounded-2xl border border-primary/30 bg-[#0D131C] p-10 text-center shadow-2xl"
+      >
         <button
-          onClick={onClose}
+          onClick={handleClose}
           aria-label="Close certificate"
-          className="absolute right-4 top-4 rounded-lg p-1.5 text-[#8B95A5] hover:bg-[#17202e] hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0D131C]"
+          className="absolute right-4 top-4 inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-[#8B95A5] hover:bg-[#17202e] hover:text-white transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0D131C]"
         >
           <X className="h-5 w-5" />
         </button>

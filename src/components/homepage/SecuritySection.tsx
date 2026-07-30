@@ -43,8 +43,8 @@ export function SecuritySection() {
             const Icon = item.icon;
             return (
               <Reveal key={item.title} delay={i * 80} className="group">
-                <div className="h-full bg-[#122131]/50 border border-[#212A35] rounded-xl p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:border-primary/25">
-                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 transition-transform duration-300 group-hover:scale-110">
+                <div className="h-full bg-[#122131]/50 border border-[#212A35] rounded-xl p-6 text-center transition duration-base ease-ds-out hover:-translate-y-1 hover:border-primary/25">
+                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 transition-transform duration-base ease-ds-out group-hover:scale-110">
                     <Icon className="h-6 w-6 text-primary" />
                   </div>
                   <h3 className="font-semibold text-white mb-2">{item.title}</h3>
