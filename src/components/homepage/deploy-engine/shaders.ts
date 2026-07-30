@@ -107,6 +107,7 @@ void main() {
 export const particleFragmentShader = /* glsl */ `
 uniform vec3 uColor;
 uniform float uRiskTolerance;
+uniform float uOpacity;
 varying float vDistortion;
 
 void main() {
@@ -120,6 +121,6 @@ void main() {
   // a "calm" (low) setting reads as a steady, evenly-lit surface; a "risk-on"
   // (high) setting makes the noise-lit peaks and troughs visibly shimmer.
   vec3 color = uColor + vDistortion * (0.08 + uRiskTolerance * 0.35);
-  gl_FragColor = vec4(color, alpha * 0.85);
+  gl_FragColor = vec4(color, alpha * uOpacity);
 }
 `;

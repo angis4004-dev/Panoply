@@ -110,6 +110,7 @@ export function createDeployEngineScene(
     uSpread: { value: state.uSpread },
     uColor: { value: hexToVec3(state.uColor) },
     uRiskTolerance: { value: state.riskTolerance },
+    uOpacity: { value: 0.85 },
   };
 
   const particleGeometry = new THREE.SphereGeometry(4.5, 96, 96);

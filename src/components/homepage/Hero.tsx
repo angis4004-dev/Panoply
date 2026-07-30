@@ -1,93 +1,11 @@
 'use client';
 
-import { useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
-import Chart from 'chart.js/auto';
-import { ArrowRight, TrendingUp } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { Reveal } from '@/components/ui/Reveal';
-import { BRAND_COLORS } from '@/lib/brand-colors';
-
-// Deterministic pseudo-random walk so the hero chart reads as real price
-// action instead of an obviously synthetic sine wave, while staying stable
-// across re-renders (no Math.random - a fixed seed keeps SSR/CSR in sync).
-function generateSeries(points: number, seed: number) {
-  let value = 100;
-  let s = seed;
-  const next = () => {
-    s = (s * 1103515245 + 12345) & 0x7fffffff;
-    return s / 0x7fffffff;
-  };
-  const series: number[] = [];
-  for (let i = 0; i < points; i++) {
-    const drift = 0.45;
-    const noise = (next() - 0.45) * 5;
-    value = Math.max(value + drift + noise, 20);
-    series.push(value);
-  }
-  return series;
-}
+import { AmbientGlobe } from '@/components/homepage/deploy-engine/AmbientGlobe';
 
 export function Hero() {
-  const chartRef = useRef<HTMLCanvasElement>(null);
-  const series = useMemo(() => generateSeries(40, 42), []);
-  const startValue = series[0];
-  const endValue = series[series.length - 1];
-  const changePct = (((endValue - startValue) / startValue) * 100).toFixed(1);
-  const displayValue = (endValue * 942.3).toLocaleString('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 0,
-  });
-
-  useEffect(() => {
-    const canvas = chartRef.current;
-    const ctx = canvas?.getContext('2d');
-    if (!canvas || !ctx) return;
-
-    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.clientHeight || 300);
-    gradient.addColorStop(0, 'rgba(30, 99, 255, 0.35)');
-    gradient.addColorStop(0.6, 'rgba(0, 212, 255, 0.08)');
-    gradient.addColorStop(1, 'rgba(0, 212, 255, 0)');
-
-    const labels = series.map((_, i) => i);
-    const chartInstance = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels,
-        datasets: [
-          {
-            label: 'Portfolio Value',
-            data: series,
-            borderColor: BRAND_COLORS.blue,
-            backgroundColor: gradient,
-            tension: 0.4,
-            fill: true,
-            pointRadius: 0,
-            borderWidth: 2.5,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false }, tooltip: { enabled: false } },
-        scales: {
-          x: { display: false, grid: { display: false } },
-          y: {
-            display: true,
-            grid: { color: 'rgba(255,255,255,0.05)', drawTicks: false },
-            ticks: { display: false },
-            border: { display: false },
-            grace: '15%',
-          },
-        },
-        animation: { duration: 0 },
-      },
-    });
-
-    return () => chartInstance.destroy();
-  }, [series]);
-
   return (
     <section className="relative pt-28 pb-20 overflow-hidden">
       {/* Dotted grid texture */}
@@ -144,23 +62,8 @@ export function Hero() {
           </Reveal>
 
           <Reveal delay={150}>
-            <div className="relative h-[320px] lg:h-[380px] rounded-xl border border-[#212A35] bg-[#122131]/60 p-4 transition-transform duration-base ease-ds-out hover:-translate-y-1">
-              <div className="flex items-start justify-between mb-1">
-                <div>
-                  <p className="text-xs text-[#8B95A5] font-mono uppercase tracking-wider mb-1.5">
-                    Portfolio performance
-                  </p>
-                  <p className="text-2xl font-bold text-white font-mono tabular-nums">
-                    {displayValue}
-                  </p>
-                </div>
-                <span className="inline-flex items-center gap-1 rounded-full border border-brand-green/25 bg-brand-green/10 px-2.5 py-1 text-xs font-semibold text-brand-green">
-                  <TrendingUp className="h-3 w-3" />+{changePct}%
-                </span>
-              </div>
-              <div className="h-[calc(100%-4rem)]">
-                <canvas ref={chartRef} />
-              </div>
+            <div className="relative h-[320px] lg:h-[380px] overflow-hidden rounded-xl border border-[#212A35] bg-[#122131]/60 transition-transform duration-base ease-ds-out hover:-translate-y-1">
+              <AmbientGlobe className="h-full w-full opacity-60" />
             </div>
           </Reveal>
         </div>
