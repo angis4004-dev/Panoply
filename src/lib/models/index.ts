@@ -6,6 +6,7 @@ export { UserVaultInvestmentModel } from './UserVaultInvestment';
 export { UserYieldInvestmentModel } from './UserYieldInvestment';
 export { ReportModel } from './Report';
 export { UserAchievementModel } from './UserAchievement';
+export { PortfolioSnapshotModel } from './PortfolioSnapshot';
 
 // Import User model from mongo.ts
 import { getUserModel } from '../mongo';

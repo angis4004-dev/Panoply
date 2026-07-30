@@ -5,6 +5,7 @@ import { getSessionFromRequest } from '@/lib/session';
 import { getCoinPrices } from '@/lib/coingecko';
 import { resolveBaseCoinId } from '@/lib/coin-symbols';
 import { applyPendingTicks, formatPnl } from '@/lib/bot-pnl';
+import { recordSnapshotIfDue } from '@/lib/portfolio-snapshot';
 import { computeTier, grantAchievement, TIER_SLOT_LIMITS } from '@/lib/achievements/engine';
 
 // GET /api/bots - Returns ONLY the bots belonging to the currently logged-in user
@@ -56,11 +57,21 @@ export async function GET(request: NextRequest) {
           status: bot.status,
           pnl: formatPnl(tick.simulatedPnlPercent),
           allocatedAmount: bot.allocatedAmount ?? null,
+          pnlDollar: (bot.allocatedAmount ?? 0) * (tick.simulatedPnlPercent / 100),
         };
       })
     );
 
-    return NextResponse.json(results);
+    // Feeds the dashboard's "Cumulative P&L" chart. Excludes wallet
+    // balance on purpose - deposits/withdrawals are capital movements, not
+    // profit or loss, and this total is defined to match the "Realized
+    // P&L" figure on the metrics grid exactly (both sum allocatedAmount *
+    // pnlPercent/100 across the same bots).
+    const totalPnlDollar = results.reduce((sum, bot) => sum + bot.pnlDollar, 0);
+    await recordSnapshotIfDue(userId, totalPnlDollar);
+
+    const formattedBots = results.map(({ pnlDollar: _pnlDollar, ...bot }) => bot);
+    return NextResponse.json(formattedBots);
   } catch (error) {
     console.error('Error fetching user bots:', error);
     return NextResponse.json({ error: 'Failed to fetch bots' }, { status: 500 });
