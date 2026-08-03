@@ -14,9 +14,9 @@ export function Navbar() {
 
   const navLinks = [
     { href: '/', label: 'Home' },
-    { href: '#bots', label: 'Signal Flows' },
-    { href: '#bots', label: 'Charts' },
-    { href: '#pricing', label: 'Pricing' },
+    { href: '/signal-flows', label: 'Signal Flows' },
+    { href: '/charts', label: 'Charts' },
+    { href: '/tiers', label: 'Tiers' },
     { href: '/about', label: 'About' },
   ];
 

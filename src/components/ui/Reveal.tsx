@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface RevealProps {
   children: React.ReactNode;
@@ -9,17 +9,27 @@ interface RevealProps {
 }
 
 /**
- * Fades and slides content up as it enters the viewport. Respects
- * prefers-reduced-motion by showing content immediately, no animation.
+ * Fades and slides content in as it crosses the viewport threshold, and
+ * back out as it leaves - replaying every time, on scroll down or up.
+ * Respects prefers-reduced-motion by showing content immediately and never
+ * animating.
+ *
+ * IntersectionObserver is the only source of truth for visibility. An
+ * earlier version also did a synchronous getBoundingClientRect() vs
+ * window.innerHeight check on mount, to avoid a flash-hidden for
+ * above-the-fold content - but mobile browsers (Safari/Chrome) frequently
+ * misreport window.innerHeight on first paint before their dynamic URL bar
+ * collapses/expands, especially right after a scroll-position restore. That
+ * mismatch marked whole sections "already revealed" at mount on mobile, so
+ * nothing ever animated in on scroll. The observer's own initial callback
+ * (fires within a frame or two of observe()) already handles above-the-fold
+ * content correctly without that fragile duplicate heuristic.
  */
 export function Reveal({ children, delay = 0, className = '' }: RevealProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
 
-  // Synchronous, pre-paint check so above-the-fold content never waits on a
-  // post-paint effect or observer callback - both can be delayed depending
-  // on the browser/rendering pipeline.
-  useLayoutEffect(() => {
+  useEffect(() => {
     const node = ref.current;
     if (!node) return;
 
@@ -28,40 +38,14 @@ export function Reveal({ children, delay = 0, className = '' }: RevealProps) {
       return;
     }
 
-    const rect = node.getBoundingClientRect();
-    if (rect.top < window.innerHeight && rect.bottom > 0) {
-      setVisible(true);
-    }
-  }, []);
-
-  // Scroll-triggered reveal for content that starts below the fold.
-  useEffect(() => {
-    if (visible) return;
-
-    const node = ref.current;
-    if (!node) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.15 }
-    );
+    const observer = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), {
+      threshold: 0.15,
+    });
 
     observer.observe(node);
 
-    // Safety net: never leave content permanently hidden if the observer
-    // fails to fire for any reason.
-    const fallback = window.setTimeout(() => setVisible(true), 2000);
-
-    return () => {
-      observer.disconnect();
-      window.clearTimeout(fallback);
-    };
-  }, [visible]);
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <div

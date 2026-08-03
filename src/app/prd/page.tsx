@@ -133,13 +133,13 @@ function MarkdownRenderer({ content }: { content: string }) {
   const blocks = parseMarkdown(content);
 
   return (
-    <div className="space-y-6 text-zinc-200">
+    <div className="space-y-6 text-ds-text">
       {blocks.map((block, index) => {
         if (block.type === 'heading') {
           const classes = {
             1: 'text-3xl font-semibold tracking-tight text-white',
             2: 'text-2xl font-semibold mt-8 text-white',
-            3: 'text-xl font-semibold mt-6 text-zinc-100',
+            3: 'text-xl font-semibold mt-6 text-ds-text',
           }[block.level ?? 1];
 
           return React.createElement(
@@ -151,7 +151,7 @@ function MarkdownRenderer({ content }: { content: string }) {
 
         if (block.type === 'paragraph') {
           return (
-            <p key={`${block.type}-${index}`} className="leading-8 text-zinc-300">
+            <p key={`${block.type}-${index}`} className="leading-8 text-ds-text-secondary">
               {renderInline(block.content ?? '')}
             </p>
           );
@@ -161,7 +161,7 @@ function MarkdownRenderer({ content }: { content: string }) {
           return (
             <ul
               key={`${block.type}-${index}`}
-              className="list-disc space-y-2 pl-6 leading-7 text-zinc-300"
+              className="list-disc space-y-2 pl-6 leading-7 text-ds-text-secondary"
             >
               {block.items?.map((item, itemIndex) => (
                 <li key={`${block.type}-${index}-${itemIndex}`}>{renderInline(item)}</li>
@@ -174,7 +174,7 @@ function MarkdownRenderer({ content }: { content: string }) {
           return (
             <ol
               key={`${block.type}-${index}`}
-              className="list-decimal space-y-2 pl-6 leading-7 text-zinc-300"
+              className="list-decimal space-y-2 pl-6 leading-7 text-ds-text-secondary"
             >
               {block.items?.map((item, itemIndex) => (
                 <li key={`${block.type}-${index}-${itemIndex}`}>{renderInline(item)}</li>
@@ -188,19 +188,19 @@ function MarkdownRenderer({ content }: { content: string }) {
           return (
             <div
               key={`${block.type}-${index}`}
-              className="overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-900/80"
+              className="overflow-x-auto rounded-xl border border-ds-border bg-ds-surface-raised/80"
             >
               <table className="min-w-full text-sm">
                 <tbody>
                   {rows.map((row, rowIndex) => (
                     <tr
                       key={`${block.type}-${index}-${rowIndex}`}
-                      className="border-b border-zinc-800 last:border-b-0"
+                      className="border-b border-ds-border last:border-b-0"
                     >
                       {row.map((cell, cellIndex) => (
                         <td
                           key={`${block.type}-${index}-${rowIndex}-${cellIndex}`}
-                          className={`px-4 py-3 ${rowIndex === 0 ? 'font-semibold text-white' : 'text-zinc-300'}`}
+                          className={`px-4 py-3 ${rowIndex === 0 ? 'font-semibold text-white' : 'text-ds-text-secondary'}`}
                         >
                           {renderInline(cell)}
                         </td>
@@ -214,7 +214,7 @@ function MarkdownRenderer({ content }: { content: string }) {
         }
 
         if (block.type === 'hr') {
-          return <hr key={`${block.type}-${index}`} className="border-zinc-800" />;
+          return <hr key={`${block.type}-${index}`} className="border-ds-border" />;
         }
 
         return null;
@@ -228,20 +228,24 @@ export default function PrdPage() {
   const markdown = fs.readFileSync(filePath, 'utf8');
 
   return (
-    <main className="min-h-screen bg-zinc-950 px-6 py-10 text-zinc-100 lg:px-10">
+    <main
+      id="main-content"
+      tabIndex={-1}
+      className="min-h-screen bg-ds-surface px-6 py-10 text-ds-text lg:px-10"
+    >
       <div className="mx-auto flex max-w-6xl flex-col gap-8">
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-6 shadow-2xl shadow-black/30">
-          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-teal-400">
+        <div className="rounded-2xl border border-ds-border bg-ds-surface-raised/70 p-6 shadow-2xl shadow-black/30">
+          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-primary">
             Product Requirements
           </p>
           <h1 className="mt-3 text-4xl font-semibold text-white">Aegis PRD</h1>
-          <p className="mt-3 max-w-3xl text-base leading-7 text-zinc-400">
+          <p className="mt-3 max-w-3xl text-base leading-7 text-ds-text-muted">
             This page renders the PRD directly from the markdown source so the product requirements
             are visible in the app as well as in the repository.
           </p>
         </div>
 
-        <article className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6 shadow-xl shadow-black/20">
+        <article className="rounded-2xl border border-ds-border bg-ds-surface-raised/60 p-6 shadow-xl shadow-black/20">
           <MarkdownRenderer content={markdown} />
         </article>
       </div>

@@ -13,7 +13,7 @@ export function FinalCta() {
               className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(30,99,255,0.08),transparent_70%)]"
             />
             <div className="relative">
-              <h2 className="text-3xl font-bold text-white mb-4">
+              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
                 Bring Discipline to Your On-Chain Portfolio
               </h2>
               <p className="text-[#8B95A5] mb-8 max-w-xl mx-auto">

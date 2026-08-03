@@ -122,6 +122,10 @@ module.exports = {
         full: '9999px',
         // Design system radius scale - four steps, down from the six
         // values in circulation (4, 8, 12, 16, 9999 and 4px 4px 0 0).
+        // 4px. Same value as the `rounded` DEFAULT above, exposed by name so
+        // the inline-link/focus-ring radius is addressable as part of the
+        // scale rather than looking like an unconsidered default.
+        'ds-xs': 'var(--ds-radius-xs)',
         'ds-sm': 'var(--ds-radius-sm)',
         'ds-md': 'var(--ds-radius-md)',
         'ds-lg': 'var(--ds-radius-lg)',

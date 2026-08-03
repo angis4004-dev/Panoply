@@ -26,7 +26,7 @@ export function HowItWorks() {
           <p className="text-ds-caption font-semibold uppercase tracking-[0.35em] text-primary mb-3">
             Getting started
           </p>
-          <h2 className="text-3xl font-bold text-white">How It Works</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-white">How It Works</h2>
         </div>
         <div className="relative grid gap-10 sm:grid-cols-3">
           <div

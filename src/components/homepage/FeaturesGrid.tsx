@@ -1,73 +1,204 @@
-import { Bot, Shield, TrendingUp, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { Reveal } from '@/components/ui/Reveal';
+import { CountUpOnView } from '@/components/ui/RollingNumber';
 
-const features = [
+/**
+ * Alternating two-column feature rows (text + a small UI mockup card,
+ * sides swapping each row) - the structural pattern requested from
+ * chamberfi.com's homepage, adapted to Aegis's existing dark/cream
+ * theme rather than their light palette (only layout/structure was
+ * asked for, not a color or typography change).
+ */
+
+function SignalFlowMockup() {
+  return (
+    <div className="h-full rounded-2xl border border-[#212A35] bg-[#122131]/60 p-6 transition-all duration-base ease-ds-out hover:border-primary/40 hover:shadow-[0_0_40px_rgba(255,240,201,0.12)]">
+      <div className="rounded-lg bg-[#0D1219] border border-[#212A35] px-4 py-2.5 text-sm text-[#E7ECF2] mb-4 max-w-[85%] ml-auto">
+        Open a grid signal flow on BTC/USDT
+      </div>
+      <div className="rounded-lg bg-[#0D1219] border border-primary/20 p-4">
+        <p className="text-ds-caption uppercase tracking-[0.2em] text-primary mb-3">Executing</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-semibold text-white">Grid · BTC/USDT</p>
+            <p className="text-xs text-[#8B95A5]">Confidence: 87% · ETA ~4s</p>
+          </div>
+          <span className="text-sm font-mono text-ds-value-positive">
+            <CountUpOnView value={2.1} format={(n) => `+${n.toFixed(1)}%`} />
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function VaultStatMockup() {
+  return (
+    <div className="h-full rounded-2xl border border-[#212A35] bg-[#122131]/60 p-6 transition-all duration-base ease-ds-out hover:border-primary/40 hover:shadow-[0_0_40px_rgba(255,240,201,0.12)]">
+      <div className="flex items-center gap-4 mb-4 text-xs text-[#8B95A5]">
+        <span>
+          <CountUpOnView value={28.07} format={(n) => `$${n.toFixed(2)}M TVL`} />
+        </span>
+        <span className="text-ds-value-positive">
+          <CountUpOnView value={38.42} format={(n) => `${n.toFixed(2)}% (3M)`} />
+        </span>
+      </div>
+      <svg viewBox="0 0 200 60" className="w-full h-16 mb-4" preserveAspectRatio="none">
+        <path
+          d="M0 40 C 20 20, 40 50, 60 35 S 100 15, 120 30 S 160 45, 200 20"
+          fill="none"
+          stroke="#00D4AA"
+          strokeWidth="2"
+        />
+      </svg>
+      <div className="flex items-center gap-3">
+        <div className="h-9 w-9 rounded-full bg-primary/15 flex items-center justify-center text-primary text-sm font-bold">
+          V
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-white">Momentum Vault</p>
+          <p className="text-xs text-[#8B95A5]">Risk score 5/10</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function YieldMockup() {
+  const rows = [
+    { label: 'Ethereum', sub: 'ETH', on: true },
+    { label: 'Arbitrum', sub: 'ARB', on: true },
+    { label: 'Polygon', sub: 'MATIC', on: false },
+  ];
+  return (
+    <div className="h-full rounded-2xl border border-[#212A35] bg-[#122131]/60 p-6 transition-all duration-base ease-ds-out hover:border-primary/40 hover:shadow-[0_0_40px_rgba(255,240,201,0.12)]">
+      <p className="text-ds-caption uppercase tracking-[0.2em] text-[#8B95A5] mb-4">
+        Chains enabled for yield routing
+      </p>
+      <div className="space-y-3">
+        {rows.map((row) => (
+          <div
+            key={row.label}
+            className="flex items-center justify-between rounded-lg bg-[#0D1219] border border-[#212A35] px-4 py-2.5"
+          >
+            <div>
+              <p className="text-sm font-medium text-white">{row.label}</p>
+              <p className="text-xs text-[#8B95A5]">{row.sub}</p>
+            </div>
+            <span
+              className={`inline-flex h-5 w-9 items-center rounded-full transition-colors duration-base ease-ds-out ${row.on ? 'bg-primary/70 justify-end' : 'bg-[#212A35] justify-start'} px-0.5`}
+            >
+              <span className="h-4 w-4 rounded-full bg-white" />
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ReportMockup() {
+  return (
+    <div className="h-full rounded-2xl border border-[#212A35] bg-[#122131]/60 p-6 transition-all duration-base ease-ds-out hover:border-primary/40 hover:shadow-[0_0_40px_rgba(255,240,201,0.12)]">
+      <div className="rounded-lg bg-[#0D1219] border border-[#212A35] p-4 mb-4">
+        <p className="text-sm font-semibold text-white mb-1">Your Portfolio Report is ready</p>
+        <p className="text-xs text-[#8B95A5]">Risk-adjusted allocation across 4 signal flows</p>
+      </div>
+      <div className="grid grid-cols-3 gap-2 text-center">
+        <div className="rounded-lg bg-[#0D1219] border border-[#212A35] py-3">
+          <p className="text-sm font-mono text-primary">Med</p>
+          <p className="text-[10px] uppercase tracking-wide text-[#8B95A5]">Risk</p>
+        </div>
+        <div className="rounded-lg bg-[#0D1219] border border-[#212A35] py-3">
+          <p className="text-sm font-mono text-primary">
+            <CountUpOnView value={18} format={(n) => `${Math.round(n)}%`} />
+          </p>
+          <p className="text-[10px] uppercase tracking-wide text-[#8B95A5]">Est. APY</p>
+        </div>
+        <div className="rounded-lg bg-[#0D1219] border border-[#212A35] py-3">
+          <p className="text-sm font-mono text-primary">
+            <CountUpOnView value={6} format={(n) => `${Math.round(n)}`} />
+          </p>
+          <p className="text-[10px] uppercase tracking-wide text-[#8B95A5]">Assets</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const rows = [
   {
-    icon: Bot,
+    eyebrow: 'Automated execution',
     title: 'AI-Powered Signal Flows',
-    description:
-      'Grid, DCA, and arbitrage signal flows that adapt to market conditions with automated parameter tuning.',
+    desc: 'Grid, DCA, and arbitrage signal flows that adapt to market conditions with automated parameter tuning.',
     href: '/dashboard/bots',
+    mockup: SignalFlowMockup,
   },
   {
-    icon: Shield,
+    eyebrow: 'Institutional grade',
     title: 'Risk-Managed Vaults',
-    description:
-      'Institutional-grade vaults with transparent performance tracking and dynamic risk controls.',
+    desc: 'Transparent performance tracking and dynamic risk controls, with every position visible on-chain.',
     href: '/dashboard/vaults',
+    mockup: VaultStatMockup,
   },
   {
-    icon: TrendingUp,
+    eyebrow: 'Cross-chain',
     title: 'Optimized Yield',
-    description:
-      'Compare yield opportunities across chains with data-driven allocation suggestions and auto-compounding.',
+    desc: 'Compare yield opportunities across chains with data-driven allocation suggestions and auto-compounding.',
     href: '/dashboard/yield',
+    mockup: YieldMockup,
   },
   {
-    icon: Zap,
+    eyebrow: 'Personalized',
     title: 'Portfolio Builder',
-    description:
-      'Generate a personalized portfolio report with risk analysis, delivered straight to your inbox.',
+    desc: 'Generate a personalized portfolio report with risk analysis, delivered straight to your inbox.',
     href: '/dashboard/builder',
+    mockup: ReportMockup,
   },
 ];
 
 export function FeaturesGrid() {
   return (
-    <section id="features" className="py-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-14">
-          <h2 className="text-3xl font-bold text-white mb-4">
-            Automated Strategies, or Build Your Own
-          </h2>
-          <p className="text-[#8B95A5] max-w-2xl mx-auto">
-            Deploy quantitatively-managed signal flows and vaults, or configure a custom allocation
-            with the Portfolio Builder. Every strategy runs non-custodially, with you in control of
-            risk parameters throughout.
+    <section id="features" className="relative py-20 sm:py-24 overflow-hidden">
+      <div className="ds-network-glow -z-10" aria-hidden />
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16 sm:mb-20">
+          <p className="text-ds-caption font-semibold uppercase tracking-[0.35em] text-primary mb-3">
+            Automated strategies, or build your own
           </p>
+          <h2 className="text-2xl sm:text-3xl font-bold text-white">
+            Every position, non-custodial.
+          </h2>
         </div>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {features.map((feature, i) => {
-            const Icon = feature.icon;
+
+        <div className="space-y-20 sm:space-y-24 lg:space-y-28">
+          {rows.map((row, i) => {
+            const Mockup = row.mockup;
+            const reversed = i % 2 === 1;
             return (
-              <Reveal key={feature.title} delay={i * 80}>
-                <Link
-                  href={feature.href}
-                  className="group block h-full rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
-                >
-                  <div className="h-full bg-[#122131]/50 border border-[#212A35] rounded-xl p-6 transition duration-base ease-ds-out hover:-translate-y-1 hover:border-primary/30 hover:bg-[#17202e]/50">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 mb-4 transition-transform duration-base ease-ds-out group-hover:scale-110">
-                      <Icon className="h-5 w-5 text-primary" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-white mb-2">{feature.title}</h3>
-                    <p className="text-sm text-[#8B95A5] leading-relaxed">{feature.description}</p>
-                    <span className="inline-block mt-4 text-sm font-medium text-primary group-hover:underline">
-                      Learn more →
-                    </span>
-                  </div>
-                </Link>
-              </Reveal>
+              <div
+                key={row.title}
+                className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center"
+              >
+                <Reveal className={reversed ? 'lg:order-2' : ''}>
+                  <p className="text-ds-caption font-semibold uppercase tracking-[0.3em] text-primary mb-3">
+                    {row.eyebrow}
+                  </p>
+                  <h3 className="text-xl sm:text-3xl font-bold text-white mb-4 leading-tight">
+                    {row.title}
+                  </h3>
+                  <p className="text-[#8B95A5] leading-relaxed mb-6 max-w-md">{row.desc}</p>
+                  <Link
+                    href={row.href}
+                    className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13] rounded"
+                  >
+                    Learn more →
+                  </Link>
+                </Reveal>
+                <Reveal delay={100} className={reversed ? 'lg:order-1' : ''}>
+                  <Mockup />
+                </Reveal>
+              </div>
             );
           })}
         </div>

@@ -3,9 +3,18 @@
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { Reveal } from '@/components/ui/Reveal';
-import { AmbientGlobe } from '@/components/homepage/deploy-engine/AmbientGlobe';
+import { useScrollParallax } from '@/hooks/use-scroll-parallax';
 
 export function Hero() {
+  // Subtle parallax depth on the ambient orb as the hero scrolls out of
+  // view - drifts down and fades rather than just sitting static, the
+  // "special effect" distinguishing this from a generic dark dashboard.
+  const scrollProgress = useScrollParallax(500);
+  const orbStyle = {
+    transform: `translateY(${scrollProgress * 36}px) scale(${1 + scrollProgress * 0.12})`,
+    opacity: 1 - scrollProgress * 0.6,
+  };
+
   return (
     <section className="relative pt-28 pb-20 overflow-hidden">
       {/* Dotted grid texture */}
@@ -26,20 +35,30 @@ export function Hero() {
       />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-center rounded-2xl border border-[#212A35] bg-[#0D131C]/50 backdrop-blur-sm p-6 sm:p-10">
-          <Reveal>
+        <div className="relative overflow-hidden grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-center rounded-2xl border border-[#212A35] bg-[#0D131C]/50 backdrop-blur-sm p-6 sm:p-10">
+          {/* Below lg there's no second column to hold the orb, so it
+              renders as an absolutely-positioned ambient layer behind the
+              text instead of its own stacked block - keeps it blended
+              rather than a floating shape with dead space around it. */}
+          <div
+            className="ds-ambient-orb lg:hidden"
+            aria-hidden
+            style={{ ...orbStyle, opacity: 0.7 - scrollProgress * 0.42 }}
+          />
+
+          <Reveal className="relative">
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/5 px-4 py-1.5 mb-6">
               <span className="text-ds-caption font-semibold uppercase tracking-[0.35em] text-primary">
                 Quantitative Intelligence for Decentralized Finance
               </span>
             </div>
-            <h1 className="text-4xl sm:text-5xl font-bold text-white mb-5 leading-tight">
+            <h1 className="text-3xl sm:text-5xl font-bold text-white mb-5 leading-tight">
               Disciplined automation for{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-brand-cyan to-[#7B61FF]">
                 on-chain portfolios.
               </span>
             </h1>
-            <p className="text-[#8B95A5] text-lg mb-8 max-w-xl leading-relaxed">
+            <p className="text-[#8B95A5] text-base sm:text-lg mb-8 max-w-xl leading-relaxed">
               Aegis combines quantitative research, automated execution, and risk management in a
               single non-custodial platform. Set your risk parameters and let disciplined,
               continuously monitored automation handle the rest.
@@ -61,9 +80,9 @@ export function Hero() {
             </div>
           </Reveal>
 
-          <Reveal delay={150}>
-            <div className="relative h-[320px] lg:h-[380px] overflow-hidden rounded-xl border border-[#212A35] bg-[#122131]/60 transition-transform duration-base ease-ds-out hover:-translate-y-1">
-              <AmbientGlobe className="h-full w-full opacity-60" />
+          <Reveal delay={150} className="hidden lg:block">
+            <div className="relative h-[320px] lg:h-[380px]">
+              <div className="ds-ambient-orb" aria-hidden style={orbStyle} />
             </div>
           </Reveal>
         </div>
