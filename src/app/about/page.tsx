@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Navbar } from '@/components/homepage/navbar';
 import { Footer } from '@/components/homepage/Footer';
+import { PageBackground } from '@/components/backgrounds/PageBackground';
 import { Reveal } from '@/components/ui/Reveal';
 import { FaqAccordion } from '@/components/about/FaqAccordion';
 import {
@@ -43,7 +44,12 @@ function SectionEyebrow({ children }: { children: React.ReactNode }) {
 
 export default function AboutPage() {
   return (
-    <main className="min-h-screen bg-[#0A0E13] text-[#E7ECF2] antialiased">
+    <main
+      id="main-content"
+      tabIndex={-1}
+      className="relative isolate min-h-screen text-[#E7ECF2] antialiased"
+    >
+      <PageBackground />
       <Navbar />
 
       {/* Intro / motto */}
