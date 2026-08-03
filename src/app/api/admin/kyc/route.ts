@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserModel } from '@/lib/models';
 import { verifyAdminAccess } from '@/lib/auth-middleware';
+import { maskFromLastFour } from '@/lib/pii-crypto';
 
 // GET /api/admin/kyc - Returns every user's KYC submission for review
 export async function GET(request: NextRequest) {
@@ -13,7 +14,28 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Database connection unavailable' }, { status: 503 });
     }
 
-    const users = await userModel.find({}, { passwordHash: 0 }).sort({ kycSubmittedAt: -1 }).lean();
+    // Scoped to users who actually submitted. This previously returned every
+    // user in the system, including the majority who had never started KYC,
+    // which made a routine list request a dump of the whole user table.
+    const users = await userModel
+      .find(
+        { kycStatus: { $in: ['pending', 'verified', 'rejected'] } },
+        {
+          name: 1,
+          email: 1,
+          kycStatus: 1,
+          kycSubmittedAt: 1,
+          kycFullName: 1,
+          kycDateOfBirth: 1,
+          kycCountry: 1,
+          kycIdType: 1,
+          kycIdNumberLast4: 1,
+          kycDocumentProvided: 1,
+          kycRejectionReason: 1,
+        }
+      )
+      .sort({ kycSubmittedAt: -1 })
+      .lean();
 
     const submissions = users.map((user) => ({
       id: user._id.toString(),
@@ -25,7 +47,11 @@ export async function GET(request: NextRequest) {
       dateOfBirth: user.kycDateOfBirth || '',
       country: user.kycCountry || '',
       idType: user.kycIdType || '',
-      idNumber: user.kycIdNumber || '',
+      // Masked in the list. The admin dashboard never displayed the full
+      // number anyway, so this endpoint was exposing it to no purpose. The
+      // review path that genuinely needs it is GET /api/admin/kyc/[id], one
+      // record at a time.
+      idNumberMasked: maskFromLastFour(user.kycIdNumberLast4),
       documentProvided: user.kycDocumentProvided || false,
       rejectionReason: user.kycRejectionReason || null,
     }));

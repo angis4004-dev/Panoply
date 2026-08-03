@@ -41,7 +41,17 @@ export interface IUser extends Document {
   kycDateOfBirth?: string;
   kycCountry?: string;
   kycIdType?: 'passport' | 'drivers_license' | 'national_id';
+  /**
+   * Government identity number, encrypted at rest by src/lib/pii-crypto.ts.
+   * Never read this directly for display - it is ciphertext. Decrypt only in
+   * the admin review path, where seeing the real number is the point.
+   */
   kycIdNumber?: string;
+  /**
+   * Last four characters, in the clear, so the owner can recognize which
+   * document is on file without anything having to decrypt the full value.
+   */
+  kycIdNumberLast4?: string;
   kycDocumentProvided?: boolean;
   kycRejectionReason?: string;
   // Achievement / tier engine
@@ -105,6 +115,7 @@ const UserSchema = new Schema<IUser>(
     kycCountry: { type: String },
     kycIdType: { type: String, enum: ['passport', 'drivers_license', 'national_id'] },
     kycIdNumber: { type: String },
+    kycIdNumberLast4: { type: String },
     kycDocumentProvided: { type: Boolean, default: false },
     kycRejectionReason: { type: String },
     // Achievement / tier engine

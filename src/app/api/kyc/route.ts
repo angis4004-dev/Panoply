@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionFromRequest } from '@/lib/session';
 import { getUserModel } from '@/lib/models';
+import { encryptPii, lastFour, maskFromLastFour, PiiCryptoError } from '@/lib/pii-crypto';
 
 const ID_TYPES = ['passport', 'drivers_license', 'national_id'];
 
@@ -28,7 +29,13 @@ export async function GET(request: NextRequest) {
     dateOfBirth: user.kycDateOfBirth || '',
     country: user.kycCountry || '',
     idType: user.kycIdType || '',
-    idNumber: user.kycIdNumber || '',
+    // Deliberately never the real number, not even to its owner: this response
+    // has no use for it that a mask does not serve, and returning it put the
+    // value into browser memory, history, and any logging proxy in between.
+    // Resubmission therefore starts from an empty field and the number is
+    // re-entered, which is correct - it is not ours to hand back.
+    idNumber: '',
+    idNumberMasked: maskFromLastFour(user.kycIdNumberLast4),
     documentProvided: user.kycDocumentProvided || false,
     rejectionReason: user.kycRejectionReason || null,
   });
@@ -63,6 +70,24 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Database connection unavailable' }, { status: 503 });
   }
 
+  // Encrypted before it reaches the database, so the plaintext exists only for
+  // the lifetime of this request. A missing or malformed key fails the request
+  // rather than falling back to storing it in the clear.
+  const trimmedIdNumber = idNumber.trim();
+  let encryptedIdNumber: string;
+  try {
+    encryptedIdNumber = encryptPii(trimmedIdNumber);
+  } catch (error) {
+    if (error instanceof PiiCryptoError) {
+      console.error('KYC submission blocked - PII encryption unavailable:', error.message);
+      return NextResponse.json(
+        { error: 'Identity verification is temporarily unavailable. Please try again later.' },
+        { status: 503 }
+      );
+    }
+    throw error;
+  }
+
   const updated = await userModel
     .findByIdAndUpdate(
       session.user.id,
@@ -74,7 +99,8 @@ export async function POST(request: NextRequest) {
           kycDateOfBirth: dateOfBirth.trim(),
           kycCountry: country.trim(),
           kycIdType: idType,
-          kycIdNumber: idNumber.trim(),
+          kycIdNumber: encryptedIdNumber,
+          kycIdNumberLast4: lastFour(trimmedIdNumber),
           kycDocumentProvided: !!documentProvided,
           kycRejectionReason: null,
         },
