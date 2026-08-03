@@ -65,6 +65,8 @@ export async function POST(request: Request) {
           typeof result.user.createdAt === 'string'
             ? result.user.createdAt
             : (result.user.createdAt as Date).toISOString(),
+        // A freshly created account has never been revoked.
+        tokenVersion: 0,
       },
       createdAt: Date.now(),
     };

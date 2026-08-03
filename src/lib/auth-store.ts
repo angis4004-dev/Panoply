@@ -199,7 +199,7 @@ export async function signInUser(payload: LoginPayload) {
         throw new Error('Invalid credentials.');
       }
 
-      const { _id, email, name, role, createdAt, kycStatus } = userRecord.toObject();
+      const { _id, email, name, role, createdAt, kycStatus, tokenVersion } = userRecord.toObject();
       return {
         user: {
           id: _id.toString(),
@@ -208,6 +208,9 @@ export async function signInUser(payload: LoginPayload) {
           role,
           createdAt,
           kycStatus: kycStatus || 'unverified',
+          // Stamped into the session cookie so it can be checked against the
+          // stored value on every request; see revokeUserSessions.
+          tokenVersion: tokenVersion ?? 0,
         },
         // Token is kept for API compatibility but not used for authentication
         token: '',
@@ -343,6 +346,11 @@ export async function resetPassword(token: string, newPassword: string): Promise
     user.passwordHash = hashPassword(newPassword);
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
+    // A password reset is the standard response to a suspected compromise, so
+    // it has to end sessions an attacker may already hold. Without this the
+    // old cookie keeps working for the rest of its life despite the new
+    // password.
+    user.tokenVersion = (user.tokenVersion ?? 0) + 1;
     await user.save();
     return;
   }

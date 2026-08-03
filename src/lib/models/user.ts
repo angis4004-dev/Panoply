@@ -28,6 +28,12 @@ export interface IUser extends Document {
   googleId?: string;
   resetPasswordToken?: string;
   resetPasswordExpires?: Date;
+  /**
+   * Incremented to invalidate every session issued before the bump. Sessions
+   * carry the value they were minted with and are rejected once it falls
+   * behind. See revokeUserSessions in src/lib/session.ts.
+   */
+  tokenVersion: number;
   // KYC / identity verification (UI-only — no third-party provider)
   kycStatus: 'unverified' | 'pending' | 'verified' | 'rejected';
   kycSubmittedAt?: Date;
@@ -86,6 +92,7 @@ const UserSchema = new Schema<IUser>(
     googleId: { type: String },
     resetPasswordToken: { type: String },
     resetPasswordExpires: { type: Date },
+    tokenVersion: { type: Number, default: 0, min: 0 },
     // KYC / identity verification (UI-only — no third-party provider)
     kycStatus: {
       type: String,

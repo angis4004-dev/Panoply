@@ -46,6 +46,8 @@ export async function POST(request: Request) {
           typeof result.user.createdAt === 'string'
             ? result.user.createdAt
             : (result.user.createdAt as Date).toISOString(),
+        tokenVersion:
+          'tokenVersion' in result.user ? ((result.user.tokenVersion as number) ?? 0) : 0,
       },
       createdAt: Date.now(),
     };

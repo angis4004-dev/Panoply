@@ -1,4 +1,6 @@
 import crypto from 'crypto';
+import { connectToDatabase } from './mongo';
+import { UserModel } from './models/user';
 
 // Configuration. No fallback: signing session cookies (including Admin-role
 // sessions) with a hardcoded, publicly-known secret would let anyone forge a
@@ -18,13 +20,31 @@ const SESSION_COOKIE_OPTIONS = {
   maxAge: 60 * 60 * 24 * 7, // 1 week
 } as const;
 
-interface SessionData {
+/**
+ * Server-side maximum age for a session, independent of the cookie's Max-Age.
+ *
+ * Max-Age is a request to the browser and nothing more: a cookie copied out of
+ * devtools and replayed by any HTTP client ignores it entirely. Until this
+ * check existed a leaked session token was valid forever, because the payload
+ * carried a createdAt that nothing ever read.
+ */
+const MAX_SESSION_AGE_MS = SESSION_COOKIE_OPTIONS.maxAge * 1000;
+
+export interface SessionData {
   user: {
     id: string;
     email: string;
     name: string;
     role: 'Admin' | 'Trader';
     createdAt: string;
+    /**
+     * Revocation counter, compared against the user's stored tokenVersion on
+     * every request. Bumping the stored value invalidates every session issued
+     * before the bump, which is what makes logout, password reset, and account
+     * suspension take effect immediately rather than whenever the cookie
+     * happens to expire.
+     */
+    tokenVersion: number;
   };
   createdAt: number;
 }
@@ -59,10 +79,50 @@ function verifySessionCookie(cookie: string): SessionData | null {
     if (!isValid) return null;
 
     const decoded = Buffer.from(payload, 'base64').toString('utf-8');
-    return JSON.parse(decoded) as SessionData;
+    const session = JSON.parse(decoded) as SessionData;
+
+    if (typeof session.createdAt !== 'number') return null;
+    if (Date.now() - session.createdAt > MAX_SESSION_AGE_MS) return null;
+
+    // Cookies issued before revocation existed carry no tokenVersion. They are
+    // rejected rather than defaulted, because defaulting would let a token
+    // minted under the old un-revocable scheme keep working.
+    if (typeof session.user?.tokenVersion !== 'number') return null;
+
+    return session;
   } catch {
     return null;
   }
+}
+
+/**
+ * Confirms a signed session still corresponds to a live, unrevoked account,
+ * and returns it with authority re-read from the database.
+ *
+ * A signature only proves the cookie was issued by us, not that it is still
+ * valid. Role in particular is never trusted from the payload: it is stamped
+ * at sign-in and would otherwise survive a demotion for the life of the
+ * cookie, leaving a removed admin with admin access for up to a week.
+ */
+async function resolveCurrentSession(session: SessionData): Promise<SessionData | null> {
+  // The app supports a JSON-file user store when Mongo is not configured at
+  // all. In that mode there is nothing to check against, so the signature and
+  // expiry are all we have; when Mongo IS configured, a failure to reach it
+  // fails closed rather than skipping the check.
+  if (!process.env.MONGODB_URI) return session;
+
+  const connection = await connectToDatabase();
+  if (!connection) return null;
+
+  const record = await UserModel.findById(session.user.id)
+    .select('tokenVersion status role')
+    .lean();
+
+  if (!record) return null;
+  if ((record.tokenVersion ?? 0) !== session.user.tokenVersion) return null;
+  if (record.status === 'suspended') return null;
+
+  return { ...session, user: { ...session.user, role: record.role } };
 }
 
 /**
@@ -90,7 +150,7 @@ export async function getSessionFromRequest(request: Request): Promise<SessionDa
   const sessionCookie = cookies[SESSION_COOKIE_NAME];
   if (sessionCookie) {
     const session = verifySessionCookie(sessionCookie);
-    if (session) return session;
+    if (session) return resolveCurrentSession(session);
   }
 
   // If not found or invalid, check for the NextAuth JWT cookie (next-auth.session-token)
@@ -107,19 +167,23 @@ export async function getSessionFromRequest(request: Request): Promise<SessionDa
         name: string;
         role: 'Admin' | 'Trader';
         createdAt: string;
+        tokenVersion?: number;
       } | null;
       if (decoded) {
-        // Map the decoded token to the SessionData shape expected by the rest of the app
-        return {
+        // Map the decoded token to the SessionData shape expected by the rest
+        // of the app, then put it through the same revocation check as a
+        // first-party cookie - an OAuth session is no less worth revoking.
+        return resolveCurrentSession({
           user: {
             id: decoded.id,
             email: decoded.email,
             name: decoded.name,
             role: decoded.role,
             createdAt: decoded.createdAt,
+            tokenVersion: decoded.tokenVersion ?? 0,
           },
           createdAt: Date.now(), // session creation time (now)
-        };
+        });
       }
     } catch (error) {
       // If the token is invalid, fall through to return null
@@ -141,6 +205,21 @@ export function setCookie(response: Response, sessionData: SessionData): Respons
     `${SESSION_COOKIE_NAME}=${sessionCookie}; HttpOnly; Path=/; Max-Age=${SESSION_COOKIE_OPTIONS.maxAge}; SameSite=${SESSION_COOKIE_OPTIONS.sameSite}${SESSION_COOKIE_OPTIONS.secure ? '; Secure' : ''}`
   );
   return new Response(response.body, { status: response.status, headers });
+}
+
+/**
+ * Invalidates every session currently issued for a user.
+ *
+ * Call on logout, password reset, and any administrative action that should
+ * cut off access now. Cheap by design - one counter bump beats maintaining a
+ * server-side session table, and it cannot be defeated by a token the client
+ * has already been handed.
+ */
+export async function revokeUserSessions(userId: string): Promise<void> {
+  if (!process.env.MONGODB_URI) return;
+  const connection = await connectToDatabase();
+  if (!connection) return;
+  await UserModel.findByIdAndUpdate(userId, { $inc: { tokenVersion: 1 } });
 }
 
 /**

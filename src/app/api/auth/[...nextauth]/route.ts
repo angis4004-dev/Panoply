@@ -66,6 +66,10 @@ const authOptions = {
               picture: dbUser.image,
               // We'll store the createdAt from the user (when the user was created)
               createdAt: dbUser.createdAt,
+              // Carried so an OAuth session can be revoked on the same terms
+              // as a password one - getSessionFromRequest compares this
+              // against the stored value on every request.
+              tokenVersion: 'tokenVersion' in dbUser ? ((dbUser.tokenVersion as number) ?? 0) : 0,
             };
           }
         }
