@@ -194,6 +194,10 @@ export async function POST(request: NextRequest) {
       entryPrice = prices[coinId]?.usd || null;
     }
 
+    // Namespaced per operation so the same client-generated key used against
+    // two different endpoints cannot collide on the ledger's unique index.
+    const idempotencyKey = request.headers.get('idempotency-key') ?? undefined;
+
     let savedBot;
     try {
       // The flow and the debit that funds it commit together or not at all.
@@ -223,6 +227,7 @@ export async function POST(request: NextRequest) {
           amountMinor: -allocatedMinor,
           relatedEntityType: 'bot',
           relatedEntityId: bot._id,
+          idempotencyKey: idempotencyKey ? `bot-alloc:${idempotencyKey}` : undefined,
           memo: `Allocation to ${body.type} ${pair}`,
         });
 

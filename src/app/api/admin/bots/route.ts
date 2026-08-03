@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getUserModel, connectToDatabase } from '@/lib/mongo';
 import { TradingBotModel } from '@/lib/models/TradingBot';
 import { verifyAdminAccess } from '@/lib/auth-middleware';
+import { recordAdminAction } from '@/lib/audit-log';
 
 interface PopulatedUserRef {
   name?: string;
@@ -129,6 +130,22 @@ export async function POST(request: NextRequest) {
       status: populatedBot.status,
       pnl: populatedBot.pnl || '+0.0%',
     };
+
+    // Note: an admin-created flow carries no allocatedAmount and so debits
+    // nothing - unlike the user-facing create path, which allocates capital
+    // through the ledger. Logged as an admin action either way.
+    await recordAdminAction(request, {
+      action: 'bot.create',
+      targetType: 'bot',
+      targetId: savedBot._id.toString(),
+      after: {
+        type: savedBot.type,
+        pair: savedBot.pair,
+        userId: user._id.toString(),
+        confidence: savedBot.confidence,
+        status: savedBot.status,
+      },
+    });
 
     return NextResponse.json(formattedBot, { status: 201 });
   } catch (error) {

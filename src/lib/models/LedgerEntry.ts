@@ -86,7 +86,10 @@ const LedgerEntrySchema = new Schema<ILedgerEntry>({
   },
   relatedEntityType: { type: String, enum: ['bot', 'vault', 'yield'], default: null },
   relatedEntityId: { type: Schema.Types.ObjectId, default: null },
-  idempotencyKey: { type: String, default: null },
+  // No default. A default of null would store an explicit null on every entry
+  // that has no key, and those nulls collide with each other under a unique
+  // index - see the index definition below.
+  idempotencyKey: { type: String },
   actorUserId: { type: Schema.Types.ObjectId, ref: 'User', default: null },
   memo: { type: String, default: '' },
   createdAt: { type: Date, default: Date.now },
@@ -96,10 +99,21 @@ const LedgerEntrySchema = new Schema<ILedgerEntry>({
 // order; this serves both.
 LedgerEntrySchema.index({ userId: 1, createdAt: 1 });
 
-// Sparse so the many entries without a key don't collide on null. Unique so a
-// replayed request loses the race at the database rather than in application
-// code, which is the only place it can be decided correctly under concurrency.
-LedgerEntrySchema.index({ idempotencyKey: 1 }, { unique: true, sparse: true });
+/**
+ * Unique so a replayed request loses the race at the database rather than in
+ * application code, which is the only place it can be decided correctly under
+ * concurrency.
+ *
+ * Partial rather than sparse. A sparse index skips documents where the field
+ * is ABSENT, but still indexes an explicit null - so with a null default every
+ * keyless entry indexed the same value and only one could ever be written.
+ * Filtering on $type: 'string' excludes both absent and null, whatever a
+ * future caller does.
+ */
+LedgerEntrySchema.index(
+  { idempotencyKey: 1 },
+  { unique: true, partialFilterExpression: { idempotencyKey: { $type: 'string' } } }
+);
 
 // Append-only, enforced. Mongoose cannot intercept a raw driver call, so this
 // is a guard against accidental application code, not a security boundary -

@@ -5,6 +5,7 @@ import { grantAchievement, recalculateTier } from '@/lib/achievements/engine';
 import { getSessionFromRequest } from '@/lib/session';
 import { getBalanceMinor, post, UserNotFoundError } from '@/lib/ledger';
 import { InvalidAmountError, toDollars, toMinor } from '@/lib/money';
+import { recordAdminAction } from '@/lib/audit-log';
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   // Verify admin access
@@ -61,22 +62,41 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     // balance; the ledger records the delta needed to reach it.
     if (updates.walletBalance !== undefined) {
       const session = await getSessionFromRequest(request);
+
+      // A reason is mandatory here and nowhere else. Editing someone's balance
+      // by hand is the one administrative action with no legitimate routine
+      // use, so it should be impossible to perform without saying why.
+      const reason =
+        typeof updates.adjustmentReason === 'string' ? updates.adjustmentReason.trim() : '';
+      if (!reason) {
+        return NextResponse.json(
+          { error: 'A reason is required when adjusting a wallet balance.' },
+          { status: 400 }
+        );
+      }
+
       try {
         const targetMinor = toMinor(updates.walletBalance);
         if (targetMinor < 0) {
           return NextResponse.json({ error: 'Balance cannot be negative.' }, { status: 400 });
         }
-        const deltaMinor = targetMinor - (await getBalanceMinor(id));
+        const currentMinor = await getBalanceMinor(id);
+        const deltaMinor = targetMinor - currentMinor;
         if (deltaMinor !== 0) {
           await post({
             userId: id,
             type: 'admin_adjustment',
             amountMinor: deltaMinor,
             actorUserId: session?.user.id,
-            memo:
-              typeof updates.adjustmentReason === 'string' && updates.adjustmentReason.trim()
-                ? updates.adjustmentReason.trim()
-                : 'Balance adjusted via admin dashboard',
+            memo: reason,
+          });
+          await recordAdminAction(request, {
+            action: 'user.balance_adjust',
+            targetType: 'user',
+            targetId: id,
+            before: { walletBalance: toDollars(currentMinor) },
+            after: { walletBalance: toDollars(targetMinor) },
+            reason,
           });
         }
       } catch (error) {
@@ -90,8 +110,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       }
     }
 
-    // Fetch pre-update state to detect wallet address transition
-    const beforeUpdate = await userModel.findById(id).select('walletAddress').lean();
+    // Fetch pre-update state to detect wallet address transition, and to give
+    // the audit trail something to diff against.
+    const beforeUpdate = await userModel.findById(id).select('-passwordHash').lean();
 
     // Update the user
     const updatedUser = await userModel
@@ -101,6 +122,17 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     if (!updatedUser) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    if (Object.keys(filteredUpdates).length > 0) {
+      await recordAdminAction(request, {
+        action: 'user.update',
+        targetType: 'user',
+        targetId: id,
+        before: beforeUpdate as unknown as Record<string, unknown>,
+        after: filteredUpdates,
+        reason: typeof updates.adjustmentReason === 'string' ? updates.adjustmentReason : '',
+      });
     }
 
     // Detect wallet address transition and grant achievement

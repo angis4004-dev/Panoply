@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongo';
 import { MLModelModel } from '@/lib/models/MLModel';
 import { verifyAdminAccess } from '@/lib/auth-middleware';
+import { recordAdminAction } from '@/lib/audit-log';
 
 export async function GET(request: NextRequest) {
   // Verify admin access
@@ -85,6 +86,18 @@ export async function POST(request: NextRequest) {
     });
 
     const savedModel = await newModel.save();
+
+    await recordAdminAction(request, {
+      action: 'model.create',
+      targetType: 'model',
+      targetId: savedModel._id.toString(),
+      after: {
+        name: savedModel.name,
+        scope: savedModel.scope,
+        confidence: savedModel.confidence,
+        drift: savedModel.drift,
+      },
+    });
 
     // Transform to match frontend format
     const formattedModel = {

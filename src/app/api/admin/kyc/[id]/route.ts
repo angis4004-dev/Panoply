@@ -3,6 +3,7 @@ import { getUserModel } from '@/lib/models';
 import { verifyAdminAccess } from '@/lib/auth-middleware';
 import { grantAchievement, recalculateTier } from '@/lib/achievements/engine';
 import { decryptPii, isEncrypted, maskFromLastFour } from '@/lib/pii-crypto';
+import { recordAdminAction } from '@/lib/audit-log';
 
 /**
  * GET /api/admin/kyc/[id] - Full submission for one user, including the
@@ -99,6 +100,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       return NextResponse.json({ error: 'Database connection unavailable' }, { status: 503 });
     }
 
+    const previous = await userModel.findById(id).select('kycStatus').lean();
+
     const updated = await userModel
       .findByIdAndUpdate(
         id,
@@ -116,6 +119,18 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     if (!updated) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
+
+    // An approval is what unlocks deposits and strategy activation, so who
+    // approved whom - and on what grounds a rejection was issued - is exactly
+    // what an operational review reconstructs.
+    await recordAdminAction(request, {
+      action: action === 'approve' ? 'kyc.approve' : 'kyc.reject',
+      targetType: 'kyc',
+      targetId: id,
+      before: { kycStatus: previous?.kycStatus ?? 'unverified' },
+      after: { kycStatus: updated.kycStatus },
+      reason: action === 'reject' ? reason.trim() : '',
+    });
 
     if (action === 'approve') {
       await grantAchievement(id, 'verified_identity');

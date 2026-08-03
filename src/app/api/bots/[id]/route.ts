@@ -3,7 +3,8 @@ import { connectToDatabase } from '@/lib/mongo';
 import { TradingBotModel } from '@/lib/models';
 import { getSessionFromRequest } from '@/lib/session';
 import { withLedger } from '@/lib/ledger';
-import { toMinor } from '@/lib/money';
+import { toDollars, toMinor } from '@/lib/money';
+import { applyPendingTicks, formatPnl } from '@/lib/bot-pnl';
 
 // PATCH /api/bots/[id] - Update a bot the logged-in user owns (e.g. toggle status)
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -105,8 +106,27 @@ export async function DELETE(
 
     const releaseMinor = bot.allocatedAmount ? toMinor(bot.allocatedAmount) : 0;
 
-    // Deleting the flow and returning its capital commit together, so a flow
-    // can never disappear without the money coming back.
+    // Ticks are brought up to now before closing. simulatedPnlPercent is only
+    // as fresh as the last read of this flow, so settling the stored value
+    // would pay out a figure from whenever the owner last opened the
+    // dashboard rather than the one in force at the moment they closed.
+    const finalTick = applyPendingTicks({
+      status: bot.status,
+      confidence: bot.confidence,
+      simulatedPnlPercent: bot.simulatedPnlPercent ?? 0,
+      lastTickAt: bot.lastTickAt ?? bot.createdAt,
+    });
+    const finalPnlPercent = finalTick.simulatedPnlPercent;
+
+    // A flow cannot lose more than was committed to it. Clamping here rather
+    // than relying on the ledger's insufficient-funds guard keeps the failure
+    // out of the close path entirely: a flow deep enough underwater to
+    // overdraw would otherwise become impossible to close.
+    const rawPnlMinor = Math.round((releaseMinor * finalPnlPercent) / 100);
+    const settlementMinor = Math.max(rawPnlMinor, -releaseMinor);
+
+    // Deletion, principal, and realized result commit together, so a flow can
+    // never disappear without both legs of the money following it.
     await withLedger(async (tx) => {
       await TradingBotModel.deleteOne({ _id: bot._id }).session(tx.session);
 
@@ -120,15 +140,29 @@ export async function DELETE(
           memo: `Principal released from ${bot.type} ${bot.pair}`,
         });
       }
+
+      // Posted as its own entry rather than folded into the release. The
+      // ledger should show what was committed and what the strategy made or
+      // lost as two separate facts - netting them makes a losing flow
+      // indistinguishable from a smaller winning one.
+      if (settlementMinor !== 0) {
+        await tx.post({
+          userId: bot.userId,
+          type: 'settlement',
+          amountMinor: settlementMinor,
+          relatedEntityType: 'bot',
+          relatedEntityId: bot._id,
+          memo: `Realized ${formatPnl(finalPnlPercent)} on ${bot.type} ${bot.pair}`,
+        });
+      }
     });
 
-    // Principal only - the flow's simulatedPnlPercent is deliberately not
-    // settled here. Doing so changes what closing a position is worth, which
-    // is a product decision rather than a ledger one; the 'settlement' entry
-    // type exists so it can be added without reshaping the ledger. Until then
-    // closing returns exactly what was committed, and displayed P&L stays
-    // explicitly unrealized.
-    return NextResponse.json({ success: true });
+    return NextResponse.json({
+      success: true,
+      releasedAmount: toDollars(releaseMinor),
+      realizedPnl: toDollars(settlementMinor),
+      realizedPnlPercent: finalPnlPercent,
+    });
   } catch (error) {
     console.error('Error deleting bot:', error);
     return NextResponse.json({ error: 'Failed to delete bot' }, { status: 500 });

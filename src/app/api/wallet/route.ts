@@ -66,7 +66,10 @@ export async function POST(request: NextRequest) {
   // A client that retries a timed-out deposit must not be charged twice. With
   // the header present the retry resolves to the original entry; without it we
   // fall back to prior behaviour, so existing callers are unaffected.
-  const idempotencyKey = request.headers.get('idempotency-key') ?? undefined;
+  // Namespaced per operation so one client-generated key reused across
+  // endpoints cannot collide on the ledger's unique index.
+  const headerKey = request.headers.get('idempotency-key');
+  const idempotencyKey = headerKey ? `deposit:${headerKey}` : undefined;
 
   const result = await credit({
     userId: session.user.id,

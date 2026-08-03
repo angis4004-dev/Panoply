@@ -125,6 +125,9 @@ export async function POST(request: NextRequest) {
     // all, so any user could open a position of any size with a zero balance.
     // It now debits through the same ledger as signal-flow allocation, in one
     // transaction with the position it funds.
+    // Namespaced per operation; see the matching comment in POST /api/bots.
+    const idempotencyKey = request.headers.get('idempotency-key') ?? undefined;
+
     let savedInvestment;
     try {
       savedInvestment = await withLedger(async (tx) => {
@@ -139,6 +142,7 @@ export async function POST(request: NextRequest) {
           amountMinor: -amountMinor,
           relatedEntityType: 'vault',
           relatedEntityId: investment._id,
+          idempotencyKey: idempotencyKey ? `vault-alloc:${idempotencyKey}` : undefined,
           memo: `Investment in vault ${vault.name}`,
         });
 

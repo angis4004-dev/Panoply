@@ -128,7 +128,9 @@ async function postWithin(session: ClientSession, spec: PostSpec): Promise<PostR
         balanceAfterMinor: updated.walletBalanceMinor,
         relatedEntityType: spec.relatedEntityType ?? null,
         relatedEntityId: spec.relatedEntityId ?? null,
-        idempotencyKey: spec.idempotencyKey ?? null,
+        // Omitted entirely when absent rather than set to null, so the partial
+        // unique index on this field has nothing to collide on.
+        ...(spec.idempotencyKey ? { idempotencyKey: spec.idempotencyKey } : {}),
         actorUserId: spec.actorUserId ?? null,
         memo: spec.memo ?? '',
       },
