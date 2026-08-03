@@ -17,10 +17,10 @@ type DeltaDir = 'up' | 'down' | 'neutral' | 'warn';
 
 function DeltaBadge({ delta, dir }: { delta: string; dir: DeltaDir }) {
   const styles = {
-    up: 'text-teal-400 bg-teal-500/10',
-    down: 'text-red-400 bg-red-500/10',
+    up: 'text-ds-value-positive bg-ds-value-positive/10',
+    down: 'text-ds-value-negative bg-ds-value-negative/10',
     neutral: 'text-zinc-400 bg-zinc-700/50',
-    warn: 'text-amber-400 bg-amber-500/10',
+    warn: 'text-ds-value-warning bg-ds-value-warning/10',
   };
   const icons = {
     up: <TrendingUp size={11} />,
@@ -108,13 +108,13 @@ export default function MetricsBentoGrid() {
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-4 gap-4 mb-6">
       {/* HERO: Realized P&L — spans 2 cols */}
-      <div className="col-span-2 bg-gradient-to-br from-[#122131] to-[#122131]/80 border border-zinc-800 rounded-2xl p-5 relative overflow-hidden group hover:border-teal-500/30 transition-colors duration-base ease-ds-out">
-        <div className="absolute top-0 right-0 w-48 h-48 bg-teal-500/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+      <div className="col-span-2 bg-gradient-to-br from-[#122131] to-[#122131]/80 border border-zinc-800 rounded-2xl p-5 relative overflow-hidden group hover:border-primary/30 transition-colors duration-base ease-ds-out">
+        <div className="absolute top-0 right-0 w-48 h-48 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2" />
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-teal-500/15 flex items-center justify-center">
-                <DollarSign size={16} className="text-teal-400" />
+              <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center">
+                <DollarSign size={16} className="text-primary" />
               </div>
               <span className="text-xs font-semibold uppercase tracking-widest text-ds-text-secondary">
                 Realized P&L
@@ -122,7 +122,7 @@ export default function MetricsBentoGrid() {
             </div>
             <DeltaBadge delta={`${Math.abs(portfolioPnlPercent).toFixed(1)}%`} dir={pnlDir} />
           </div>
-          <p className="text-4xl font-bold text-teal-400 font-mono tabular-nums">
+          <p className="text-4xl font-bold text-primary font-mono tabular-nums">
             {totalPnlDollar >= 0 ? '+' : ''}$
             {totalPnlDollar.toLocaleString(undefined, {
               minimumFractionDigits: 2,
@@ -142,7 +142,7 @@ export default function MetricsBentoGrid() {
           <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center">
             <Target
               size={16}
-              className="text-zinc-400 group-hover:text-teal-400 transition-colors"
+              className="text-zinc-400 group-hover:text-primary transition-colors"
             />
           </div>
           <DeltaBadge
@@ -158,7 +158,7 @@ export default function MetricsBentoGrid() {
         </p>
         <div className="mt-3 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-teal-600 to-teal-400 rounded-full"
+            className="h-full bg-gradient-to-r from-primary/60 to-primary rounded-full"
             style={{ width: `${profitableRate}%` }}
           />
         </div>
@@ -168,7 +168,7 @@ export default function MetricsBentoGrid() {
       <div className="bg-[#122131] border border-zinc-800 rounded-2xl p-5 hover:border-zinc-700 transition-colors duration-base ease-ds-out group">
         <div className="flex items-center justify-between mb-3">
           <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center">
-            <Cpu size={16} className="text-zinc-400 group-hover:text-teal-400 transition-colors" />
+            <Cpu size={16} className="text-zinc-400 group-hover:text-primary transition-colors" />
           </div>
         </div>
         <p className="text-2xl font-bold text-zinc-100 font-mono tabular-nums">
@@ -180,7 +180,7 @@ export default function MetricsBentoGrid() {
         <div className="mt-3 flex items-center gap-1.5">
           <div className="flex-1 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-zinc-500 to-teal-400 rounded-full"
+              className="h-full bg-gradient-to-r from-primary/40 to-primary rounded-full"
               style={{ width: `${avgConfidence}%` }}
             />
           </div>
@@ -205,10 +205,10 @@ export default function MetricsBentoGrid() {
           })}
         </p>
         <div className="flex items-center gap-1.5 mt-1">
-          <span className="text-xs bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded-md font-mono">
+          <span className="text-xs bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded font-mono">
             {topBot?.pair || 'No flows yet'}
           </span>
-          {topBot && <span className="text-xs text-teal-400 font-mono">LONG</span>}
+          {topBot && <span className="text-xs text-primary font-mono">LONG</span>}
         </div>
         <p className="text-ds-caption text-ds-text-secondary mt-2">
           {topBot
@@ -260,19 +260,17 @@ export default function MetricsBentoGrid() {
       </div>
 
       {/* Drawdown — worst-performing open flow */}
-      <div
-        className={`bg-gradient-to-br from-amber-500/5 to-[#122131] border border-amber-500/30 rounded-2xl p-5 hover:border-amber-500/50 transition-colors duration-base ease-ds-out ${drawdownDir === 'warn' ? 'border-amber-500/50' : ''}`}
-      >
-        <div className="flex items-center justify-between mb-3">
+      <div className="bg-gradient-to-br from-amber-500/5 to-[#122131] border border-amber-500/30 rounded-2xl p-5 hover:border-amber-500/50 transition-colors duration-base ease-ds-out">
+        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5 mb-3">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-amber-500/15 flex items-center justify-center">
               <AlertTriangle size={16} className="text-amber-400" />
             </div>
-            <span className="text-ds-caption font-bold uppercase tracking-widest text-amber-400">
+            <span className="text-ds-caption bg-amber-500/15 text-amber-400 px-2 py-0.5 rounded-full font-bold uppercase tracking-widest">
               Drawdown
             </span>
           </div>
-          <span className="text-ds-caption bg-amber-500/15 text-amber-400 px-2 py-0.5 rounded-full font-semibold">
+          <span className="text-ds-caption text-amber-400 font-semibold whitespace-nowrap">
             {drawdownDir === 'warn' ? 'NEAR LIMIT' : 'NORMAL'}
           </span>
         </div>
