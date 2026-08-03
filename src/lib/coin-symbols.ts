@@ -58,3 +58,16 @@ export function resolveBaseCoinId(pair: string): string | null {
   if (!base) return null;
   return SYMBOL_TO_COINGECKO_ID[base] ?? null;
 }
+
+/** Stablecoins excluded from the tradeable pool - a pair is two volatile assets, not an asset against a dollar-pegged coin. */
+const STABLECOINS = ['USDT', 'USDC'] as const;
+
+/**
+ * Symbols available to pick on either side of a pair - every symbol here
+ * resolves to a real CoinGecko id via resolveBaseCoinId, so any pair built
+ * from this list is always trackable with live price data. Stablecoins are
+ * excluded so a pair is always two different real crypto assets.
+ */
+export const TRADEABLE_SYMBOLS = Object.keys(SYMBOL_TO_COINGECKO_ID)
+  .filter((symbol) => !(STABLECOINS as readonly string[]).includes(symbol))
+  .sort();

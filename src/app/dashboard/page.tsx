@@ -276,7 +276,7 @@ export default function DashboardPage() {
                     <div>
                       <p className="text-[#8B95A5]">P&amp;L</p>
                       <p
-                        className={`font-mono font-semibold ${bot.pnl.startsWith('+') ? 'text-green-400' : 'text-[#E5555A]'}`}
+                        className={`font-mono font-semibold ${bot.pnl.startsWith('+') ? 'text-ds-value-positive' : 'text-ds-value-negative'}`}
                       >
                         {bot.pnl}
                       </p>
@@ -352,7 +352,9 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-mono text-lg font-bold text-green-400">{yield_.apy}%</p>
+                    <p className="font-mono text-lg font-bold text-ds-value-positive">
+                      {yield_.apy}%
+                    </p>
                     <p className="text-ds-caption uppercase tracking-wide text-ds-text-muted">
                       APY
                     </p>
@@ -369,7 +371,7 @@ export default function DashboardPage() {
                 <p className="text-xs font-medium uppercase tracking-wider text-[#8B95A5]">
                   Aegis Risk Score
                 </p>
-                <p className="mt-1 text-xl font-bold text-green-400">Low Risk</p>
+                <p className="mt-1 text-xl font-bold text-ds-value-positive">Low Risk</p>
                 <p className="text-sm text-[#8B95A5]">78 / 100</p>
               </div>
               <div className="relative flex h-16 w-16 items-center justify-center">

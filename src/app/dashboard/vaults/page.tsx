@@ -116,7 +116,9 @@ export default function VaultsPage() {
                 <div className="flex items-center gap-6 sm:gap-10">
                   <div>
                     <p className="text-[10px] uppercase tracking-wide text-[#8B95A5]">APY</p>
-                    <p className="font-mono text-lg font-bold text-green-400">{vault.apy}%</p>
+                    <p className="font-mono text-lg font-bold text-ds-value-positive">
+                      {vault.apy}%
+                    </p>
                   </div>
                   <div>
                     <p className="text-[10px] uppercase tracking-wide text-[#8B95A5]">

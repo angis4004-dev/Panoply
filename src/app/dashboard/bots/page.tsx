@@ -6,13 +6,102 @@ import Link from 'next/link';
 import { PageHeader } from '@/components/dashboard/page-header';
 import { CreateBotModal } from '@/components/dashboard/create-bot-modal';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { useAppStore } from '@/store/app-store';
+import { useAppStore, type Bot as BotData } from '@/store/app-store';
+import { useActivityPhase, type ActivityPhase } from '@/components/ui/RollingNumber';
 
 const STATUS_STYLES: Record<string, string> = {
-  running: 'bg-green-400/10 text-green-400',
   paused: 'bg-[#8B95A5]/10 text-[#8B95A5]',
   fallback: 'bg-primary/10 text-primary',
 };
+
+// RUNNING keeps the brand primary color rather than green, since green is
+// now reserved for HOLD (and red for SELL) - see useActivityPhase.
+const ACTIVITY_STYLES: Record<ActivityPhase, string> = {
+  RUNNING: 'bg-primary/10 text-primary',
+  SELL: 'bg-red-500/10 text-red-400',
+  HOLD: 'bg-green-400/10 text-green-400',
+};
+
+function BotCard({
+  bot,
+  onToggle,
+  onDelete,
+}: {
+  bot: BotData;
+  onToggle: () => void;
+  onDelete: () => void;
+}) {
+  const isRunning = bot.status === 'running';
+  const phase = useActivityPhase(isRunning);
+  const badgeText = isRunning ? phase : bot.status;
+  const badgeStyle = isRunning
+    ? ACTIVITY_STYLES[phase]
+    : STATUS_STYLES[bot.status] || STATUS_STYLES.fallback;
+
+  return (
+    <div className="rounded-xl border border-[#212A35] bg-[#122131]/50 p-5 hover:border-primary/25 transition-colors">
+      <div className="mb-4 flex items-start justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+            <Bot className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-white">{bot.pair}</h3>
+            <p className="text-xs text-[#8B95A5]">{bot.type} strategy</p>
+          </div>
+        </div>
+        <span
+          className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase transition-colors duration-base ease-ds-out ${badgeStyle}`}
+        >
+          {badgeText}
+        </span>
+      </div>
+      <div className="flex justify-between text-sm">
+        <div>
+          <p className="text-[#8B95A5]">P&amp;L</p>
+          <p
+            className={`font-mono font-semibold ${bot.pnl.startsWith('+') ? 'text-ds-value-positive' : 'text-ds-value-negative'}`}
+          >
+            {bot.pnl}
+          </p>
+        </div>
+        <div>
+          <p className="text-[#8B95A5]">Allocated</p>
+          <p className="font-mono font-semibold text-white">
+            {bot.allocatedAmount != null ? `$${bot.allocatedAmount.toLocaleString()}` : '—'}
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="text-[#8B95A5]">Confidence</p>
+          <p className="font-mono font-semibold text-white">{bot.confidence}%</p>
+        </div>
+      </div>
+      <div className="mt-4 flex gap-2 border-t border-[#212A35] pt-3">
+        <button
+          onClick={onToggle}
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-[#212A35] py-1.5 text-xs font-medium text-[#8B95A5] hover:border-primary/40 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+        >
+          {isRunning ? (
+            <>
+              <Pause className="h-3 w-3" /> Pause
+            </>
+          ) : (
+            <>
+              <Play className="h-3 w-3" /> Resume
+            </>
+          )}
+        </button>
+        <button
+          onClick={onDelete}
+          className="flex items-center justify-center rounded-lg border border-[#212A35] px-2.5 py-1.5 text-[#8B95A5] hover:border-red-500/40 hover:text-red-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+          aria-label="Delete signal flow"
+        >
+          <Trash2 className="h-3 w-3" />
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default function BotsPage() {
   const { bots, botsLoading, toggleBot, deleteBot } = useAppStore();
@@ -83,72 +172,12 @@ export default function BotsPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {bots.map((bot) => (
-            <div
+            <BotCard
               key={bot.id}
-              className="rounded-xl border border-[#212A35] bg-[#122131]/50 p-5 hover:border-primary/25 transition-colors"
-            >
-              <div className="mb-4 flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                    <Bot className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-white">{bot.pair}</h3>
-                    <p className="text-xs text-[#8B95A5]">{bot.type} strategy</p>
-                  </div>
-                </div>
-                <span
-                  className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
-                    STATUS_STYLES[bot.status] || STATUS_STYLES.fallback
-                  }`}
-                >
-                  {bot.status}
-                </span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <div>
-                  <p className="text-[#8B95A5]">P&amp;L</p>
-                  <p
-                    className={`font-mono font-semibold ${bot.pnl.startsWith('+') ? 'text-green-400' : 'text-[#E5555A]'}`}
-                  >
-                    {bot.pnl}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[#8B95A5]">Allocated</p>
-                  <p className="font-mono font-semibold text-white">
-                    {bot.allocatedAmount != null ? `$${bot.allocatedAmount.toLocaleString()}` : '—'}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-[#8B95A5]">Confidence</p>
-                  <p className="font-mono font-semibold text-white">{bot.confidence}%</p>
-                </div>
-              </div>
-              <div className="mt-4 flex gap-2 border-t border-[#212A35] pt-3">
-                <button
-                  onClick={() => toggleBot(bot.id)}
-                  className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-[#212A35] py-1.5 text-xs font-medium text-[#8B95A5] hover:border-primary/40 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
-                >
-                  {bot.status === 'running' ? (
-                    <>
-                      <Pause className="h-3 w-3" /> Pause
-                    </>
-                  ) : (
-                    <>
-                      <Play className="h-3 w-3" /> Resume
-                    </>
-                  )}
-                </button>
-                <button
-                  onClick={() => deleteBot(bot.id)}
-                  className="flex items-center justify-center rounded-lg border border-[#212A35] px-2.5 py-1.5 text-[#8B95A5] hover:border-red-500/40 hover:text-red-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
-                  aria-label="Delete signal flow"
-                >
-                  <Trash2 className="h-3 w-3" />
-                </button>
-              </div>
-            </div>
+              bot={bot}
+              onToggle={() => toggleBot(bot.id)}
+              onDelete={() => deleteBot(bot.id)}
+            />
           ))}
         </div>
       )}

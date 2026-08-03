@@ -1,10 +1,13 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { X } from 'lucide-react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { useAppStore } from '@/store/app-store';
+import { TRADEABLE_SYMBOLS } from '@/lib/coin-symbols';
+import { SymbolSelect } from '@/components/ui/SymbolSelect';
 
 const BOT_TYPES = ['Grid', 'DCA', 'Arbitrage', 'Trailing Stop'] as const;
 
@@ -12,17 +15,51 @@ interface CreateBotModalProps {
   onClose: () => void;
 }
 
+interface TierSlotInfo {
+  tier: string;
+  /** null means unlimited (vanguard) - Infinity doesn't survive JSON. */
+  slotLimit: number | null;
+}
+
 export function CreateBotModal({ onClose }: CreateBotModalProps) {
-  const { addBot, addToast, walletBalance } = useAppStore();
+  const { addBot, addToast, walletBalance, bots } = useAppStore();
   const [type, setType] = useState<(typeof BOT_TYPES)[number]>('Grid');
-  const [pair, setPair] = useState('');
+  const [baseSymbol, setBaseSymbol] = useState('BTC');
+  const [quoteSymbol, setQuoteSymbol] = useState('ETH');
   const [confidence, setConfidence] = useState(70);
   const [allocatedAmount, setAllocatedAmount] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [tierInfo, setTierInfo] = useState<TierSlotInfo | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const backdropRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+
+  // The server enforces the real tier slot cap authoritatively (see
+  // POST /api/bots) - this fetch is so the modal can show the limit
+  // proactively instead of only surfacing it after a failed submit.
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/achievements')
+      .then((res) => res.json())
+      .then((data: { tier?: string; slotLimit?: number | null }) => {
+        if (cancelled || !data.tier) return;
+        setTierInfo({ tier: data.tier, slotLimit: data.slotLimit ?? null });
+      })
+      .catch(() => {
+        // Leave tierInfo null - the form still works, the server-side
+        // check is still authoritative either way.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const atSlotCap =
+    tierInfo != null && tierInfo.slotLimit != null && bots.length >= tierInfo.slotLimit;
+  const tierLabel = tierInfo
+    ? tierInfo.tier.charAt(0).toUpperCase() + tierInfo.tier.slice(1)
+    : null;
 
   // Durations mirror the ds-dur-slow / ds-dur-exit-slow tokens
   // (src/styles/tailwind.css); see deposit-wallet-modal.tsx for the full
@@ -40,6 +77,22 @@ export function CreateBotModal({ onClose }: CreateBotModalProps) {
     { scope: containerRef }
   );
 
+  // Keeps the two sides of the pair from matching: if the newly picked
+  // symbol collides with the other side, bump the other side to the next
+  // available symbol instead of leaving an invalid "BTC/BTC" pair.
+  const handleBaseChange = (symbol: string) => {
+    setBaseSymbol(symbol);
+    if (symbol === quoteSymbol) {
+      setQuoteSymbol(TRADEABLE_SYMBOLS.find((s) => s !== symbol) ?? quoteSymbol);
+    }
+  };
+  const handleQuoteChange = (symbol: string) => {
+    setQuoteSymbol(symbol);
+    if (symbol === baseSymbol) {
+      setBaseSymbol(TRADEABLE_SYMBOLS.find((s) => s !== symbol) ?? baseSymbol);
+    }
+  };
+
   const handleClose = () => {
     gsap.to(backdropRef.current, { opacity: 0, duration: 0.23 });
     gsap.to(cardRef.current, { opacity: 0, scale: 0.95, y: 8, duration: 0.23, ease: 'power2.in' });
@@ -48,10 +101,7 @@ export function CreateBotModal({ onClose }: CreateBotModalProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!pair.trim()) {
-      setError('Enter a trading pair, e.g. BTC/USDT');
-      return;
-    }
+    const pair = `${baseSymbol}/${quoteSymbol}`;
 
     const amount = Number(allocatedAmount);
     if (!allocatedAmount || !Number.isFinite(amount) || amount <= 0) {
@@ -70,7 +120,7 @@ export function CreateBotModal({ onClose }: CreateBotModalProps) {
     try {
       await addBot({
         type,
-        pair: pair.trim(),
+        pair,
         confidence,
         status: 'running',
         allocatedAmount: amount,
@@ -102,76 +152,112 @@ export function CreateBotModal({ onClose }: CreateBotModalProps) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 uppercase tracking-wide">
-              Strategy
-            </label>
-            <select
-              value={type}
-              onChange={(e) => setType(e.target.value as (typeof BOT_TYPES)[number])}
-              className="w-full rounded-lg border border-[#212A35] bg-[#122131] px-3 py-2.5 text-sm text-white transition-colors duration-fast ease-ds-out focus:outline-none focus:ring-2 focus:ring-primary/50"
+        {atSlotCap ? (
+          <div className="space-y-4">
+            <p className="text-sm text-[#E7ECF2] leading-relaxed">
+              Your <span className="font-semibold text-white">{tierLabel}</span> tier allows up to{' '}
+              {tierInfo!.slotLimit} active signal flow{tierInfo!.slotLimit === 1 ? '' : 's'}, and
+              you&apos;re using all of them. Upgrade your tier by depositing more to unlock
+              additional slots.
+            </p>
+            <Link
+              href="/tiers"
+              className="block w-full rounded-lg bg-primary px-4 py-2.5 text-center text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0D131C]"
             >
-              {BOT_TYPES.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
+              View tiers
+            </Link>
           </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {tierLabel && (
+              <p className="text-xs text-[#8B95A5]">
+                {bots.length} of {tierInfo?.slotLimit ?? '∞'} signal flows used ·{' '}
+                <span className="font-medium text-[#E7ECF2]">{tierLabel}</span> tier
+              </p>
+            )}
+            <div>
+              <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 uppercase tracking-wide">
+                Strategy
+              </label>
+              <select
+                value={type}
+                onChange={(e) => setType(e.target.value as (typeof BOT_TYPES)[number])}
+                className="w-full rounded-lg border border-[#212A35] bg-[#122131] px-3 py-2.5 text-sm text-white transition-colors duration-fast ease-ds-out focus:outline-none focus:ring-2 focus:ring-primary/50"
+              >
+                {BOT_TYPES.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 uppercase tracking-wide">
-              Trading pair
-            </label>
-            <input
-              type="text"
-              value={pair}
-              onChange={(e) => setPair(e.target.value)}
-              placeholder="BTC/USDT"
-              className="w-full rounded-lg border border-[#212A35] bg-[#122131] px-3 py-2.5 text-sm text-white placeholder-[#4b5563] transition-colors duration-fast ease-ds-out focus:outline-none focus:ring-2 focus:ring-primary/50"
-            />
-          </div>
+            <div>
+              <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 uppercase tracking-wide">
+                Trading pair
+              </label>
+              <div className="flex items-center gap-2">
+                <SymbolSelect
+                  value={baseSymbol}
+                  onChange={handleBaseChange}
+                  options={TRADEABLE_SYMBOLS}
+                  excludeValue={quoteSymbol}
+                  ariaLabel="Base asset"
+                />
+                <span className="text-[#8B95A5]">/</span>
+                <SymbolSelect
+                  value={quoteSymbol}
+                  onChange={handleQuoteChange}
+                  options={TRADEABLE_SYMBOLS}
+                  excludeValue={baseSymbol}
+                  ariaLabel="Quote asset"
+                />
+              </div>
+              <p className="mt-1.5 text-xs text-[#4b5563]">
+                Two different assets, both resolved to live CoinGecko price data.
+              </p>
+            </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 uppercase tracking-wide">
-              Allocated capital (USD) — available: ${walletBalance.toLocaleString()}
-            </label>
-            <input
-              type="number"
-              min={0}
-              step="0.01"
-              value={allocatedAmount}
-              onChange={(e) => setAllocatedAmount(e.target.value)}
-              placeholder="1000"
-              className="w-full rounded-lg border border-[#212A35] bg-[#122131] px-3 py-2.5 text-sm text-white placeholder-[#4b5563] transition-colors duration-fast ease-ds-out focus:outline-none focus:ring-2 focus:ring-primary/50"
-            />
-          </div>
+            <div>
+              <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 uppercase tracking-wide">
+                Allocated capital (USD) — available: ${walletBalance.toLocaleString()}
+              </label>
+              <input
+                type="number"
+                min={0}
+                step="0.01"
+                value={allocatedAmount}
+                onChange={(e) => setAllocatedAmount(e.target.value)}
+                placeholder="1000"
+                className="w-full rounded-lg border border-[#212A35] bg-[#122131] px-3 py-2.5 text-sm text-white placeholder-[#4b5563] transition-colors duration-fast ease-ds-out focus:outline-none focus:ring-2 focus:ring-primary/50"
+              />
+            </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 uppercase tracking-wide">
-              Confidence threshold — {confidence}%
-            </label>
-            <input
-              type="range"
-              min={0}
-              max={100}
-              value={confidence}
-              onChange={(e) => setConfidence(Number(e.target.value))}
-              className="w-full accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
-            />
-          </div>
+            <div>
+              <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 uppercase tracking-wide">
+                Confidence threshold — {confidence}%
+              </label>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                value={confidence}
+                onChange={(e) => setConfidence(Number(e.target.value))}
+                className="w-full accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+              />
+            </div>
 
-          {error && <p className="text-xs text-red-400">{error}</p>}
+            {error && <p className="text-xs text-red-400">{error}</p>}
 
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0D131C]"
-          >
-            {submitting ? 'Creating...' : 'Create Signal Flow'}
-          </button>
-        </form>
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0D131C]"
+            >
+              {submitting ? 'Creating...' : 'Create Signal Flow'}
+            </button>
+          </form>
+        )}
       </div>
     </div>
   );

@@ -144,7 +144,8 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to create report: ${response.status}`);
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload.error || `Failed to create report: ${response.status}`);
       }
 
       const newReport: Report = await response.json();

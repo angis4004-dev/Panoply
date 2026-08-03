@@ -7,6 +7,7 @@ import {
   computeIdentityScore,
   computeTier,
   TIER_DEPOSIT_THRESHOLDS,
+  TIER_SLOT_LIMITS,
   type Tier,
 } from '@/lib/achievements/engine';
 
@@ -80,9 +81,14 @@ export async function GET(request: NextRequest) {
   const currentTierIndex = TIER_SEQUENCE.indexOf(tier as Tier);
   const nextTier = currentTierIndex >= 0 ? TIER_SEQUENCE[currentTierIndex + 1] : 'novice';
 
+  // Infinity (vanguard's unlimited slot count) doesn't survive JSON
+  // serialization - it becomes null, and the client treats null as unlimited.
+  const slotLimit = TIER_SLOT_LIMITS[tier as Tier];
+
   return NextResponse.json({
     xp: user.xp || 0,
     tier,
+    slotLimit: Number.isFinite(slotLimit) ? slotLimit : null,
     identityScore,
     tierProgress: {
       lifetimeDeposited: user.lifetimeDeposited || 0,

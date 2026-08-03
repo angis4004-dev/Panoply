@@ -31,7 +31,7 @@ export default function AdminPage() {
   if (loading || !user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-950 text-zinc-400 px-4">
-        <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-8 text-center shadow-xl shadow-black/40">
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-8 text-center shadow-xl shadow-black/40">
           <div className="mb-4 h-12 w-12 rounded-full border border-cyan-500/30 bg-cyan-500/10 flex items-center justify-center text-cyan-300 animate-pulse">
             <svg className="h-6 w-6 animate-spin" viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" opacity="0.25" />

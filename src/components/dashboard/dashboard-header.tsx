@@ -53,7 +53,7 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
 
         {user ? (
           <div className="flex items-center gap-2.5 rounded-lg border border-[#212A35] bg-[#122131]/60 py-1 pl-1 pr-3">
-            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/15 text-xs font-bold text-primary">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/15 text-xs font-bold text-primary">
               {initial}
             </div>
             <span className="hidden text-sm font-medium text-[#E7ECF2] sm:inline">

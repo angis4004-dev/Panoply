@@ -74,9 +74,32 @@ export default function PortfolioBuilderTab() {
       const data = await response.json();
 
       if (data.success && data.report) {
-        // Add the report to the store (received from API)
-        addReport(data.report);
-        addToast(`Report generated! Sent to ${data.report.email}`, 'success');
+        const {
+          holdings: reportHoldings,
+          totalValue,
+          email,
+          riskProfile,
+          metrics,
+          recommendations,
+        } = data.report;
+        // /api/reports (the history list) has its own Report shape
+        // (title/description/type/status) that's different from the
+        // PortfolioReport the builder API returns - map it rather than
+        // passing the raw portfolio report straight through, which 400s
+        // on missing required fields.
+        await addReport({
+          title: `Portfolio Report — ${riskProfile} risk`,
+          description: `${reportHoldings.length} holding${reportHoldings.length === 1 ? '' : 's'}, $${totalValue.toLocaleString()} analyzed`,
+          type: 'portfolio',
+          status: data.emailStatus === 'sent' ? 'success' : 'failed',
+          metrics,
+          holdings: reportHoldings,
+          recommendations,
+        });
+        addToast(
+          `Report ready — ${reportHoldings.length} asset${reportHoldings.length === 1 ? '' : 's'}, $${totalValue.toLocaleString()} analyzed, sent to ${email}`,
+          'success'
+        );
         setTimeout(() => setTab('history'), 1000);
       } else {
         throw new Error('Invalid response from server');
@@ -144,6 +167,7 @@ export default function PortfolioBuilderTab() {
                       onChange={(e) => updateHolding(i, 'chain', e.target.value)}
                       className="w-full px-4 py-2.5 rounded-lg text-sm bg-[#122131] border border-[#212A35] text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
                     >
+                      <option>Bitcoin</option>
                       <option>Ethereum</option>
                       <option>Arbitrum</option>
                       <option>Base</option>

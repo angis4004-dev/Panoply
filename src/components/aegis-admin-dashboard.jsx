@@ -515,7 +515,8 @@ function AddBotModal({ onClose, onAdd }) {
         </Field>
       </div>
       <div style={{ fontSize: 11.5, color: C.textFaint }}>
-        Signal flows below 70% confidence automatically revert to static parameters per the fallback policy.
+        Signal flows below 70% confidence automatically revert to static parameters per the fallback
+        policy.
       </div>
     </Modal>
   );
@@ -947,7 +948,9 @@ function AdminSidebarContent({ tab, setTab, onNavigate }) {
             AEGIS
           </span>
         </div>
-        <div style={{ ...mono, fontSize: 10, color: C.textFaint, letterSpacing: 1.5, marginTop: 2 }}>
+        <div
+          style={{ ...mono, fontSize: 10, color: C.textFaint, letterSpacing: 1.5, marginTop: 2 }}
+        >
           ADMIN CONSOLE
         </div>
       </div>
@@ -1155,7 +1158,7 @@ export default function AegisAdminDashboard() {
           wallet: updated.wallet,
           notes: updated.notes,
           walletBalance: updated.walletBalance,
-        })
+        }),
       });
 
       if (!response.ok) {
@@ -1164,7 +1167,7 @@ export default function AegisAdminDashboard() {
 
       const updatedUser = await response.json();
       // Update the user in state
-      setUsers(users.map(u => u.id === updatedUser.id ? updatedUser : u));
+      setUsers(users.map((u) => (u.id === updatedUser.id ? updatedUser : u)));
       setSelectedUser(null);
     } catch (error) {
       console.error('Failed to save user:', error);
@@ -1185,7 +1188,7 @@ export default function AegisAdminDashboard() {
           user: form.user,
           confidence: form.confidence,
           status: form.status,
-        })
+        }),
       });
 
       if (!response.ok) {
@@ -1214,7 +1217,7 @@ export default function AegisAdminDashboard() {
           scope: form.scope,
           confidence: form.confidence,
           drift: form.drift,
-        })
+        }),
       });
 
       if (!response.ok) {
@@ -1689,7 +1692,9 @@ function KycTab({ submissions, statusTone, onApprove, onReject }) {
     <div className="flex flex-col gap-5">
       <div>
         <h1 style={{ ...display, fontSize: 20, fontWeight: 600 }}>Verification</h1>
-        <p style={{ color: C.textDim, fontSize: 12.5 }}>Review submitted identity verification applications.</p>
+        <p style={{ color: C.textDim, fontSize: 12.5 }}>
+          Review submitted identity verification applications.
+        </p>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <KpiCard label="Pending review" value={pending} delta="Needs action" sub="" />
@@ -1756,7 +1761,7 @@ function BotsTab({ bots, statusTone, onAddClick }) {
         <Button variant="primary" icon={Plus} onClick={onAddClick}>
           Add signal flow
         </Button>
-        </div>
+      </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <KpiCard label="Active signal flows" value={active} delta="+3" positive sub="today" />
         <KpiCard
@@ -1775,7 +1780,16 @@ function BotsTab({ bots, statusTone, onAddClick }) {
       </div>
       <Panel style={{ padding: 18 }}>
         <DataTable
-          columns={['Signal Flow ID', 'Type', 'Pair', 'User', 'Allocated', 'Confidence', 'Status', 'PnL']}
+          columns={[
+            'Signal Flow ID',
+            'Type',
+            'Pair',
+            'User',
+            'Allocated',
+            'Confidence',
+            'Status',
+            'PnL',
+          ]}
           rows={bots.map((b) => (
             <tr key={b.id}>
               <Td style={{ ...mono, fontSize: 11.5 }}>{b.id}</Td>
@@ -1980,7 +1994,7 @@ function RevenueTab({ mrrTrend, tierBreakdown }) {
             />
           </LineChart>
         </ResponsiveContainer>
-        </Panel>
+      </Panel>
       <Panel style={{ padding: 18 }}>
         <SectionLabel>Pricing Tiers</SectionLabel>
         <DataTable

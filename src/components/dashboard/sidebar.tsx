@@ -97,7 +97,7 @@ export default function DashboardSidebar({ onNavigate }: DashboardSidebarProps) 
       <div className="border-t border-[#212A35] p-3">
         {user && (
           <div className="mb-2 flex items-center gap-2.5 rounded-lg px-2 py-2">
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/15 text-xs font-bold text-primary">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-xs font-bold text-primary">
               {initial}
             </div>
             <p className="min-w-0 flex-1 truncate text-sm font-medium text-[#E7ECF2]">

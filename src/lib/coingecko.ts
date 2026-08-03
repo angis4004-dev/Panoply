@@ -145,6 +145,33 @@ export async function getMarketChart(
 }
 
 /**
+ * Get coin logo icons for a set of CoinGecko coin ids - used for small
+ * network/asset badges. Returns only the fields needed for a badge (image
+ * URL + symbol), not price data.
+ */
+export async function getCoinIcons(
+  ids: string[]
+): Promise<Record<string, { image: string; symbol: string }>> {
+  try {
+    const data = await fetchFromCoingecko<Array<{ id: string; symbol: string; image: string }>>(
+      `/coins/markets`,
+      {
+        vs_currency: 'usd',
+        ids: ids.join(','),
+      }
+    );
+    const result: Record<string, { image: string; symbol: string }> = {};
+    for (const coin of data) {
+      result[coin.id] = { image: coin.image, symbol: coin.symbol };
+    }
+    return result;
+  } catch (error) {
+    console.error('Failed to fetch coin icons:', error);
+    return {};
+  }
+}
+
+/**
  * Get global market data
  */
 export async function getGlobalMarketData(): Promise<{
