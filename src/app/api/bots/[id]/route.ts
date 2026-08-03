@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongo';
-import { TradingBotModel, getUserModel } from '@/lib/models';
+import { TradingBotModel } from '@/lib/models';
 import { getSessionFromRequest } from '@/lib/session';
+import { withLedger } from '@/lib/ledger';
+import { toMinor } from '@/lib/money';
 
 // PATCH /api/bots/[id] - Update a bot the logged-in user owns (e.g. toggle status)
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -101,19 +103,31 @@ export async function DELETE(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    await bot.deleteOne();
+    const releaseMinor = bot.allocatedAmount ? toMinor(bot.allocatedAmount) : 0;
 
-    // Refund the allocated capital to the bot owner's wallet balance now that
-    // it's no longer tied up in this signal flow.
-    if (bot.allocatedAmount) {
-      const userModel = await getUserModel();
-      if (userModel) {
-        await userModel.findByIdAndUpdate(bot.userId, {
-          $inc: { walletBalance: bot.allocatedAmount },
+    // Deleting the flow and returning its capital commit together, so a flow
+    // can never disappear without the money coming back.
+    await withLedger(async (tx) => {
+      await TradingBotModel.deleteOne({ _id: bot._id }).session(tx.session);
+
+      if (releaseMinor > 0) {
+        await tx.post({
+          userId: bot.userId,
+          type: 'release',
+          amountMinor: releaseMinor,
+          relatedEntityType: 'bot',
+          relatedEntityId: bot._id,
+          memo: `Principal released from ${bot.type} ${bot.pair}`,
         });
       }
-    }
+    });
 
+    // Principal only - the flow's simulatedPnlPercent is deliberately not
+    // settled here. Doing so changes what closing a position is worth, which
+    // is a product decision rather than a ledger one; the 'settlement' entry
+    // type exists so it can be added without reshaping the ledger. Until then
+    // closing returns exactly what was committed, and displayed P&L stays
+    // explicitly unrealized.
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting bot:', error);

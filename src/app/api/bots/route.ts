@@ -7,6 +7,8 @@ import { resolveBaseCoinId } from '@/lib/coin-symbols';
 import { applyPendingTicks, formatPnl } from '@/lib/bot-pnl';
 import { recordSnapshotIfDue } from '@/lib/portfolio-snapshot';
 import { computeTier, grantAchievement, TIER_SLOT_LIMITS } from '@/lib/achievements/engine';
+import { InsufficientFundsError, withLedger } from '@/lib/ledger';
+import { InvalidAmountError, toDollars, toPositiveMinor } from '@/lib/money';
 
 // GET /api/bots - Returns ONLY the bots belonging to the currently logged-in user
 export async function GET(request: NextRequest) {
@@ -98,13 +100,19 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const allocatedAmount = Number(body.allocatedAmount);
-    if (!Number.isFinite(allocatedAmount) || allocatedAmount <= 0) {
-      return NextResponse.json(
-        { error: 'allocatedAmount must be a positive number' },
-        { status: 400 }
-      );
+    let allocatedMinor: number;
+    try {
+      allocatedMinor = toPositiveMinor(body.allocatedAmount);
+    } catch (error) {
+      if (error instanceof InvalidAmountError) {
+        return NextResponse.json({ error: error.message }, { status: 400 });
+      }
+      throw error;
     }
+    // Position size stays in dollars on the bot because the P&L engine works in
+    // percentages against it; deriving it from the minor amount keeps it exact
+    // to the cent rather than trusting whatever precision the client sent.
+    const allocatedAmount = toDollars(allocatedMinor);
 
     // Validate enum values
     const validTypes = ['Grid', 'DCA', 'Arbitrage', 'Trailing Stop'];
@@ -175,44 +183,65 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const debited = await userModel.findOneAndUpdate(
-      { _id: userId, walletBalance: { $gte: allocatedAmount } },
-      { $inc: { walletBalance: -allocatedAmount } }
-    );
-    if (!debited) {
-      return NextResponse.json(
-        { error: 'Insufficient wallet balance. Deposit more funds before allocating capital.' },
-        { status: 400 }
-      );
+    // Resolved before the transaction opens: this is an outbound HTTP call, and
+    // holding a transaction across the network would both extend lock duration
+    // and re-issue the request on every write-conflict retry.
+    const pair = body.pair.toUpperCase();
+    const coinId = resolveBaseCoinId(pair);
+    let entryPrice: number | null = null;
+    if (coinId) {
+      const prices = await getCoinPrices([coinId]);
+      entryPrice = prices[coinId]?.usd || null;
     }
 
+    let savedBot;
     try {
-      // Resolve the base asset to a live CoinGecko price so P&L can be tracked
-      // against real market movement from this point forward. Pairs we don't
-      // recognize fall back to the static placeholder pnl.
-      const pair = body.pair.toUpperCase();
-      const coinId = resolveBaseCoinId(pair);
-      let entryPrice: number | null = null;
-      if (coinId) {
-        const prices = await getCoinPrices([coinId]);
-        entryPrice = prices[coinId]?.usd || null;
-      }
+      // The flow and the debit that funds it commit together or not at all.
+      // The previous version debited first and refunded in a catch, which left
+      // the user short whenever the process died in between.
+      savedBot = await withLedger(async (tx) => {
+        const [bot] = await TradingBotModel.create(
+          [
+            {
+              type: body.type,
+              pair,
+              userId,
+              confidence: body.confidence,
+              status: body.status,
+              pnl: body.pnl || '+0.0%',
+              coinId: entryPrice ? coinId : null,
+              entryPrice,
+              allocatedAmount,
+            },
+          ],
+          { session: tx.session }
+        );
 
-      // Create new bot for the user
-      const newBot = new TradingBotModel({
-        type: body.type,
-        pair, // Ensure pair is uppercase
-        userId, // Reference to the User
-        confidence: body.confidence,
-        status: body.status,
-        pnl: body.pnl || '+0.0%',
-        coinId: entryPrice ? coinId : null,
-        entryPrice,
-        allocatedAmount,
+        await tx.post({
+          userId,
+          type: 'allocation',
+          amountMinor: -allocatedMinor,
+          relatedEntityType: 'bot',
+          relatedEntityId: bot._id,
+          memo: `Allocation to ${body.type} ${pair}`,
+        });
+
+        return bot;
       });
+    } catch (error) {
+      if (error instanceof InsufficientFundsError) {
+        return NextResponse.json(
+          { error: 'Insufficient wallet balance. Deposit more funds before allocating capital.' },
+          { status: 400 }
+        );
+      }
+      throw error;
+    }
 
-      const savedBot = await newBot.save();
-
+    // Achievements are a cosmetic side effect of a flow that is already
+    // committed. A failure here must not fail the request and must certainly
+    // not reverse the allocation, so it is logged and swallowed.
+    try {
       await grantAchievement(userId, 'first_strategy_activated');
 
       await userModel.findByIdAndUpdate(userId, {
@@ -225,25 +254,23 @@ export async function POST(request: NextRequest) {
       if (updatedUser && updatedUser.distinctBotStrategyTypes.length >= 2) {
         await grantAchievement(userId, 'strategy_builder');
       }
-
-      // Return the created bot in frontend format
-      return NextResponse.json(
-        {
-          id: savedBot._id.toString(),
-          type: savedBot.type,
-          pair: savedBot.pair,
-          confidence: savedBot.confidence,
-          status: savedBot.status,
-          pnl: savedBot.pnl || '+0.0%',
-          allocatedAmount: savedBot.allocatedAmount,
-        },
-        { status: 201 }
-      );
-    } catch (creationError) {
-      // The wallet was already debited - refund it since no bot was created.
-      await userModel.findByIdAndUpdate(userId, { $inc: { walletBalance: allocatedAmount } });
-      throw creationError;
+    } catch (achievementError) {
+      console.error('Error granting achievements after bot creation:', achievementError);
     }
+
+    // Return the created bot in frontend format
+    return NextResponse.json(
+      {
+        id: savedBot._id.toString(),
+        type: savedBot.type,
+        pair: savedBot.pair,
+        confidence: savedBot.confidence,
+        status: savedBot.status,
+        pnl: savedBot.pnl || '+0.0%',
+        allocatedAmount: savedBot.allocatedAmount,
+      },
+      { status: 201 }
+    );
   } catch (error) {
     console.error('Error creating bot:', error);
     return NextResponse.json({ error: 'Failed to create bot' }, { status: 500 });

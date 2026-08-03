@@ -3,6 +3,8 @@ import { getSessionFromRequest } from '@/lib/session';
 import { connectToDatabase } from '@/lib/mongo';
 import { VaultModel } from '@/lib/models/Vault';
 import { UserVaultInvestmentModel } from '@/lib/models/UserVaultInvestment';
+import { InsufficientFundsError, withLedger } from '@/lib/ledger';
+import { InvalidAmountError, toDollars, toPositiveMinor } from '@/lib/money';
 
 interface PopulatedVaultRef {
   _id: { toString(): string };
@@ -77,8 +79,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Vault ID is required' }, { status: 400 });
     }
 
-    if (!amount || amount <= 0) {
-      return NextResponse.json({ error: 'Amount must be greater than 0' }, { status: 400 });
+    let amountMinor: number;
+    try {
+      amountMinor = toPositiveMinor(amount);
+    } catch (error) {
+      if (error instanceof InvalidAmountError) {
+        return NextResponse.json({ error: error.message }, { status: 400 });
+      }
+      throw error;
     }
 
     const connection = await connectToDatabase();
@@ -110,17 +118,41 @@ export async function POST(request: NextRequest) {
 
     // Calculate vault tokens received (simplified - in reality this would depend on current vault price)
     // For simplicity, we'll assume 1 USD = 1 vault token
-    const vaultTokens = amount;
+    const investedAmount = toDollars(amountMinor);
+    const vaultTokens = investedAmount;
 
-    // Create new investment
-    const newInvestment = new UserVaultInvestmentModel({
-      userId,
-      vaultId,
-      amount,
-      share: vaultTokens,
-    });
+    // This path previously created the position without touching the wallet at
+    // all, so any user could open a position of any size with a zero balance.
+    // It now debits through the same ledger as signal-flow allocation, in one
+    // transaction with the position it funds.
+    let savedInvestment;
+    try {
+      savedInvestment = await withLedger(async (tx) => {
+        const [investment] = await UserVaultInvestmentModel.create(
+          [{ userId, vaultId, amount: investedAmount, share: vaultTokens }],
+          { session: tx.session }
+        );
 
-    const savedInvestment = await newInvestment.save();
+        await tx.post({
+          userId,
+          type: 'allocation',
+          amountMinor: -amountMinor,
+          relatedEntityType: 'vault',
+          relatedEntityId: investment._id,
+          memo: `Investment in vault ${vault.name}`,
+        });
+
+        return investment;
+      });
+    } catch (error) {
+      if (error instanceof InsufficientFundsError) {
+        return NextResponse.json(
+          { error: 'Insufficient wallet balance. Deposit more funds before investing.' },
+          { status: 400 }
+        );
+      }
+      throw error;
+    }
 
     return NextResponse.json(
       {

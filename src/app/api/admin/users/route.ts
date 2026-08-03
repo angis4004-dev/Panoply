@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserModel } from '@/lib/models';
 import { verifyAdminAccess } from '@/lib/auth-middleware';
+import { toDollars } from '@/lib/money';
 
 export async function GET(request: NextRequest) {
   // Verify admin access
@@ -33,7 +34,7 @@ export async function GET(request: NextRequest) {
         : 'Unknown',
       wallet: user.walletAddress || '',
       notes: user.notes || '',
-      walletBalance: user.walletBalance || 0,
+      walletBalance: toDollars(user.walletBalanceMinor || 0),
     }));
 
     return NextResponse.json(formattedUsers);

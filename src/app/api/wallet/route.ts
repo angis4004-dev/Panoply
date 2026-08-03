@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSessionFromRequest } from '@/lib/session';
 import { getUserModel } from '@/lib/models';
 import { recalculateTier } from '@/lib/achievements/engine';
+import { credit, getBalanceMinor, UserNotFoundError } from '@/lib/ledger';
+import { InvalidAmountError, toDollars, toPositiveMinor } from '@/lib/money';
 
 // GET /api/wallet - Returns the current user's wallet balance
 export async function GET(request: NextRequest) {
@@ -15,12 +17,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Database connection unavailable' }, { status: 503 });
   }
 
-  const user = await userModel.findById(session.user.id).select('walletBalance').lean();
-  if (!user) {
-    return NextResponse.json({ error: 'User not found' }, { status: 404 });
+  try {
+    return NextResponse.json({ balance: toDollars(await getBalanceMinor(session.user.id)) });
+  } catch (error) {
+    if (error instanceof UserNotFoundError) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+    throw error;
   }
-
-  return NextResponse.json({ balance: user.walletBalance || 0 });
 }
 
 // POST /api/wallet - Deposit funds into the current user's wallet balance
@@ -31,10 +35,15 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { amount } = body;
 
-  if (typeof amount !== 'number' || !Number.isFinite(amount) || amount <= 0) {
-    return NextResponse.json({ error: 'Amount must be greater than 0' }, { status: 400 });
+  let amountMinor: number;
+  try {
+    amountMinor = toPositiveMinor(body.amount);
+  } catch (error) {
+    if (error instanceof InvalidAmountError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    throw error;
   }
 
   const userModel = await getUserModel();
@@ -54,16 +63,23 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const updated = await userModel
-    .findByIdAndUpdate(
-      session.user.id,
-      { $inc: { walletBalance: amount, lifetimeDeposited: amount } },
-      { new: true }
-    )
-    .select('walletBalance')
-    .lean();
+  // A client that retries a timed-out deposit must not be charged twice. With
+  // the header present the retry resolves to the original entry; without it we
+  // fall back to prior behaviour, so existing callers are unaffected.
+  const idempotencyKey = request.headers.get('idempotency-key') ?? undefined;
+
+  const result = await credit({
+    userId: session.user.id,
+    type: 'deposit',
+    amountMinor,
+    idempotencyKey,
+    // lifetimeDeposited feeds computeTier and is incremented in the same
+    // transaction as the deposit, so a tier can never reflect money the ledger
+    // does not show. Kept in dollars: it is a threshold input, not a balance.
+    alsoIncrement: { lifetimeDeposited: toDollars(amountMinor) },
+  });
 
   await recalculateTier(session.user.id);
 
-  return NextResponse.json({ balance: updated?.walletBalance || 0 });
+  return NextResponse.json({ balance: toDollars(result.balanceMinor) });
 }

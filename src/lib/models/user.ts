@@ -11,7 +11,18 @@ export interface IUser extends Document {
   bots?: number;
   portfolioValue?: string;
   walletAddress?: string;
-  walletBalance: number; // USD balance available to allocate to signal flows (dry-run funds only)
+  /**
+   * Authoritative cached wallet balance in minor units (cents), maintained
+   * exclusively by src/lib/ledger.ts inside the same transaction as the entry
+   * that changes it. Nothing else may write this field.
+   */
+  walletBalanceMinor: number;
+  /**
+   * @deprecated Pre-ledger float balance, in dollars. Retained so the backfill
+   * migration has a source and so a rollback is not lossy. No longer read or
+   * written - use walletBalanceMinor via the ledger.
+   */
+  walletBalance: number;
   notes?: string;
   image?: string;
   googleId?: string;
@@ -68,6 +79,7 @@ const UserSchema = new Schema<IUser>(
     bots: { type: Number, default: 0 },
     portfolioValue: { type: String, default: '$0' },
     walletAddress: { type: String, default: '' },
+    walletBalanceMinor: { type: Number, default: 0, min: 0 },
     walletBalance: { type: Number, default: 0, min: 0 },
     notes: { type: String, default: '' },
     image: { type: String },

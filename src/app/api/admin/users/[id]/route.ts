@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getUserModel } from '@/lib/models';
 import { verifyAdminAccess } from '@/lib/auth-middleware';
 import { grantAchievement, recalculateTier } from '@/lib/achievements/engine';
+import { getSessionFromRequest } from '@/lib/session';
+import { getBalanceMinor, post, UserNotFoundError } from '@/lib/ledger';
+import { InvalidAmountError, toDollars, toMinor } from '@/lib/money';
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   // Verify admin access
@@ -37,7 +40,10 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       portfolioValue: 'portfolioValue',
       walletAddress: 'walletAddress',
       notes: 'notes',
-      walletBalance: 'walletBalance',
+      // walletBalance is deliberately absent. It used to be settable here as a
+      // plain field write, which meant an admin could set any balance with no
+      // record of who did it or why. It is now handled below as an explicit
+      // ledger adjustment carrying the acting admin's id.
     };
 
     // Filter updates to only allowed fields
@@ -46,6 +52,41 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       const dbKey = fieldMap[frontendKey];
       if (dbKey !== undefined) {
         filteredUpdates[dbKey] = value;
+      }
+    }
+
+    // A balance edit is a movement of capital, not a field update: it is posted
+    // as an adjustment entry naming the admin who made it, so the correction is
+    // as auditable as the deposit it corrects. The admin supplies a target
+    // balance; the ledger records the delta needed to reach it.
+    if (updates.walletBalance !== undefined) {
+      const session = await getSessionFromRequest(request);
+      try {
+        const targetMinor = toMinor(updates.walletBalance);
+        if (targetMinor < 0) {
+          return NextResponse.json({ error: 'Balance cannot be negative.' }, { status: 400 });
+        }
+        const deltaMinor = targetMinor - (await getBalanceMinor(id));
+        if (deltaMinor !== 0) {
+          await post({
+            userId: id,
+            type: 'admin_adjustment',
+            amountMinor: deltaMinor,
+            actorUserId: session?.user.id,
+            memo:
+              typeof updates.adjustmentReason === 'string' && updates.adjustmentReason.trim()
+                ? updates.adjustmentReason.trim()
+                : 'Balance adjusted via admin dashboard',
+          });
+        }
+      } catch (error) {
+        if (error instanceof InvalidAmountError) {
+          return NextResponse.json({ error: error.message }, { status: 400 });
+        }
+        if (error instanceof UserNotFoundError) {
+          return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        }
+        throw error;
       }
     }
 
@@ -92,7 +133,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         : 'Unknown',
       wallet: updatedUser.walletAddress || '',
       notes: updatedUser.notes || '',
-      walletBalance: updatedUser.walletBalance || 0,
+      walletBalance: toDollars(updatedUser.walletBalanceMinor || 0),
     };
 
     return NextResponse.json(formattedUser);
