@@ -57,6 +57,23 @@ export async function middleware(request: NextRequest) {
 
 // Configure middleware to run on specific paths
 export const config = {
+  /**
+   * Node runtime, not the Edge default.
+   *
+   * This middleware calls getSessionFromRequest, and src/lib/session.ts signs
+   * and verifies cookies with Node's `crypto` - createHmac and, importantly,
+   * timingSafeEqual. Neither exists on the Edge runtime. `next dev` runs
+   * middleware in a Node-ish sandbox so it passed locally, and the webpack
+   * build only warned, which is why this went unnoticed; a deployment to an
+   * Edge environment would have failed to verify any session and locked users
+   * out of /dashboard. Turbopack promotes the same condition to a build error.
+   *
+   * The alternative was porting session.ts to Web Crypto, but subtle.sign is
+   * async (changing every caller's signature) and there is no Edge equivalent
+   * of timingSafeEqual, so a constant-time compare would have to be
+   * hand-rolled. Pinning the runtime keeps the audited crypto path intact.
+   */
+  runtime: 'nodejs',
   matcher: [
     /*
      * Match all request paths except:

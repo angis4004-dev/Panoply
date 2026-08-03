@@ -12,6 +12,16 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
+  // ESLint 9 flat config only lints .js/.mjs/.cjs by default - every other
+  // extension has to be opted in by a config that names it in `files`. Without
+  // this entry, `eslint .` silently skipped every .jsx file in src/ with
+  // "File ignored because no matching configuration was supplied", which left
+  // the 1,998-line admin dashboard entirely unchecked while the command still
+  // exited 0. Declaring the extensions here makes them lintable; the rule
+  // blocks below carry no `files` key, so they apply universally to all of them.
+  {
+    files: ['**/*.{js,mjs,cjs,jsx,ts,tsx}'],
+  },
   ...compat.extends(
     'next/core-web-vitals',
     'eslint:recommended',
@@ -46,6 +56,11 @@ const eslintConfig = [
   {
     ignores: [
       'node_modules/**',
+      // Gitignored scratch space: each worktree holds a full second copy of
+      // src/ plus its own node_modules. Harmless while only .ts/.tsx was
+      // linted (those copies were reached but the counts stayed small), but
+      // once .jsx was enabled every finding started being reported twice.
+      '.worktrees/**',
       '.next/**',
       'out/**',
       'public/**',
