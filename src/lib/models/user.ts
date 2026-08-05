@@ -34,6 +34,20 @@ export interface IUser extends Document {
    * behind. See revokeUserSessions in src/lib/session.ts.
    */
   tokenVersion: number;
+  /**
+   * Six-digit login PIN, PBKDF2-hashed as `salt:key` exactly like the
+   * password. Absent until the user sets one, which they are required to do
+   * on their next sign-in. See src/lib/pin.ts.
+   */
+  pinHash?: string;
+  pinSetAt?: Date;
+  /**
+   * Attempt counter and lock, persisted rather than held in memory: a
+   * six-digit secret needs a limit that survives a restart and applies across
+   * every server instance, which an in-process counter cannot do.
+   */
+  pinFailedAttempts: number;
+  pinLockedUntil?: Date | null;
   // KYC / identity verification (UI-only — no third-party provider)
   kycStatus: 'unverified' | 'pending' | 'verified' | 'rejected';
   kycSubmittedAt?: Date;
@@ -103,6 +117,10 @@ const UserSchema = new Schema<IUser>(
     resetPasswordToken: { type: String },
     resetPasswordExpires: { type: Date },
     tokenVersion: { type: Number, default: 0, min: 0 },
+    pinHash: { type: String },
+    pinSetAt: { type: Date },
+    pinFailedAttempts: { type: Number, default: 0, min: 0 },
+    pinLockedUntil: { type: Date, default: null },
     // KYC / identity verification (UI-only — no third-party provider)
     kycStatus: {
       type: String,

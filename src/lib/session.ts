@@ -208,6 +208,63 @@ export function setCookie(response: Response, sessionData: SessionData): Respons
 }
 
 /**
+ * Short-lived proof that the password step succeeded, exchanged for a real
+ * session once the PIN is accepted.
+ *
+ * Deliberately not a session and not readable as one: it carries its own
+ * prefix, is signed over a different string, and getSessionFromRequest never
+ * looks at it. A password alone therefore grants no access to anything - the
+ * only thing this token can do is be presented to the PIN endpoints.
+ */
+const PENDING_PIN_PREFIX = 'pinpending';
+const PENDING_PIN_TTL_MS = 5 * 60 * 1000;
+
+export function createPendingPinToken(userId: string): string {
+  const payload = Buffer.from(
+    JSON.stringify({ userId, issuedAt: Date.now(), scope: PENDING_PIN_PREFIX })
+  ).toString('base64url');
+  const signature = crypto
+    .createHmac('sha256', SESSION_SECRET)
+    .update(`${PENDING_PIN_PREFIX}:${payload}`)
+    .digest('hex');
+  return `${PENDING_PIN_PREFIX}.${payload}.${signature}`;
+}
+
+/** Returns the userId the token was issued for, or null if it is not usable. */
+export function verifyPendingPinToken(token: unknown): string | null {
+  if (typeof token !== 'string') return null;
+
+  const [prefix, payload, signature] = token.split('.');
+  if (prefix !== PENDING_PIN_PREFIX || !payload || !signature) return null;
+
+  const expected = crypto
+    .createHmac('sha256', SESSION_SECRET)
+    .update(`${PENDING_PIN_PREFIX}:${payload}`)
+    .digest('hex');
+
+  if (
+    Buffer.byteLength(signature) !== Buffer.byteLength(expected) ||
+    !crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))
+  ) {
+    return null;
+  }
+
+  try {
+    const decoded = JSON.parse(Buffer.from(payload, 'base64url').toString('utf-8')) as {
+      userId?: string;
+      issuedAt?: number;
+      scope?: string;
+    };
+    if (decoded.scope !== PENDING_PIN_PREFIX) return null;
+    if (typeof decoded.issuedAt !== 'number') return null;
+    if (Date.now() - decoded.issuedAt > PENDING_PIN_TTL_MS) return null;
+    return decoded.userId ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Invalidates every session currently issued for a user.
  *
  * Call on logout, password reset, and any administrative action that should

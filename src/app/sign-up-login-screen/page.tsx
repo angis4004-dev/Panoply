@@ -23,6 +23,7 @@ import AppLogo from '@/components/ui/AppLogo';
 import FlowFieldBackground from '@/components/ui/flow-field-background';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
+import { PinStep } from '@/components/auth/PinStep';
 
 type AuthMode = 'login' | 'signup';
 
@@ -61,6 +62,11 @@ function LoginForm({
   const [showPassword, setShowPassword] = useState(false);
   const [showOTP, setShowOTP] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [pinStep, setPinStep] = useState<{
+    mode: 'verify' | 'setup';
+    pendingToken: string;
+    userName?: string;
+  } | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const otpRef = useRef<HTMLDivElement>(null);
 
@@ -95,6 +101,26 @@ function LoginForm({
     { dependencies: [showOTP], scope: formRef }
   );
 
+  const completeSignIn = (payload: {
+    user: { email: string; role: string; name: string; kycStatus?: string };
+  }) => {
+    setUser({
+      email: payload.user.email,
+      role: payload.user.role as 'Admin' | 'Trader',
+      name: payload.user.name,
+      kycStatus: (payload.user.kycStatus || 'unverified') as
+        'unverified' | 'pending' | 'verified' | 'rejected',
+    });
+
+    toast.success(`Welcome back, ${payload.user.name}!`, {
+      description: 'Redirecting to dashboard...',
+    });
+
+    setTimeout(() => {
+      router.push(payload.user.role === 'Admin' ? '/admin' : '/dashboard');
+    }, 800);
+  };
+
   const onSubmit = async (data: LoginFormValues) => {
     setLoading(true);
 
@@ -117,6 +143,19 @@ function LoginForm({
             : payload.error || 'Unable to sign in right now.';
         setError('email', {
           message: fallbackMessage,
+        });
+        setLoading(false);
+        return;
+      }
+
+      // The password step now returns a pending token instead of a session
+      // whenever the account lives in the database. No session cookie has been
+      // set at this point, so nothing is reachable until the PIN clears.
+      if (payload.pendingToken) {
+        setPinStep({
+          mode: payload.pinSetupRequired ? 'setup' : 'verify',
+          pendingToken: payload.pendingToken,
+          userName: payload.user?.name,
         });
         setLoading(false);
         return;
@@ -147,6 +186,18 @@ function LoginForm({
       setLoading(false);
     }
   };
+
+  if (pinStep) {
+    return (
+      <PinStep
+        mode={pinStep.mode}
+        pendingToken={pinStep.pendingToken}
+        userName={pinStep.userName}
+        onComplete={completeSignIn}
+        onCancel={() => setPinStep(null)}
+      />
+    );
+  }
 
   return (
     <form ref={formRef} onSubmit={handleSubmit(onSubmit)} className="space-y-5">

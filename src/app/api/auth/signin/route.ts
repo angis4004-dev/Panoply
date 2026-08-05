@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { signInUser } from '@/lib/auth-store';
 import type { LoginPayload } from '@/types/auth';
-import { setCookie } from '@/lib/session';
+import { setCookie, createPendingPinToken } from '@/lib/session';
 import { isRateLimited, recordAttempt, resetRateLimit, getClientIp } from '@/lib/rate-limit';
+import { getUserModel } from '@/lib/models';
 
 const MAX_ATTEMPTS = 5;
 const WINDOW_MS = 15 * 60 * 1000; // 15 minutes
@@ -35,7 +36,26 @@ export async function POST(request: Request) {
     }
     resetRateLimit(rateLimitKey);
 
-    // Create session data
+    // The password alone no longer produces a session. It produces a
+    // short-lived token whose only use is the PIN endpoints, so a stolen
+    // password cannot reach the dashboard or any API on its own.
+    const userModel = await getUserModel();
+    if (userModel) {
+      const record = await userModel.findById(result.user.id).select('pinHash').lean();
+
+      if (record) {
+        return NextResponse.json({
+          pinRequired: Boolean(record.pinHash),
+          pinSetupRequired: !record.pinHash,
+          pendingToken: createPendingPinToken(result.user.id),
+          user: { name: result.user.name },
+        });
+      }
+    }
+
+    // JSON-file fallback store: no schema to hold a PIN, so this path keeps
+    // the original single-step behaviour rather than locking the user out of
+    // an account the PIN could never be stored against.
     const sessionData = {
       user: {
         id: result.user.id,

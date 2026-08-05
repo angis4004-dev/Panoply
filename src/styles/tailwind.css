@@ -642,3 +642,55 @@ body {
   outline: 2px solid rgba(255, 255, 255, 0.7);
   outline-offset: 2px;
 }
+
+/* Login PIN field.
+   Supplied as a fixed design, so it is kept verbatim rather than rebuilt from
+   the design tokens - the hard-coded #212121 and #e8e8e8 are intentional and
+   not a drift from the palette.
+   Additions on top of the given rules: a monospace stack and letter-spacing,
+   because six proportional digits shift position as they are typed and make a
+   PIN field feel unsteady; and a width sized to six characters. */
+.pin-input {
+  border: 2px solid #e8e8e8;
+  padding: 15px;
+  border-radius: 10px;
+  background-color: #212121;
+  font-size: small;
+  font-weight: bold;
+  text-align: center;
+  color: #e8e8e8;
+  font-family: var(--font-geist-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  letter-spacing: 0.5em;
+  text-indent: 0.5em; /* offsets the trailing letter-space so digits sit centred */
+  width: 100%;
+  max-width: 14rem;
+  transition:
+    box-shadow var(--ds-dur-fast) var(--ds-ease-out),
+    border-color var(--ds-dur-fast) var(--ds-ease-out);
+}
+
+.pin-input::placeholder {
+  letter-spacing: normal;
+  text-indent: 0;
+  font-weight: 600;
+  color: #8b95a5;
+}
+
+.pin-input:focus {
+  outline-color: white;
+  background-color: #212121;
+  color: #e8e8e8;
+  box-shadow: 5px 5px #888888;
+}
+
+/* Reserved so a wrong PIN is not signalled by colour alone (WCAG 1.4.1) -
+   the message beside it carries the same information in text. */
+.pin-input[aria-invalid='true'] {
+  border-color: var(--ds-value-negative);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pin-input {
+    transition: none;
+  }
+}
