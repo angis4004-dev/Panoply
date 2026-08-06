@@ -37,6 +37,7 @@ export async function GET(request: NextRequest) {
       bots.map(async (bot) => {
         const tick = applyPendingTicks(
           {
+            id: bot._id.toString(),
             status: bot.status,
             confidence: bot.confidence,
             simulatedPnlPercent: bot.simulatedPnlPercent ?? 0,

@@ -13,24 +13,32 @@ import {
 } from 'recharts';
 
 interface ChartDataPoint {
+  /** Axis label. */
   date: string;
+  /** Full timestamp for the tooltip, so a reading is never ambiguous. */
+  fullLabel: string;
   value: number;
 }
 
 interface CustomTooltipProps {
   active?: boolean;
-  payload?: { value: number; name: string }[];
-  label?: string;
-  positive: boolean;
+  payload?: { value: number; payload: ChartDataPoint }[];
 }
 
-function CustomTooltip({ active, payload, label, positive }: CustomTooltipProps) {
+function CustomTooltip({ active, payload }: CustomTooltipProps) {
   if (!active || !payload || !payload.length) return null;
   const value = payload[0]?.value ?? 0;
+  const point = payload[0]?.payload;
   const sign = value >= 0 ? '+' : '';
+  // Coloured by the value under the cursor, not by where the series ends. The
+  // previous version passed one flag for the whole chart, so every reading in
+  // a day that closed down was red even where the portfolio was up.
+  const positive = value >= 0;
   return (
-    <div className="bg-zinc-800 border border-zinc-700 rounded-xl p-3 shadow-2xl min-w-[140px]">
-      <p className="text-ds-caption text-ds-text-secondary font-semibold mb-2">{label}</p>
+    <div className="bg-zinc-800 border border-zinc-700 rounded-xl p-3 shadow-2xl min-w-[150px]">
+      <p className="text-ds-caption text-ds-text-secondary font-semibold mb-2">
+        {point?.fullLabel ?? ''}
+      </p>
       <p
         className={`text-sm font-bold font-mono tabular-nums ${positive ? 'text-ds-value-positive' : 'text-ds-value-negative'}`}
       >
@@ -50,79 +58,46 @@ const RANGES: { label: string; days: number }[] = [
   { label: '1y', days: 365 },
 ];
 
-type Granularity = 'fine' | 'time' | 'datetime' | 'date';
-
 /**
- * Bucket width in minutes for each granularity.
+ * Axis label format, chosen from the window that was REQUESTED.
  *
- * Everything under 36h used to bucket by the hour, which quietly destroyed
- * short ranges: 46 minutes of snapshots produced zero complete hourly buckets,
- * so the chart drew a straight line between two endpoints. Not a rendering
- * bug - there was genuinely nothing between them to draw. At 5-minute
- * resolution the same 46 minutes yields 9 points, 38% of which step down.
- *
- * Snapshots are written every 5 minutes, so 5 is the floor: asking for finer
- * buckets cannot invent detail that was never recorded.
+ * This used to key off the span the returned data happened to cover, which was
+ * the wrong input: the series now always fills the whole requested window, and
+ * even before that, letting the data decide meant selecting "1d" and getting
+ * an axis reading 3:37am to 7:03am - the hours a dashboard had been open, not
+ * a day.
  */
-const BUCKET_MINUTES: Record<Granularity, number> = {
-  fine: 5,
-  time: 15,
-  datetime: 60,
-  date: 60 * 24,
-};
-
-/**
- * Bucket size and label format are chosen from the span the data actually
- * covers, not from the range the user asked for.
- *
- * Those differ constantly here. Snapshots are written every ~5 minutes with no
- * backfill, so a young account holds only a few hours of history; asking for
- * 30d still returns just those hours. Keying off the requested window meant a
- * few hours of data got bucketed per-day, collapsed into a single point, and
- * tripped the "not enough history" state - so 7d drew a full chart while 30d
- * claimed there was nothing to show. Measuring the real span keeps every range
- * rendering the same underlying history, which is the honest result when the
- * wider window genuinely contains no extra data.
- */
-function pickGranularity(spanMs: number): Granularity {
-  const HOUR = 60 * 60 * 1000;
-  // A few hours of history needs 5-minute detail or it renders as a couple of
-  // points joined by a straight line - which is what a brand-new account has,
-  // and therefore the first thing anyone sees.
-  if (spanMs <= 3 * HOUR) return 'fine';
-  // Inside a single day a bare clock time is unambiguous. Quarter-hour buckets
-  // give a full day ~96 points instead of 24.
-  if (spanMs <= 36 * HOUR) return 'time';
-  // Past a day it is not: "3:17 AM" on the old 7d axis could have been any of
-  // seven mornings. Multi-day hourly buckets must carry their date.
-  if (spanMs <= 14 * 24 * HOUR) return 'datetime';
-  return 'date';
+function labelFormat(days: number) {
+  if (days <= 1) {
+    // Within a day a bare clock time is unambiguous.
+    return (ms: number) =>
+      new Date(ms).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  }
+  if (days <= 14) {
+    // Past a day it is not: "3 AM" on a 7d axis could be any of seven mornings.
+    return (ms: number) =>
+      new Date(ms).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric' });
+  }
+  return (ms: number) =>
+    new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-function formatBucketLabel(ms: number, g: Granularity): string {
+/** Always unambiguous - the tooltip has room for a date and a time. */
+function fullLabel(ms: number, days: number): string {
   const d = new Date(ms);
-  if (g === 'fine' || g === 'time')
-    return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-  if (g === 'datetime')
-    return d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric' });
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-}
-
-/**
- * Bucket key in LOCAL time. The previous key came from toISOString(), i.e.
- * UTC, while every label was rendered with toLocale* - so for anyone not on
- * UTC the day boundaries in the data disagreed with the dates on the axis, and
- * snapshots either side of local midnight landed in the wrong bucket.
- *
- * Keyed off minutes-since-local-midnight divided by the bucket width, so the
- * same function handles 5-minute and day-long buckets without special cases.
- */
-function bucketKey(ms: number, g: Granularity): string {
-  const d = new Date(ms);
-  const day = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
-  if (g === 'date') return day;
-  const minutesIntoDay = d.getHours() * 60 + d.getMinutes();
-  return `${day}-${Math.floor(minutesIntoDay / BUCKET_MINUTES[g])}`;
+  if (days <= 1) {
+    return d.toLocaleString('en-US', {
+      weekday: 'short',
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+  }
+  return d.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
 }
 
 function formatAxisDollar(v: number): string {
@@ -151,34 +126,17 @@ export default function PnLAreaChart() {
           throw new Error(`Failed to fetch portfolio history: ${response.status}`);
         }
 
-        const snapshots: { timestamp: string; value: number }[] = await response.json();
+        const body: { points: { timestamp: string; value: number }[] } = await response.json();
         if (!isMounted) return;
 
-        if (snapshots.length === 0) {
-          setData([]);
-          setLoading(false);
-          return;
-        }
-
-        // Granularity follows the data, not the request - see pickGranularity.
-        const times = snapshots.map((s) => new Date(s.timestamp).getTime());
-        const span = Math.max(...times) - Math.min(...times);
-        const granularity = pickGranularity(span);
-
-        const buckets = new Map<string, { timestampMs: number; value: number }>();
-        for (const s of snapshots) {
-          const ts = new Date(s.timestamp).getTime();
-          // Last snapshot in a bucket wins: the closing value for that hour or
-          // day is what a cumulative P&L line should step to.
-          buckets.set(bucketKey(ts, granularity), { timestampMs: ts, value: s.value });
-        }
-
-        const processed: ChartDataPoint[] = Array.from(buckets.values())
-          .sort((a, b) => a.timestampMs - b.timestampMs)
-          .map(({ timestampMs, value }) => ({
-            date: formatBucketLabel(timestampMs, granularity),
-            value,
-          }));
+        // The series already spans the requested window at an even interval,
+        // so there is nothing to bucket - each point is a value the portfolio
+        // actually held at that moment.
+        const toLabel = labelFormat(days);
+        const processed: ChartDataPoint[] = (body.points ?? []).map((p) => {
+          const ms = new Date(p.timestamp).getTime();
+          return { date: toLabel(ms), fullLabel: fullLabel(ms, days), value: p.value };
+        });
 
         setData(processed);
         setLoading(false);
@@ -214,6 +172,9 @@ export default function PnLAreaChart() {
 
   const latestValue = data.length > 0 ? data[data.length - 1].value : 0;
   const isPositive = latestValue >= 0;
+  // A flow with capital in it is never exactly flat at zero across a window,
+  // so this separates "nothing allocated" from "allocated and currently even".
+  const hasMovement = data.length >= 2 && data.some((d) => d.value !== 0);
   // Literals because Recharts writes these straight into SVG stroke/stopColor
   // attributes, which cannot read a CSS custom property. They must be kept in
   // step with --ds-value-positive / --ds-value-negative in styles/tailwind.css;
@@ -290,15 +251,14 @@ export default function PnLAreaChart() {
         <div className="flex flex-col items-center justify-center h-[220px]">
           <p className="text-ds-text-secondary">Loading chart data...</p>
         </div>
-      ) : !error && data.length < 2 ? (
-        // Snapshots only exist once a signal flow has actually run for a
-        // while - a brand-new account has nothing to plot yet. Showing a
-        // flat fabricated line here would misrepresent history that never
-        // happened, so this is an honest empty state instead.
+      ) : !error && !hasMovement ? (
+        // The series always covers the requested window now, so an empty chart
+        // means there is genuinely nothing allocated rather than nothing
+        // recorded. Drawing a flat line along zero would look like a result.
         <div className="flex flex-col items-center justify-center h-[220px] text-center px-6">
-          <p className="text-sm text-ds-text-secondary">Not enough history yet</p>
+          <p className="text-sm text-ds-text-secondary">No capital allocated yet</p>
           <p className="text-ds-caption text-ds-text-muted mt-1.5">
-            Keep a signal flow running and this chart fills in as real P&L accrues.
+            Start a signal flow and this chart tracks its P&L across the whole period.
           </p>
         </div>
       ) : (
@@ -330,7 +290,7 @@ export default function PnLAreaChart() {
               width={48}
               domain={yDomain}
             />
-            <Tooltip content={<CustomTooltip positive={isPositive} />} />
+            <Tooltip content={<CustomTooltip />} />
             {/* Only drawn when zero is actually inside the fitted range -
                 otherwise Recharts clamps it to an edge, where a dashed line
                 labelled nothing reads as a boundary of the data. */}

@@ -111,6 +111,7 @@ export async function DELETE(
     // would pay out a figure from whenever the owner last opened the
     // dashboard rather than the one in force at the moment they closed.
     const finalTick = applyPendingTicks({
+      id: bot._id.toString(),
       status: bot.status,
       confidence: bot.confidence,
       simulatedPnlPercent: bot.simulatedPnlPercent ?? 0,

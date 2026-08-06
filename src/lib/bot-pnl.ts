@@ -42,12 +42,33 @@ function tickBias(confidence: number): number {
   return (-0.0001 + c * 0.0004) * 0.25;
 }
 
-// Sum of three uniforms approximates a bounded gaussian-ish curve (values
-// cluster toward the middle, taper at the extremes) without needing a real
-// normal-distribution sampler.
-function randomStep(stddev: number): number {
-  const u = Math.random() + Math.random() + Math.random() - 1.5;
-  return u * stddev;
+/**
+ * Per-flow jitter, derived from the tick index rather than Math.random().
+ *
+ * This is what makes the whole P&L path reproducible. With a random component
+ * the value at 3pm yesterday existed only if something happened to record it,
+ * which is why the chart could only ever plot the handful of moments a
+ * dashboard was open. Seeded from the absolute tick index and the flow's own
+ * id, the same tick always yields the same jitter, so the curve between any
+ * two points can be reconstructed exactly instead of sampled.
+ *
+ * Sum of three uniforms approximates a bounded gaussian-ish curve (values
+ * cluster toward the middle, taper at the extremes) without needing a real
+ * normal-distribution sampler.
+ */
+function idiosyncratic(tickIndex: number, seed: number): number {
+  const base = Math.imul(tickIndex, 3) ^ seed;
+  const u = hash01(base) + hash01(base + 1) + hash01(base + 2) - 1.5;
+  return u * IDIOSYNCRATIC_STDDEV;
+}
+
+/** Stable numeric seed from a flow's id, so two flows jitter independently. */
+export function seedFromId(id: string): number {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < id.length; i++) {
+    h = Math.imul(h ^ id.charCodeAt(i), 0x01000193);
+  }
+  return h >>> 0;
 }
 
 /**
@@ -67,7 +88,18 @@ function randomStep(stddev: number): number {
  * survive being summed across flows rather than averaging away.
  */
 const TICKS_PER_REGIME = 120; // one hour at 30s ticks
-const LOSS_REGIME_PROBABILITY = 0.3;
+const HOURS_PER_DAY = 24;
+/**
+ * Down hours per calendar day, fixed rather than drawn per hour.
+ *
+ * Independent 30% draws give the right long-run average but not the right day.
+ * With only 24 draws the daily up-share has a standard deviation of about 9
+ * points, so individual days landed anywhere from ~51% to ~89% up - a measured
+ * 24-hour window read 83% up while the week around it read 65%. Allocating a
+ * fixed quota per day makes every day 17 up hours and 7 down, which is the
+ * 70/30 split as actually specified.
+ */
+const DOWN_HOURS_PER_DAY = 7; // 7/24 = 29.2%
 const UP_REGIME_PCT = 0.15; // gained across a winning hour
 const DOWN_REGIME_PCT = -0.25; // lost across a losing hour
 
@@ -84,6 +116,39 @@ function hash01(n: number): number {
 }
 
 /**
+ * Which hours of a given day are losing hours, as a 24-bit mask.
+ *
+ * Deterministically shuffles the day's hours and marks the first
+ * DOWN_HOURS_PER_DAY of them, so the quota is exact and the placement still
+ * varies from day to day. Keyed on the day since the epoch, so every flow
+ * agrees about which hours were bad - a losing hour has to hit the whole
+ * portfolio at once, or drawdowns average away when flows are summed.
+ */
+const dayMaskCache = new Map<number, number>();
+
+function downHourMask(day: number): number {
+  const cached = dayMaskCache.get(day);
+  if (cached !== undefined) return cached;
+
+  const order = Array.from({ length: HOURS_PER_DAY }, (_, i) => i);
+  for (let i = HOURS_PER_DAY - 1; i > 0; i--) {
+    const j = Math.floor(hash01(Math.imul(day, 0x27d4eb2f) + i) * (i + 1));
+    const tmp = order[i];
+    order[i] = order[j];
+    order[j] = tmp;
+  }
+
+  let mask = 0;
+  for (let i = 0; i < DOWN_HOURS_PER_DAY; i++) mask |= 1 << order[i];
+
+  // Bounded: a year of projection touches 365 days, and the cache is only an
+  // optimisation, so dropping it wholesale is cheaper than tracking ages.
+  if (dayMaskCache.size > 2000) dayMaskCache.clear();
+  dayMaskCache.set(day, mask);
+  return mask;
+}
+
+/**
  * Per-tick market drift for the regime containing this tick.
  *
  * Derived from the absolute tick index rather than Math.random() so that every
@@ -92,12 +157,20 @@ function hash01(n: number): number {
  * lose the correlation, and with it the drawdowns.
  */
 function marketDrift(tickIndex: number): number {
-  const regime = Math.floor(tickIndex / TICKS_PER_REGIME);
-  const pct = hash01(regime) < LOSS_REGIME_PROBABILITY ? DOWN_REGIME_PCT : UP_REGIME_PCT;
-  return pct / TICKS_PER_REGIME;
+  const hour = Math.floor(tickIndex / TICKS_PER_REGIME);
+  const day = Math.floor(hour / HOURS_PER_DAY);
+  const hourOfDay = ((hour % HOURS_PER_DAY) + HOURS_PER_DAY) % HOURS_PER_DAY;
+  const isDown = (downHourMask(day) & (1 << hourOfDay)) !== 0;
+  return (isDown ? DOWN_REGIME_PCT : UP_REGIME_PCT) / TICKS_PER_REGIME;
+}
+
+/** Combined per-tick move: confidence tilt, shared market regime, own jitter. */
+function tickDelta(tickIndex: number, bias: number, seed: number): number {
+  return bias + marketDrift(tickIndex) + idiosyncratic(tickIndex, seed);
 }
 
 export interface TickableBot {
+  id: string;
   status: 'running' | 'paused' | 'fallback';
   confidence: number;
   simulatedPnlPercent: number;
@@ -137,6 +210,7 @@ export function applyPendingTicks(bot: TickableBot, now: Date = new Date()): Tic
 
   const ticksApplied = Math.min(ticksAvailable, MAX_TICKS_PER_CATCHUP);
   const bias = tickBias(bot.confidence);
+  const seed = seedFromId(bot.id);
 
   // Absolute tick index, counted from the epoch rather than from this bot's
   // lastTickAt, so two flows that started on different days still line up on
@@ -145,7 +219,7 @@ export function applyPendingTicks(bot: TickableBot, now: Date = new Date()): Tic
 
   let delta = 0;
   for (let i = 0; i < ticksApplied; i++) {
-    delta += bias + marketDrift(firstTick + i) + randomStep(IDIOSYNCRATIC_STDDEV);
+    delta += tickDelta(firstTick + i, bias, seed);
   }
 
   return {
@@ -153,6 +227,74 @@ export function applyPendingTicks(bot: TickableBot, now: Date = new Date()): Tic
     simulatedPnlPercent: bot.simulatedPnlPercent + delta,
     lastTickAt: new Date(bot.lastTickAt.getTime() + ticksApplied * TICK_INTERVAL_MS),
   };
+}
+
+export interface ProjectableBot extends TickableBot {
+  createdAt: Date;
+}
+
+/**
+ * Reconstructs a flow's P&L at each of `sampleTimesMs`.
+ *
+ * The chart used to plot PortfolioSnapshot rows, which are only written when
+ * someone loads the dashboard. That made the x-axis a record of when the page
+ * happened to be open rather than a period of time: asking for "1 day" and
+ * getting 3:37am to 7:03am was not a bug in the axis, it was the only data
+ * that existed. There was also nothing to read between two snapshots hours
+ * apart, so hovering most of the chart reported a value that had been
+ * interpolated rather than reached.
+ *
+ * Because every component of a tick is now deterministic, the value at any
+ * past moment can be recomputed instead. This is reconstruction, not
+ * invention: the flow genuinely held that value at that time, we simply had
+ * no reason to write it down.
+ *
+ * Anchored on simulatedPnlPercent - the stored, authoritative figure as of
+ * lastTickAt - and walked outwards, so the curve always meets the number
+ * shown elsewhere in the dashboard. Paused flows do not accrue, so their
+ * anchor stops advancing and the projection is flat after it, which is what
+ * actually happened.
+ */
+export function pnlPercentSeries(bot: ProjectableBot, sampleTimesMs: number[]): number[] {
+  if (sampleTimesMs.length === 0) return [];
+
+  const bias = tickBias(bot.confidence);
+  const seed = seedFromId(bot.id);
+  const createdTick = Math.floor(bot.createdAt.getTime() / TICK_INTERVAL_MS);
+  const anchorTick = Math.floor(bot.lastTickAt.getTime() / TICK_INTERVAL_MS);
+
+  // Sample ticks are clamped to the flow's own lifetime. Before it existed it
+  // contributed nothing; a paused flow stops at its anchor rather than
+  // continuing to earn while switched off.
+  const maxTick = bot.status === 'running' ? Infinity : anchorTick;
+  const sampleTicks = sampleTimesMs.map((ms) =>
+    Math.min(Math.max(Math.floor(ms / TICK_INTERVAL_MS), createdTick), maxTick)
+  );
+
+  // One pass over the tick range, recording the running sum relative to the
+  // anchor, rather than re-summing from scratch for every sample. A year at
+  // 30-second ticks is ~1M iterations; per-sample summing would be ~365x that.
+  const lo = Math.min(anchorTick, ...sampleTicks);
+  const hi = Math.max(anchorTick, ...sampleTicks);
+
+  const relative = new Map<number, number>();
+  let running = 0;
+  relative.set(anchorTick, 0);
+
+  for (let t = anchorTick - 1; t >= lo; t--) {
+    running -= tickDelta(t, bias, seed);
+    relative.set(t, running);
+  }
+  running = 0;
+  for (let t = anchorTick + 1; t <= hi; t++) {
+    running += tickDelta(t - 1, bias, seed);
+    relative.set(t, running);
+  }
+
+  return sampleTicks.map((tick, i) => {
+    if (sampleTimesMs[i] < bot.createdAt.getTime()) return 0;
+    return bot.simulatedPnlPercent + (relative.get(tick) ?? 0);
+  });
 }
 
 export function formatPnl(pct: number): string {
