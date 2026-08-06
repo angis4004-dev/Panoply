@@ -4,7 +4,6 @@ import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 import { Navbar } from '@/components/homepage/navbar';
 import { Hero } from '@/components/homepage/Hero';
-import { PlatformStats } from '@/components/homepage/PlatformStats';
 import { SecuritySection } from '@/components/homepage/SecuritySection';
 import { FeaturesGrid } from '@/components/homepage/FeaturesGrid';
 import { HowItWorks } from '@/components/homepage/HowItWorks';
@@ -86,7 +85,6 @@ export default function HomePage() {
         )}
         <Navbar />
         <Hero />
-        <PlatformStats />
         <SecuritySection />
         <FeaturesGrid />
         <HowItWorks />
