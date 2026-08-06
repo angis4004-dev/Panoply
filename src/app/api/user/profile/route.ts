@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSessionFromRequest } from '@/lib/session';
 import { getUserModel } from '@/lib/models';
 import { grantAchievement } from '@/lib/achievements/engine';
+import { parseBody, updateProfileSchema } from '@/lib/validation';
 
 export async function PATCH(request: NextRequest) {
   const session = await getSessionFromRequest(request);
@@ -9,12 +10,9 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const body = await request.json();
-  const name = typeof body?.name === 'string' ? body.name.trim() : '';
-
-  if (!name) {
-    return NextResponse.json({ error: 'Name is required.' }, { status: 400 });
-  }
+  const { data: body, error: invalid } = await parseBody(request, updateProfileSchema);
+  if (invalid) return invalid;
+  const name = body.name;
 
   const userModel = await getUserModel();
   if (!userModel) {

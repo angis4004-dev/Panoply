@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { signInUser } from '@/lib/auth-store';
-import type { LoginPayload } from '@/types/auth';
 import { setCookie, createPendingPinToken } from '@/lib/session';
+import { parseBody, signInSchema } from '@/lib/validation';
 import {
   checkLimit,
   consumeAttempt,
@@ -22,13 +22,11 @@ const ACCOUNT_LOCKOUT_MS = 30 * 60 * 1000;
 
 export async function POST(request: Request) {
   try {
-    const body = (await request.json()) as LoginPayload;
+    const { data: body, error: invalid } = await parseBody(request, signInSchema);
+    if (invalid) return invalid;
 
-    if (!body?.email || !body?.password) {
-      return NextResponse.json({ error: 'Email and password are required.' }, { status: 400 });
-    }
-
-    const email = body.email.toLowerCase().trim();
+    // Already trimmed and lower-cased by the schema.
+    const email = body.email;
 
     // Two independent limits. The IP+email key stops one client hammering one
     // account; the account counter below stops many clients hammering it

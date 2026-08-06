@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSessionFromRequest } from '@/lib/session';
 import { connectToDatabase } from '@/lib/mongo';
 import { ReportModel } from '@/lib/models/Report';
+import { createReportSchema, parseBody } from '@/lib/validation';
 
 // GET /api/reports - Returns ONLY the reports belonging to the currently logged-in user
 export async function GET(request: NextRequest) {
@@ -52,24 +53,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Parse request body
-    const body = await request.json();
-
-    // Validate required fields
-    const requiredFields = ['title', 'description', 'type'];
-    for (const field of requiredFields) {
-      if (!(field in body)) {
-        return NextResponse.json({ error: `Missing required field: ${field}` }, { status: 400 });
-      }
-    }
-
-    // Validate enum values
-    const validTypes = ['portfolio', 'yield', 'risk', 'performance'];
-    if (!validTypes.includes(body.type)) {
-      return NextResponse.json(
-        { error: `Invalid type. Must be one of: ${validTypes.join(', ')}` },
-        { status: 400 }
-      );
-    }
+    const { data: body, error: invalid } = await parseBody(request, createReportSchema);
+    if (invalid) return invalid;
 
     const validStatuses = ['pending', 'success', 'failed'];
     if (body.status && !validStatuses.includes(body.status)) {

@@ -3,6 +3,7 @@ import { connectToDatabase } from '@/lib/mongo';
 import { MLModelModel } from '@/lib/models/MLModel';
 import { verifyAdminAccess } from '@/lib/auth-middleware';
 import { recordAdminAction } from '@/lib/audit-log';
+import { adminCreateModelSchema, parseBody } from '@/lib/validation';
 
 export async function GET(request: NextRequest) {
   // Verify admin access
@@ -47,29 +48,8 @@ export async function POST(request: NextRequest) {
 
   try {
     // Parse request body
-    const body = await request.json();
-
-    // Validate required fields
-    const requiredFields = ['name', 'scope', 'confidence', 'drift'];
-    for (const field of requiredFields) {
-      if (!(field in body)) {
-        return NextResponse.json({ error: `Missing required field: ${field}` }, { status: 400 });
-      }
-    }
-
-    // Validate enum values
-    const validDrifts = ['stable', 'watch', 'critical'];
-    if (!validDrifts.includes(body.drift)) {
-      return NextResponse.json(
-        { error: `Invalid drift. Must be one of: ${validDrifts.join(', ')}` },
-        { status: 400 }
-      );
-    }
-
-    // Validate confidence range
-    if (body.confidence < 0 || body.confidence > 100) {
-      return NextResponse.json({ error: 'Confidence must be between 0 and 100' }, { status: 400 });
-    }
+    const { data: body, error: invalid } = await parseBody(request, adminCreateModelSchema);
+    if (invalid) return invalid;
 
     const connection = await connectToDatabase();
     if (!connection) {

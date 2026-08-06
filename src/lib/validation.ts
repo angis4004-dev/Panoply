@@ -16,6 +16,19 @@ export interface ValidationFailure {
 }
 
 /**
+ * Turns a zod issue into something worth showing a user.
+ *
+ * An absent field otherwise reports "Invalid input: expected string, received
+ * undefined", which describes the parser's disappointment rather than what the
+ * caller has to do. Every other message comes from the schema and is already
+ * phrased for a person.
+ */
+function describe(issue: z.core.$ZodIssue): string {
+  const missing = issue.code === 'invalid_type' && /received (undefined|null)/.test(issue.message);
+  return missing ? 'is required' : issue.message;
+}
+
+/**
  * Parses and validates a JSON body.
  *
  * Returns either the typed data or a ready-made 400. Errors name the offending
@@ -37,19 +50,19 @@ export async function parseBody<T extends z.ZodType>(
 
   const result = schema.safeParse(raw);
   if (!result.success) {
-    const first = result.error.issues[0];
-    const path = first?.path.join('.');
+    const issues = result.error.issues.map((i) => ({
+      field: i.path.join('.'),
+      message: describe(i),
+    }));
+    const first = issues[0];
     return {
       data: null,
       error: NextResponse.json(
         {
-          error: path ? `${path}: ${first.message}` : first.message,
+          error: first.field ? `${first.field}: ${first.message}` : first.message,
           // Full list so a form can mark several fields at once, while the
           // single message above stays usable for a toast.
-          issues: result.error.issues.map((i) => ({
-            field: i.path.join('.'),
-            message: i.message,
-          })),
+          issues,
         },
         { status: 400 }
       ),
@@ -113,14 +126,59 @@ export const kycSubmissionSchema = z.object({
   documentProvided: z.boolean().optional(),
 });
 
-export const kycDecisionSchema = z
-  .object({
-    action: z.enum(['approve', 'reject']),
+/**
+ * A discriminated union rather than one object with a refinement.
+ *
+ * Both express "a rejection needs a reason", but only this one proves it to
+ * the type checker: after narrowing on `action`, `reason` is a plain string on
+ * the reject branch, so the route cannot reach a `reason.trim()` that the
+ * compiler has to be talked out of worrying about.
+ */
+export const kycDecisionSchema = z.discriminatedUnion('action', [
+  z.object({
+    action: z.literal('approve'),
     reason: z.string().trim().optional(),
+  }),
+  z.object({
+    action: z.literal('reject'),
+    reason: z.string().trim().min(1, 'A rejection reason is required'),
+  }),
+]);
+
+/**
+ * Administrative edits to a user.
+ *
+ * Every field optional - the dashboard PATCHes only what changed - but each
+ * one typed, because this endpoint reaches a wallet balance. `role` is
+ * deliberately absent: privilege changes are not a field edit, and leaving it
+ * out of the schema means a future edit to the route's field map cannot
+ * quietly make it one.
+ */
+export const adminUserUpdateSchema = z
+  .object({
+    name: z.string().trim().min(1, 'is required').optional(),
+    email: email.optional(),
+    risk: z.enum(['Conservative', 'Balanced', 'Aggressive']).optional(),
+    riskProfile: z.enum(['Conservative', 'Balanced', 'Aggressive']).optional(),
+    status: z.enum(['active', 'flagged', 'onboarding', 'suspended']).optional(),
+    bots: z.coerce.number().int().min(0).optional(),
+    value: z.string().optional(),
+    portfolioValue: z.string().optional(),
+    wallet: z.string().trim().optional(),
+    walletAddress: z.string().trim().optional(),
+    notes: z.string().optional(),
+    // Not `dollarAmount`: an admin setting a balance to exactly zero is a
+    // legitimate correction, so this allows 0 where a deposit would not.
+    walletBalance: z.coerce
+      .number({ message: 'must be a number' })
+      .refine(Number.isFinite, 'must be a finite number')
+      .min(0, 'cannot be negative')
+      .optional(),
+    adjustmentReason: z.string().trim().optional(),
   })
-  .refine((v) => v.action !== 'reject' || Boolean(v.reason), {
-    message: 'A rejection reason is required',
-    path: ['reason'],
+  .refine((v) => v.walletBalance === undefined || Boolean(v.adjustmentReason), {
+    message: 'A reason is required when adjusting a wallet balance',
+    path: ['adjustmentReason'],
   });
 
 export const pinSetSchema = z.object({
@@ -136,5 +194,106 @@ export const pinVerifySchema = z.object({
 
 export const signInSchema = z.object({
   email,
+  // No length rule on sign-in. Rejecting a short password here would leak that
+  // the stored one is longer, and the credential check is the only thing that
+  // should decide this.
   password: z.string().min(1, 'is required'),
+});
+
+/** Minimum length lives here so registration and reset cannot disagree. */
+export const newPassword = z.string().min(8, 'must be at least 8 characters long');
+
+export const registerSchema = z.object({
+  email,
+  password: newPassword,
+  fullName: z.string().trim().min(1, 'is required'),
+});
+
+export const forgotPasswordSchema = z.object({
+  email,
+});
+
+export const resetPasswordSchema = z.object({
+  token: z.string().min(1, 'is required'),
+  password: newPassword,
+});
+
+export const verifyEmailSchema = z.object({
+  token: z.string().min(1, 'is required'),
+});
+
+export const createReportSchema = z.object({
+  title: z.string().trim().min(1, 'is required'),
+  description: z.string().trim().min(1, 'is required'),
+  type: z.enum(['portfolio', 'yield', 'risk', 'performance']),
+  status: z.enum(['pending', 'success', 'failed']).optional(),
+  date: z.union([z.string(), z.number()]).optional(),
+  metrics: z.record(z.string(), z.unknown()).optional(),
+  holdings: z.array(z.unknown()).optional(),
+  recommendations: z.array(z.string()).optional(),
+});
+
+/**
+ * One row of the portfolio builder, as submitted.
+ *
+ * Fields are optional and loosely typed on purpose: the route skips unusable
+ * rows rather than rejecting the whole submission, so a single mistyped row
+ * must not discard a long portfolio. The schema's job here is to guarantee the
+ * shape is indexable, not to decide which rows are good.
+ */
+export const builderHoldingSchema = z.object({
+  token: z.string().trim().optional(),
+  amount: z.coerce.number().optional(),
+  price: z.coerce.number().optional(),
+  chain: z.string().trim().optional(),
+});
+
+export const portfolioBuilderSchema = z.object({
+  holdings: z.array(builderHoldingSchema).min(1, 'must contain at least one holding'),
+  // Lower-case here, unlike the User model's capitalised riskProfile - this is
+  // the builder's own vocabulary and the route maps it separately.
+  risk: z.enum(['conservative', 'moderate', 'aggressive']).optional(),
+  targetReturn: z.coerce.number().optional(),
+  maxAllocation: z.coerce.number().optional(),
+});
+
+export const updateProfileSchema = z.object({
+  name: z.string().trim().min(1, 'is required'),
+});
+
+export const TRACKED_SECTIONS = [
+  'overview',
+  'ai',
+  'bots',
+  'vaults',
+  'yield',
+  'builder',
+  'history',
+  'kyc',
+  'settings',
+] as const;
+
+export const visitSectionSchema = z.object({
+  section: z.enum(TRACKED_SECTIONS),
+});
+
+/**
+ * Admin-created flow. Distinct from createBotSchema: this one identifies its
+ * owner by name or email rather than taking it from the session, and carries
+ * no allocatedAmount, because an admin-created flow does not debit a wallet.
+ */
+export const adminCreateBotSchema = z.object({
+  type: z.enum(['Grid', 'DCA', 'Arbitrage', 'Trailing Stop']),
+  pair: z.string().trim().min(1, 'is required'),
+  user: z.string().trim().min(1, 'is required'),
+  confidence: z.coerce.number().min(0).max(100),
+  status: z.enum(['running', 'paused', 'fallback']),
+  pnl: z.string().optional(),
+});
+
+export const adminCreateModelSchema = z.object({
+  name: z.string().trim().min(1, 'is required'),
+  scope: z.string().trim().min(1, 'is required'),
+  confidence: z.coerce.number().min(0).max(100),
+  drift: z.enum(['stable', 'watch', 'critical']),
 });

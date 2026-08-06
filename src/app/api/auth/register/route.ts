@@ -2,23 +2,13 @@ import { NextResponse } from 'next/server';
 import { registerUser, requestEmailVerification } from '@/lib/auth-store';
 import { sendEmail } from '@/lib/email';
 import { grantAchievement } from '@/lib/achievements/engine';
-import type { RegisterPayload } from '@/types/auth';
 import { setCookie } from '@/lib/session';
+import { parseBody, registerSchema } from '@/lib/validation';
 
 export async function POST(request: Request) {
   try {
-    const body = (await request.json()) as RegisterPayload;
-
-    if (!body?.email || !body?.password || !body?.fullName) {
-      return NextResponse.json({ error: 'All fields are required.' }, { status: 400 });
-    }
-
-    if (body.password.length < 8) {
-      return NextResponse.json(
-        { error: 'Password must be at least 8 characters long.' },
-        { status: 400 }
-      );
-    }
+    const { data: body, error: invalid } = await parseBody(request, registerSchema);
+    if (invalid) return invalid;
 
     const result = await registerUser(body);
 

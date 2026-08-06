@@ -3,6 +3,7 @@ import { getUserModel, connectToDatabase } from '@/lib/mongo';
 import { TradingBotModel } from '@/lib/models/TradingBot';
 import { verifyAdminAccess } from '@/lib/auth-middleware';
 import { recordAdminAction } from '@/lib/audit-log';
+import { adminCreateBotSchema, parseBody } from '@/lib/validation';
 
 interface PopulatedUserRef {
   name?: string;
@@ -52,37 +53,8 @@ export async function POST(request: NextRequest) {
 
   try {
     // Parse request body
-    const body = await request.json();
-
-    // Validate required fields
-    const requiredFields = ['type', 'pair', 'user', 'confidence', 'status'];
-    for (const field of requiredFields) {
-      if (!(field in body)) {
-        return NextResponse.json({ error: `Missing required field: ${field}` }, { status: 400 });
-      }
-    }
-
-    // Validate enum values
-    const validTypes = ['Grid', 'DCA', 'Arbitrage', 'Trailing Stop'];
-    if (!validTypes.includes(body.type)) {
-      return NextResponse.json(
-        { error: `Invalid type. Must be one of: ${validTypes.join(', ')}` },
-        { status: 400 }
-      );
-    }
-
-    const validStatuses = ['running', 'paused', 'fallback'];
-    if (!validStatuses.includes(body.status)) {
-      return NextResponse.json(
-        { error: `Invalid status. Must be one of: ${validStatuses.join(', ')}` },
-        { status: 400 }
-      );
-    }
-
-    // Validate confidence range
-    if (body.confidence < 0 || body.confidence > 100) {
-      return NextResponse.json({ error: 'Confidence must be between 0 and 100' }, { status: 400 });
-    }
+    const { data: body, error: invalid } = await parseBody(request, adminCreateBotSchema);
+    if (invalid) return invalid;
 
     // Find user by name or email to get ObjectId
     const userModel = await getUserModel();

@@ -1,23 +1,13 @@
 import { NextResponse } from 'next/server';
 import { resetPassword } from '@/lib/auth-store';
+import { parseBody, resetPasswordSchema } from '@/lib/validation';
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { token, password } = body ?? {};
+    const { data: body, error: invalid } = await parseBody(request, resetPasswordSchema);
+    if (invalid) return invalid;
 
-    if (!token || typeof token !== 'string') {
-      return NextResponse.json({ error: 'Reset token is required.' }, { status: 400 });
-    }
-
-    if (!password || typeof password !== 'string' || password.length < 8) {
-      return NextResponse.json(
-        { error: 'Password must be at least 8 characters long.' },
-        { status: 400 }
-      );
-    }
-
-    await resetPassword(token, password);
+    await resetPassword(body.token, body.password);
 
     return NextResponse.json({ message: 'Password updated. You can now sign in.' });
   } catch (error) {

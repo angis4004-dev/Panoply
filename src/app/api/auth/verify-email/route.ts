@@ -1,17 +1,14 @@
 import { NextResponse } from 'next/server';
 import { verifyEmailToken } from '@/lib/auth-store';
 import { grantAchievement } from '@/lib/achievements/engine';
+import { parseBody, verifyEmailSchema } from '@/lib/validation';
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const token = body?.token;
+    const { data: body, error: invalid } = await parseBody(request, verifyEmailSchema);
+    if (invalid) return invalid;
 
-    if (!token || typeof token !== 'string') {
-      return NextResponse.json({ error: 'Token is required.' }, { status: 400 });
-    }
-
-    const result = await verifyEmailToken(token);
+    const result = await verifyEmailToken(body.token);
     if (!result) {
       return NextResponse.json(
         { error: 'This verification link is invalid or has expired.' },

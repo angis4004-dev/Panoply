@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requestPasswordReset } from '@/lib/auth-store';
 import { sendEmail } from '@/lib/email';
+import { forgotPasswordSchema, parseBody } from '@/lib/validation';
 
 // Always return this exact message, whether or not the email has an account,
 // so this endpoint can't be used to enumerate registered users.
@@ -8,12 +9,9 @@ const GENERIC_MESSAGE = 'If an account exists for that email, a reset link has b
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const email = body?.email;
-
-    if (!email || typeof email !== 'string') {
-      return NextResponse.json({ error: 'Email is required.' }, { status: 400 });
-    }
+    const { data: body, error: invalid } = await parseBody(request, forgotPasswordSchema);
+    if (invalid) return invalid;
+    const email = body.email;
 
     const token = await requestPasswordReset(email);
 

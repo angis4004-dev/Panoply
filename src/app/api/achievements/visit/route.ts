@@ -2,18 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSessionFromRequest } from '@/lib/session';
 import { getUserModel } from '@/lib/models';
 import { grantAchievement } from '@/lib/achievements/engine';
-
-const TRACKED_SECTIONS = [
-  'overview',
-  'ai',
-  'bots',
-  'vaults',
-  'yield',
-  'builder',
-  'history',
-  'kyc',
-  'settings',
-] as const;
+// Single definition, shared with the schema that validates the section name -
+// the list and the thing that checks against it cannot drift apart.
+import { parseBody, TRACKED_SECTIONS, visitSectionSchema } from '@/lib/validation';
 
 export async function POST(request: NextRequest) {
   const session = await getSessionFromRequest(request);
@@ -21,15 +12,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const body = await request.json();
-  const section = body?.section;
-
-  if (
-    typeof section !== 'string' ||
-    !TRACKED_SECTIONS.includes(section as (typeof TRACKED_SECTIONS)[number])
-  ) {
-    return NextResponse.json({ error: 'Invalid section' }, { status: 400 });
-  }
+  const { data: body, error: invalid } = await parseBody(request, visitSectionSchema);
+  if (invalid) return invalid;
+  const section = body.section;
 
   const userModel = await getUserModel();
   if (!userModel) {

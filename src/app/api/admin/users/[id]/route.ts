@@ -6,6 +6,7 @@ import { getSessionFromRequest } from '@/lib/session';
 import { getBalanceMinor, post, UserNotFoundError } from '@/lib/ledger';
 import { InvalidAmountError, toDollars, toMinor } from '@/lib/money';
 import { recordAdminAction } from '@/lib/audit-log';
+import { adminUserUpdateSchema, objectId, parseBody } from '@/lib/validation';
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   // Verify admin access
@@ -15,13 +16,12 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   try {
     const { id } = await params;
 
-    // Parse request body
-    const updates = await request.json();
-
-    // Validate ObjectId
-    if (!/^[0-9a-fA-F]{24}$/.test(id)) {
+    if (!objectId.safeParse(id).success) {
       return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 });
     }
+
+    const { data: updates, error: invalid } = await parseBody(request, adminUserUpdateSchema);
+    if (invalid) return invalid;
 
     const userModel = await getUserModel();
     if (!userModel) {

@@ -5,6 +5,7 @@ import { getSessionFromRequest } from '@/lib/session';
 import { withLedger } from '@/lib/ledger';
 import { toDollars, toMinor } from '@/lib/money';
 import { applyPendingTicks, formatPnl } from '@/lib/bot-pnl';
+import { objectId, parseBody, updateBotSchema } from '@/lib/validation';
 
 // PATCH /api/bots/[id] - Update a bot the logged-in user owns (e.g. toggle status)
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -15,7 +16,12 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     }
 
     const { id } = await params;
-    const body = await request.json();
+    if (!objectId.safeParse(id).success) {
+      return NextResponse.json({ error: 'Invalid bot id' }, { status: 400 });
+    }
+
+    const { data: body, error: invalid } = await parseBody(request, updateBotSchema);
+    if (invalid) return invalid;
 
     const connection = await connectToDatabase();
     if (!connection) {
@@ -32,13 +38,6 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     }
 
     if (body.status) {
-      const validStatuses = ['running', 'paused', 'fallback'];
-      if (!validStatuses.includes(body.status)) {
-        return NextResponse.json(
-          { error: `Invalid status. Must be one of: ${validStatuses.join(', ')}` },
-          { status: 400 }
-        );
-      }
       // Resuming into 'running' resets the tick anchor to now. Without this,
       // a flow paused for hours would book one giant catch-up burst of ticks
       // the instant it resumes, since the earnings tick engine (bot-pnl.ts)
@@ -51,12 +50,6 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     }
 
     if (body.confidence !== undefined) {
-      if (body.confidence < 0 || body.confidence > 100) {
-        return NextResponse.json(
-          { error: 'Confidence must be between 0 and 100' },
-          { status: 400 }
-        );
-      }
       bot.confidence = body.confidence;
     }
 

@@ -4,6 +4,7 @@ import { verifyAdminAccess } from '@/lib/auth-middleware';
 import { grantAchievement, recalculateTier } from '@/lib/achievements/engine';
 import { decryptPii, isEncrypted, maskFromLastFour } from '@/lib/pii-crypto';
 import { recordAdminAction } from '@/lib/audit-log';
+import { kycDecisionSchema, parseBody } from '@/lib/validation';
 
 /**
  * GET /api/admin/kyc/[id] - Full submission for one user, including the
@@ -81,19 +82,16 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 });
     }
 
-    const body = await request.json();
-    const { action, reason } = body;
+    // The schema carries the "a rejection needs a reason" rule, so it cannot
+    // be satisfied here and forgotten on some future second decision endpoint.
+    const { data: body, error: invalid } = await parseBody(request, kycDecisionSchema);
+    if (invalid) return invalid;
 
-    if (action !== 'approve' && action !== 'reject') {
-      return NextResponse.json(
-        { error: "Invalid action. Must be 'approve' or 'reject'" },
-        { status: 400 }
-      );
-    }
-
-    if (action === 'reject' && (!reason || typeof reason !== 'string' || !reason.trim())) {
-      return NextResponse.json({ error: 'A rejection reason is required' }, { status: 400 });
-    }
+    // Narrowed here rather than destructured, so `reason` stays a plain string
+    // on the reject branch instead of an optional the compiler has to be
+    // reassured about at each use.
+    const action = body.action;
+    const rejectionReason = body.action === 'reject' ? body.reason.trim() : null;
 
     const userModel = await getUserModel();
     if (!userModel) {
@@ -108,7 +106,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         {
           $set: {
             kycStatus: action === 'approve' ? 'verified' : 'rejected',
-            kycRejectionReason: action === 'reject' ? reason.trim() : null,
+            kycRejectionReason: rejectionReason,
           },
         },
         { new: true, runValidators: true }
@@ -129,7 +127,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       targetId: id,
       before: { kycStatus: previous?.kycStatus ?? 'unverified' },
       after: { kycStatus: updated.kycStatus },
-      reason: action === 'reject' ? reason.trim() : '',
+      reason: rejectionReason ?? '',
     });
 
     if (action === 'approve') {

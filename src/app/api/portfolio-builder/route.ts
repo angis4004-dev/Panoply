@@ -12,6 +12,7 @@ import {
   type Tier,
 } from '@/lib/achievements/engine';
 import { BRAND_COLORS } from '@/lib/brand-colors';
+import { parseBody, portfolioBuilderSchema } from '@/lib/validation';
 import { AEGIS_LOGO_BASE64 } from '@/lib/email-logo';
 
 // Text/background pairs per risk profile, drawn from the app's real brand
@@ -395,12 +396,8 @@ export async function POST(request: Request) {
     const existingAssets = dbUser.distinctPortfolioAssets || [];
     const existingReportCount = dbUser.portfolioReportCount || 0;
 
-    const body = await request.json();
-
-    // Validate required fields
-    if (!body.holdings || !Array.isArray(body.holdings)) {
-      return NextResponse.json({ error: 'Invalid holdings data' }, { status: 400 });
-    }
+    const { data: body, error: invalid } = await parseBody(request, portfolioBuilderSchema);
+    if (invalid) return invalid;
 
     // Validate each holding
     const validatedHoldings: Holding[] = [];
@@ -411,10 +408,12 @@ export async function POST(request: Request) {
         continue; // Skip invalid holdings
       }
 
-      const amount = parseFloat(holding.amount);
-      const price = parseFloat(holding.price);
+      // Already coerced to numbers by the schema; the guard above rejected
+      // anything missing or zero.
+      const amount = holding.amount;
+      const price = holding.price;
 
-      if (isNaN(amount) || isNaN(price) || amount <= 0 || price <= 0) {
+      if (!Number.isFinite(amount) || !Number.isFinite(price) || amount <= 0 || price <= 0) {
         continue;
       }
 
@@ -446,11 +445,9 @@ export async function POST(request: Request) {
       moderate: 6.2,
       aggressive: 8.8,
     };
-    const riskProfile: RiskProfile = (['conservative', 'moderate', 'aggressive'] as const).includes(
-      body.risk
-    )
-      ? (body.risk as RiskProfile)
-      : 'moderate';
+    // The schema already restricts this to the three valid values, so the
+    // runtime membership check it used to need is now just a default.
+    const riskProfile: RiskProfile = body.risk ?? 'moderate';
     const riskScore = riskScoreMap[riskProfile] || 6.2;
 
     // Calculate volatility based on risk profile
