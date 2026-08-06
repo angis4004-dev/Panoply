@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSessionFromRequest } from '@/lib/session';
 import { getUserModel } from '@/lib/models';
 import { encryptPii, lastFour, maskFromLastFour, PiiCryptoError } from '@/lib/pii-crypto';
-
-const ID_TYPES = ['passport', 'drivers_license', 'national_id'];
+import { kycSubmissionSchema, parseBody } from '@/lib/validation';
 
 // GET /api/kyc - Returns the current user's KYC status and submitted info
 export async function GET(request: NextRequest) {
@@ -48,22 +47,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const body = await request.json();
+  const { data: body, error: invalid } = await parseBody(request, kycSubmissionSchema);
+  if (invalid) return invalid;
   const { fullName, dateOfBirth, country, idType, idNumber, documentProvided } = body;
-
-  const requiredFields = { fullName, dateOfBirth, country, idType, idNumber };
-  for (const [field, value] of Object.entries(requiredFields)) {
-    if (!value || typeof value !== 'string' || !value.trim()) {
-      return NextResponse.json({ error: `Missing required field: ${field}` }, { status: 400 });
-    }
-  }
-
-  if (!ID_TYPES.includes(idType)) {
-    return NextResponse.json(
-      { error: `Invalid idType. Must be one of: ${ID_TYPES.join(', ')}` },
-      { status: 400 }
-    );
-  }
 
   const userModel = await getUserModel();
   if (!userModel) {

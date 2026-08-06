@@ -4,6 +4,7 @@ import { getUserModel } from '@/lib/models';
 import { recalculateTier } from '@/lib/achievements/engine';
 import { credit, getBalanceMinor, UserNotFoundError } from '@/lib/ledger';
 import { InvalidAmountError, toDollars, toPositiveMinor } from '@/lib/money';
+import { depositSchema, parseBody } from '@/lib/validation';
 
 // GET /api/wallet - Returns the current user's wallet balance
 export async function GET(request: NextRequest) {
@@ -34,7 +35,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const body = await request.json();
+  const { data: body, error: invalid } = await parseBody(request, depositSchema);
+  if (invalid) return invalid;
 
   let amountMinor: number;
   try {

@@ -9,6 +9,7 @@ import { recordSnapshotIfDue } from '@/lib/portfolio-snapshot';
 import { computeTier, grantAchievement, TIER_SLOT_LIMITS } from '@/lib/achievements/engine';
 import { InsufficientFundsError, withLedger } from '@/lib/ledger';
 import { InvalidAmountError, toDollars, toPositiveMinor } from '@/lib/money';
+import { createBotSchema, parseBody } from '@/lib/validation';
 
 // GET /api/bots - Returns ONLY the bots belonging to the currently logged-in user
 export async function GET(request: NextRequest) {
@@ -89,16 +90,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Parse request body
-    const body = await request.json();
-
-    // Validate required fields
-    const requiredFields = ['type', 'pair', 'confidence', 'status', 'allocatedAmount'];
-    for (const field of requiredFields) {
-      if (!(field in body)) {
-        return NextResponse.json({ error: `Missing required field: ${field}` }, { status: 400 });
-      }
-    }
+    // Shape, types, enums and ranges are all described once in
+    // createBotSchema; only the cent conversion is left to do here.
+    const { data: body, error: invalid } = await parseBody(request, createBotSchema);
+    if (invalid) return invalid;
 
     let allocatedMinor: number;
     try {
@@ -113,28 +108,6 @@ export async function POST(request: NextRequest) {
     // percentages against it; deriving it from the minor amount keeps it exact
     // to the cent rather than trusting whatever precision the client sent.
     const allocatedAmount = toDollars(allocatedMinor);
-
-    // Validate enum values
-    const validTypes = ['Grid', 'DCA', 'Arbitrage', 'Trailing Stop'];
-    if (!validTypes.includes(body.type)) {
-      return NextResponse.json(
-        { error: `Invalid type. Must be one of: ${validTypes.join(', ')}` },
-        { status: 400 }
-      );
-    }
-
-    const validStatuses = ['running', 'paused', 'fallback'];
-    if (!validStatuses.includes(body.status)) {
-      return NextResponse.json(
-        { error: `Invalid status. Must be one of: ${validStatuses.join(', ')}` },
-        { status: 400 }
-      );
-    }
-
-    // Validate confidence range
-    if (body.confidence < 0 || body.confidence > 100) {
-      return NextResponse.json({ error: 'Confidence must be between 0 and 100' }, { status: 400 });
-    }
 
     // Get userId from session (now properly authenticated)
     const userId = session.user.id;

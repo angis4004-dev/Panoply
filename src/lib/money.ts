@@ -43,7 +43,13 @@ export function toMinor(dollars: unknown): number {
     throw new InvalidAmountError('Amount must be a finite number.');
   }
 
-  const minor = Math.round(value * MINOR_UNITS_PER_DOLLAR);
+  // toPrecision before rounding, because the multiplication itself introduces
+  // error: 1.005 * 100 is 100.49999999999999 and 2.675 * 100 is
+  // 267.49999999999994, so a plain Math.round silently loses a cent on inputs
+  // a user would write by hand. Fifteen significant digits is comfortably
+  // inside a double's ~15-17 digit precision, so this recovers the intended
+  // decimal value without inventing one.
+  const minor = Math.round(Number((value * MINOR_UNITS_PER_DOLLAR).toPrecision(15)));
   if (!Number.isSafeInteger(minor)) {
     throw new InvalidAmountError('Amount is too large to represent exactly.');
   }

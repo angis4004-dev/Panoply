@@ -48,6 +48,13 @@ export interface IUser extends Document {
    */
   pinFailedAttempts: number;
   pinLockedUntil?: Date | null;
+  /**
+   * Password attempt counter, keyed to the account rather than the caller.
+   * x-forwarded-for is client-controlled, so an IP-only limit is defeated by
+   * rotating it; this one cannot be.
+   */
+  loginFailedAttempts: number;
+  loginLockedUntil?: Date | null;
   // KYC / identity verification (UI-only — no third-party provider)
   kycStatus: 'unverified' | 'pending' | 'verified' | 'rejected';
   kycSubmittedAt?: Date;
@@ -121,6 +128,8 @@ const UserSchema = new Schema<IUser>(
     pinSetAt: { type: Date },
     pinFailedAttempts: { type: Number, default: 0, min: 0 },
     pinLockedUntil: { type: Date, default: null },
+    loginFailedAttempts: { type: Number, default: 0, min: 0 },
+    loginLockedUntil: { type: Date, default: null },
     // KYC / identity verification (UI-only — no third-party provider)
     kycStatus: {
       type: String,

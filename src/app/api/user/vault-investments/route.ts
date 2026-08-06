@@ -5,6 +5,7 @@ import { VaultModel } from '@/lib/models/Vault';
 import { UserVaultInvestmentModel } from '@/lib/models/UserVaultInvestment';
 import { InsufficientFundsError, withLedger } from '@/lib/ledger';
 import { InvalidAmountError, toDollars, toPositiveMinor } from '@/lib/money';
+import { parseBody, vaultInvestmentSchema } from '@/lib/validation';
 
 interface PopulatedVaultRef {
   _id: { toString(): string };
@@ -71,17 +72,13 @@ export async function POST(request: NextRequest) {
 
     const userId = session.user.id;
 
-    const body = await request.json();
-    const { vaultId, amount } = body;
-
-    // Validate required fields
-    if (!vaultId) {
-      return NextResponse.json({ error: 'Vault ID is required' }, { status: 400 });
-    }
+    const { data: body, error: invalid } = await parseBody(request, vaultInvestmentSchema);
+    if (invalid) return invalid;
+    const { vaultId } = body;
 
     let amountMinor: number;
     try {
-      amountMinor = toPositiveMinor(amount);
+      amountMinor = toPositiveMinor(body.amount);
     } catch (error) {
       if (error instanceof InvalidAmountError) {
         return NextResponse.json({ error: error.message }, { status: 400 });

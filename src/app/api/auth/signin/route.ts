@@ -2,11 +2,23 @@ import { NextResponse } from 'next/server';
 import { signInUser } from '@/lib/auth-store';
 import type { LoginPayload } from '@/types/auth';
 import { setCookie, createPendingPinToken } from '@/lib/session';
-import { isRateLimited, recordAttempt, resetRateLimit, getClientIp } from '@/lib/rate-limit';
+import {
+  checkLimit,
+  consumeAttempt,
+  formatRetryAfter,
+  getClientIp,
+  resetRateLimit,
+} from '@/lib/rate-limit';
 import { getUserModel } from '@/lib/models';
 
 const MAX_ATTEMPTS = 5;
 const WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+
+// Per-account limits are deliberately looser than the per-IP ones. They exist
+// to stop distributed guessing, not to be the first thing a forgetful user
+// hits, and locking an account is a denial of service against its owner.
+const MAX_ACCOUNT_ATTEMPTS = 10;
+const ACCOUNT_LOCKOUT_MS = 30 * 60 * 1000;
 
 export async function POST(request: Request) {
   try {
@@ -16,25 +28,77 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Email and password are required.' }, { status: 400 });
     }
 
-    // Key on IP + email so a typo-prone legitimate user isn't locked out by
-    // someone else's failed attempts against their address, while still
-    // capping how many guesses one client can throw at one account.
-    const rateLimitKey = `${getClientIp(request)}:${body.email.toLowerCase().trim()}`;
-    if (isRateLimited(rateLimitKey, MAX_ATTEMPTS, WINDOW_MS)) {
+    const email = body.email.toLowerCase().trim();
+
+    // Two independent limits. The IP+email key stops one client hammering one
+    // account; the account counter below stops many clients hammering it
+    // together, which the IP key cannot see because x-forwarded-for is
+    // client-controlled and freely rotated.
+    const rateLimitKey = `signin:${getClientIp(request)}:${email}`;
+    const ipLimit = await checkLimit(rateLimitKey, MAX_ATTEMPTS, WINDOW_MS);
+    if (ipLimit.limited) {
       return NextResponse.json(
-        { error: 'Too many login attempts. Please try again in 15 minutes.' },
+        {
+          error: `Too many login attempts. Please try again in ${formatRetryAfter(ipLimit.retryAfterMs)}.`,
+        },
         { status: 429 }
       );
+    }
+
+    const userModelForLock = await getUserModel();
+    const lockedAccount = userModelForLock
+      ? await userModelForLock
+          .findOne({ email })
+          .select('loginFailedAttempts loginLockedUntil')
+          .lean()
+      : null;
+
+    if (lockedAccount?.loginLockedUntil) {
+      const remaining = new Date(lockedAccount.loginLockedUntil).getTime() - Date.now();
+      if (remaining > 0) {
+        return NextResponse.json(
+          {
+            error: `This account is temporarily locked after repeated failed sign-ins. Try again in ${formatRetryAfter(remaining)}.`,
+          },
+          { status: 429 }
+        );
+      }
     }
 
     let result;
     try {
       result = await signInUser(body);
     } catch (err) {
-      recordAttempt(rateLimitKey, WINDOW_MS);
+      await consumeAttempt(rateLimitKey, MAX_ATTEMPTS, WINDOW_MS);
+
+      if (userModelForLock) {
+        // Scoped to an existing account: incrementing on unknown addresses
+        // would turn this into a way to probe which emails are registered.
+        const updated = await userModelForLock
+          .findOneAndUpdate({ email }, { $inc: { loginFailedAttempts: 1 } }, { new: true })
+          .select('loginFailedAttempts')
+          .lean();
+
+        if (updated && (updated.loginFailedAttempts ?? 0) >= MAX_ACCOUNT_ATTEMPTS) {
+          await userModelForLock.updateOne(
+            { email },
+            {
+              $set: { loginLockedUntil: new Date(Date.now() + ACCOUNT_LOCKOUT_MS) },
+              loginFailedAttempts: 0,
+            }
+          );
+        }
+      }
       throw err;
     }
-    resetRateLimit(rateLimitKey);
+
+    await resetRateLimit(rateLimitKey);
+    if (userModelForLock) {
+      await userModelForLock.updateOne(
+        { email },
+        { $set: { loginFailedAttempts: 0, loginLockedUntil: null } }
+      );
+    }
 
     // The password alone no longer produces a session. It produces a
     // short-lived token whose only use is the PIN endpoints, so a stolen

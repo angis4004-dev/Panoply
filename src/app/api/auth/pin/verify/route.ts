@@ -10,6 +10,7 @@ import {
   PIN_LOCKOUT_MS,
   verifyPin,
 } from '@/lib/pin';
+import { parseBody, pinVerifySchema } from '@/lib/validation';
 
 /**
  * POST /api/auth/pin/verify - Exchanges a correct PIN for a session.
@@ -22,8 +23,9 @@ import {
  */
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { pendingToken, pin } = body ?? {};
+    const { data: body, error: invalid } = await parseBody(request, pinVerifySchema);
+    if (invalid) return invalid;
+    const { pendingToken, pin } = body;
 
     const userId = verifyPendingPinToken(pendingToken);
     if (!userId) {

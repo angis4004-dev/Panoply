@@ -3,6 +3,7 @@ import type { PortfolioReport, Holding, RiskProfile } from '@/lib/types';
 import { Resend } from 'resend';
 import { getSessionFromRequest } from '@/lib/session';
 import { getUserModel } from '@/lib/models';
+import { consumeAttempt } from '@/lib/rate-limit';
 import {
   computeTier,
   grantAchievement,
@@ -67,33 +68,21 @@ async function sendEmailReport(email: string, htmlContent: string): Promise<bool
   }
 }
 
-// In-memory rate limiting store (in production, use Redis)
-const rateLimitStore = new Map();
+// Three reports per address per 24 hours. This one sends email, so an
+// ineffective limit is not just wasted compute - it is a way to have the
+// platform deliver mail to an arbitrary address repeatedly. The previous
+// in-process Map reset on every deploy and did not span instances; the shared
+// store in lib/rate-limit.ts does both.
+const REPORTS_PER_DAY = 3;
+const REPORT_WINDOW_MS = 24 * 60 * 60 * 1000;
 
-// Check if user has exceeded rate limit (3 reports per 24 hours)
-function checkRateLimit(email: string): boolean {
-  const now = Date.now();
-  const windowMs = 24 * 60 * 60 * 1000; // 24 hours
-
-  if (!rateLimitStore.has(email)) {
-    rateLimitStore.set(email, []);
-  }
-
-  const timestamps = rateLimitStore.get(email)!;
-
-  // Remove timestamps older than 24 hours
-  const validTimestamps = timestamps.filter((timestamp) => now - timestamp < windowMs);
-
-  // Check if limit exceeded
-  if (validTimestamps.length >= 3) {
-    return false;
-  }
-
-  // Add current timestamp and update store
-  validTimestamps.push(now);
-  rateLimitStore.set(email, validTimestamps);
-
-  return true;
+async function checkRateLimit(email: string): Promise<boolean> {
+  const result = await consumeAttempt(
+    `report:${email.toLowerCase().trim()}`,
+    REPORTS_PER_DAY,
+    REPORT_WINDOW_MS
+  );
+  return !result.limited;
 }
 
 // A metrics-grid <div> laid out with CSS Grid doesn't survive most mail
@@ -527,7 +516,7 @@ export async function POST(request: Request) {
     };
 
     // Check rate limit
-    if (!checkRateLimit(report.email)) {
+    if (!(await checkRateLimit(report.email))) {
       return NextResponse.json(
         { error: 'Rate limit exceeded. Maximum 3 reports per 24 hours.' },
         { status: 429 }

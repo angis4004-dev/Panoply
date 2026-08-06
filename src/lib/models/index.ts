@@ -9,6 +9,7 @@ export { UserAchievementModel } from './UserAchievement';
 export { PortfolioSnapshotModel } from './PortfolioSnapshot';
 export { LedgerEntryModel } from './LedgerEntry';
 export { AdminAuditLogModel } from './AdminAuditLog';
+export { RateLimitBucketModel } from './RateLimitBucket';
 export type { ILedgerEntry, LedgerEntryType } from './LedgerEntry';
 
 // Import User model from mongo.ts

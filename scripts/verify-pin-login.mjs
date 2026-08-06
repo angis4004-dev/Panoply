@@ -97,7 +97,11 @@ async function main() {
     let r = await post('/api/auth/signin', { email: EMAIL, password: PASSWORD });
     const first = await r.json();
     check('password accepted', r.status, 200);
-    check('no session cookie issued', /auth_session=[^;]/.test(r.headers.get('set-cookie') || ''), false);
+    check(
+      'no session cookie issued',
+      /auth_session=[^;]/.test(r.headers.get('set-cookie') || ''),
+      false
+    );
     check('pin setup demanded for new account', first.pinSetupRequired, true);
     check('pending token returned', Boolean(first.pendingToken), true);
 
@@ -147,7 +151,9 @@ async function main() {
     check('session issued after setting PIN', /auth_session=[^;]/.test(setCookieHeader), true);
 
     const cookie = setCookieHeader.match(/auth_session=([^;]+)/)[1];
-    const wallet = await fetch(`${BASE}/api/wallet`, { headers: { cookie: `auth_session=${cookie}` } });
+    const wallet = await fetch(`${BASE}/api/wallet`, {
+      headers: { cookie: `auth_session=${cookie}` },
+    });
     check('session works', wallet.status, 200);
 
     const stored = await users.findOne({ _id: insertedId });
@@ -170,11 +176,19 @@ async function main() {
 
     r = await post('/api/auth/pin/verify', { pendingToken: second.pendingToken, pin: WRONG_PIN });
     check('wrong PIN rejected', r.status, 401);
-    check('no session on wrong PIN', /auth_session=[^;]/.test(r.headers.get('set-cookie') || ''), false);
+    check(
+      'no session on wrong PIN',
+      /auth_session=[^;]/.test(r.headers.get('set-cookie') || ''),
+      false
+    );
 
     r = await post('/api/auth/pin/verify', { pendingToken: second.pendingToken, pin: GOOD_PIN });
     check('correct PIN accepted', r.status, 200);
-    check('attempt counter reset on success', (await users.findOne({ _id: insertedId })).pinFailedAttempts, 0);
+    check(
+      'attempt counter reset on success',
+      (await users.findOne({ _id: insertedId })).pinFailedAttempts,
+      0
+    );
 
     // --- Lockout ---------------------------------------------------------
     console.info('\n=== LOCKOUT ===');
@@ -183,7 +197,8 @@ async function main() {
 
     let lastStatus = 0;
     for (let i = 0; i < 5; i++) {
-      lastStatus = (await post('/api/auth/pin/verify', { pendingToken: third, pin: WRONG_PIN })).status;
+      lastStatus = (await post('/api/auth/pin/verify', { pendingToken: third, pin: WRONG_PIN }))
+        .status;
     }
     check('locks after 5 wrong attempts', lastStatus, 429);
 
@@ -195,7 +210,10 @@ async function main() {
 
     // --- Expired pending token -------------------------------------------
     console.info('\n=== PENDING TOKEN ===');
-    r = await post('/api/auth/pin/verify', { pendingToken: 'pinpending.forged.deadbeef', pin: GOOD_PIN });
+    r = await post('/api/auth/pin/verify', {
+      pendingToken: 'pinpending.forged.deadbeef',
+      pin: GOOD_PIN,
+    });
     check('forged pending token refused', r.status, 401);
     r = await post('/api/auth/pin/verify', { pendingToken: cookie, pin: GOOD_PIN });
     check('a real session is not a pending token', r.status, 401);

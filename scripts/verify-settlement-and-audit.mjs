@@ -14,6 +14,7 @@
  *   node scripts/verify-settlement-and-audit.mjs
  */
 
+import crypto from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -46,6 +47,42 @@ function check(label, actual, expected) {
   console.info(`  ${ok ? 'PASS' : 'FAIL'}  ${label.padEnd(48)} ${actual} (expected ${expected})`);
 }
 
+/**
+ * Fixed PIN for the seeded development accounts.
+ *
+ * Sign-in is now two steps, so this script has to complete the second one. On
+ * an account with no PIN yet it sets this value; afterwards it verifies with
+ * it. Only ever applied to the seeded dev accounts, whose credentials are in
+ * the repository already.
+ */
+const DEV_PIN = '493827';
+
+/**
+ * Writes a known PIN hash straight to the account.
+ *
+ * Without this the script depends on whether a previous run happened to set a
+ * PIN, and a re-run then fails on the fifth attempt with the account locked -
+ * a verification script that can leave the system worse than it found it is
+ * not much of a verification script. Also clears any lock left behind.
+ */
+async function ensureKnownPin(users, email) {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const key = crypto.pbkdf2Sync(DEV_PIN, salt, 100000, 64, 'sha512').toString('hex');
+  await users.updateOne(
+    { email },
+    {
+      $set: {
+        pinHash: `${salt}:${key}`,
+        pinSetAt: new Date(),
+        pinFailedAttempts: 0,
+        pinLockedUntil: null,
+        loginFailedAttempts: 0,
+        loginLockedUntil: null,
+      },
+    }
+  );
+}
+
 async function signIn({ email, password }) {
   const r = await fetch(`${BASE}/api/auth/signin`, {
     method: 'POST',
@@ -53,7 +90,32 @@ async function signIn({ email, password }) {
     body: JSON.stringify({ email, password }),
   });
   if (!r.ok) throw new Error(`sign-in failed for ${email}: ${r.status} ${await r.text()}`);
-  return (r.headers.get('set-cookie') || '').match(/auth_session=([^;]+)/)[1];
+
+  const first = await r.json();
+  const direct = (r.headers.get('set-cookie') || '').match(/auth_session=([^;]+)/);
+  if (direct) return direct[1];
+
+  if (!first.pendingToken) {
+    throw new Error(`sign-in for ${email} returned neither a session nor a pending token`);
+  }
+
+  const endpoint = first.pinSetupRequired ? '/api/auth/pin/set' : '/api/auth/pin/verify';
+  const body = first.pinSetupRequired
+    ? { pendingToken: first.pendingToken, pin: DEV_PIN, confirmPin: DEV_PIN }
+    : { pendingToken: first.pendingToken, pin: DEV_PIN };
+
+  const second = await fetch(`${BASE}${endpoint}`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!second.ok) {
+    throw new Error(`PIN step failed for ${email}: ${second.status} ${await second.text()}`);
+  }
+
+  const match = (second.headers.get('set-cookie') || '').match(/auth_session=([^;]+)/);
+  if (!match) throw new Error(`PIN step for ${email} issued no session cookie`);
+  return match[1];
 }
 
 const jsonReq = (cookie, path, method, body, extraHeaders = {}) =>
@@ -83,6 +145,8 @@ async function main() {
   const audits = db.collection('adminauditlogs');
 
   const trader = await users.findOne({ email: TRADER.email });
+  await ensureKnownPin(users, TRADER.email);
+  await ensureKnownPin(users, ADMIN.email);
 
   // --- Settlement -------------------------------------------------------
   console.info('\n=== P&L SETTLEMENT ON CLOSE ===');

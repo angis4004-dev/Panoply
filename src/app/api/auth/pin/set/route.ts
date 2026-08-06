@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getUserModel } from '@/lib/models';
 import { setCookie, verifyPendingPinToken } from '@/lib/session';
 import { hashPin, isValidPinFormat, isWeakPin, PIN_LENGTH } from '@/lib/pin';
+import { parseBody, pinSetSchema } from '@/lib/validation';
 
 /**
  * POST /api/auth/pin/set - Sets a PIN for an account that has none, and
@@ -15,8 +16,9 @@ import { hashPin, isValidPinFormat, isWeakPin, PIN_LENGTH } from '@/lib/pin';
  */
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { pendingToken, pin, confirmPin } = body ?? {};
+    const { data: body, error: invalid } = await parseBody(request, pinSetSchema);
+    if (invalid) return invalid;
+    const { pendingToken, pin, confirmPin } = body;
 
     const userId = verifyPendingPinToken(pendingToken);
     if (!userId) {
