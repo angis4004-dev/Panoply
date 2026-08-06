@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect } from 'react';
-import AppLogo from '@/components/ui/AppLogo';
 import LoadingBars from '@/components/ui/loading-bars';
 
 export default function Error({
@@ -17,7 +16,6 @@ export default function Error({
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-[#0A0E13] p-6 text-center">
-      <AppLogo size={44} />
       <LoadingBars />
       <div className="max-w-sm space-y-2">
         <h1 className="text-lg font-bold text-[#E7ECF2]">Aegis is temporarily unavailable</h1>

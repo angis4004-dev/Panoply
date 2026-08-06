@@ -1,5 +1,5 @@
 import { Reveal } from '@/components/ui/Reveal';
-import { TVL_USD, USERS, STRATEGY_COUNT, AS_OF } from '@/lib/platform-stats';
+import { TVL_USD, USERS, STRATEGY_COUNT } from '@/lib/platform-stats';
 
 /**
  * Social proof band, sitting directly under the hero.
@@ -7,11 +7,10 @@ import { TVL_USD, USERS, STRATEGY_COUNT, AS_OF } from '@/lib/platform-stats';
  * Three figures only. A fourth "volume" stat was requested but deliberately
  * omitted - see the note in lib/platform-stats.ts.
  *
- * The `as of` line is not decoration. An undated figure on a page soliciting
- * deposits invites exactly the scepticism the band is meant to answer, and
- * stating when it was measured costs one line of small text.
- *
- * The audit attribution that used to sit here now lives on /about.
+ * Figures only - no caption. The audit attribution and the "as of" date that
+ * used to sit under the band were both removed; the audit now lives on /about,
+ * where there is room to say what was reviewed. AS_OF is still exported from
+ * lib/platform-stats.ts as the record of when these were measured.
  */
 
 const stats = [
@@ -70,12 +69,6 @@ export function PlatformStats() {
             ))}
           </dl>
         </Reveal>
-
-        {/* The "as of" line stays: a figure with no date is a claim without a
-            reference point. The audit attribution that used to sit beside it
-            now lives on /about, where there is room to say what was reviewed
-            rather than only who reviewed it. */}
-        <p className="mt-8 text-center text-xs text-ds-text-muted">Figures as of {AS_OF}.</p>
       </div>
     </section>
   );
