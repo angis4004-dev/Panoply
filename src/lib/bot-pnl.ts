@@ -164,9 +164,57 @@ function marketDrift(tickIndex: number): number {
   return (isDown ? DOWN_REGIME_PCT : UP_REGIME_PCT) / TICKS_PER_REGIME;
 }
 
+/**
+ * Intra-hour texture, in percentage points, that is exactly zero at every hour
+ * boundary.
+ *
+ * The regime model alone produces a line that ramps smoothly from one hourly
+ * close to the next, which reads as mechanical - the shape is fully implied by
+ * which hour you are in. Real price series are jagged at every scale, with
+ * reversals and the occasional sharp wick.
+ *
+ * Adding plain noise to the accumulation would have broken the 70/30 split,
+ * because it would push hourly closes around. This is a displacement of the
+ * LEVEL rather than a change to the trend, shaped by a sine envelope that
+ * vanishes at both ends of the regime. It is fed into the accumulation as the
+ * difference between consecutive values, so a full hour telescopes to zero and
+ * the hourly close is still decided purely by the regime.
+ *
+ * Three octaves: per-tick, ~2-minute, and ~6-minute, so the line has detail at
+ * more than one scale instead of looking like uniform fuzz.
+ */
+const WIGGLE_AMPLITUDE = 0.09;
+const SPIKE_PROBABILITY = 0.015;
+const SPIKE_MULTIPLIER = 3.2;
+
+function wiggle(tickIndex: number, seed: number): number {
+  const pos = ((tickIndex % TICKS_PER_REGIME) + TICKS_PER_REGIME) % TICKS_PER_REGIME;
+  if (pos === 0) return 0;
+
+  const envelope = Math.sin(Math.PI * (pos / TICKS_PER_REGIME));
+  const fine = Math.imul(tickIndex, 0x9e3779b1) ^ seed;
+
+  let n = (hash01(fine) - 0.5) * 1.0;
+  n += (hash01((Math.floor(tickIndex / 4) ^ seed ^ 0x51ed2701) >>> 0) - 0.5) * 1.7;
+  n += (hash01((Math.floor(tickIndex / 13) ^ seed ^ 0x2f6b1a3d) >>> 0) - 0.5) * 2.4;
+
+  // Rare impulse, so the series occasionally throws a wick instead of only
+  // ever breathing gently. Self-correcting: the envelope pulls it back.
+  if (hash01((fine ^ 0x7f4a7c15) >>> 0) < SPIKE_PROBABILITY) n *= SPIKE_MULTIPLIER;
+
+  return envelope * n * WIGGLE_AMPLITUDE;
+}
+
 /** Combined per-tick move: confidence tilt, shared market regime, own jitter. */
 function tickDelta(tickIndex: number, bias: number, seed: number): number {
-  return bias + marketDrift(tickIndex) + idiosyncratic(tickIndex, seed);
+  return (
+    bias +
+    marketDrift(tickIndex) +
+    idiosyncratic(tickIndex, seed) +
+    // Telescopes across a regime, so it textures the path without moving the
+    // hourly close that the 70/30 quota is measured on.
+    (wiggle(tickIndex + 1, seed) - wiggle(tickIndex, seed))
+  );
 }
 
 export interface TickableBot {

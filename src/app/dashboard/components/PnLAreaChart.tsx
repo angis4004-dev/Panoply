@@ -100,6 +100,44 @@ function fullLabel(ms: number, days: number): string {
   });
 }
 
+/**
+ * Current value, pinned to the right edge at the height of the last point.
+ *
+ * Recharts' built-in label cannot draw a filled pill behind its text, so this
+ * renders the rect and text itself. Positioned from the viewBox rather than a
+ * fixed offset so it stays attached to the line as the plot resizes.
+ */
+function CurrentValueBadge(props: {
+  value?: number;
+  color?: string;
+  viewBox?: { x?: number; y?: number; width?: number };
+}) {
+  const { value = 0, color = '#00D4AA', viewBox } = props;
+  if (!viewBox || viewBox.y == null || viewBox.x == null || viewBox.width == null) return null;
+
+  const text = `${value >= 0 ? '+' : '-'}$${Math.abs(value).toFixed(2)}`;
+  const width = Math.max(text.length * 7.2 + 12, 52);
+  const height = 20;
+  const x = viewBox.x + viewBox.width + 4;
+  const y = viewBox.y - height / 2;
+
+  return (
+    <g>
+      <rect x={x} y={y} width={width} height={height} rx={4} fill={color} />
+      <text
+        x={x + width / 2}
+        y={y + height / 2 + 4}
+        textAnchor="middle"
+        fontSize={11}
+        fontWeight={700}
+        fill="#0A1420"
+      >
+        {text}
+      </text>
+    </g>
+  );
+}
+
 function formatAxisDollar(v: number): string {
   const sign = v < 0 ? '-' : '';
   const abs = Math.abs(v);
@@ -228,7 +266,16 @@ export default function PnLAreaChart() {
   };
 
   const latestValue = data.length > 0 ? data[data.length - 1].value : 0;
-  const isPositive = latestValue >= 0;
+  /**
+   * Everything is coloured against where the window OPENED, not against zero.
+   *
+   * A market chart answers "up or down over this period", so the split has to
+   * sit at the period's first value - which is also what the dashed baseline
+   * marks. Colouring the whole series by its closing value instead painted a
+   * day that finished down entirely red, including the hours it spent up.
+   */
+  const baseValue = data.length > 0 ? data[0].value : 0;
+  const isPositive = latestValue >= baseValue;
   // A flow with capital in it is never exactly flat at zero across a window,
   // so this separates "nothing allocated" from "allocated and currently even".
   const hasMovement = data.length >= 2 && data.some((d) => d.value !== 0);
@@ -240,7 +287,9 @@ export default function PnLAreaChart() {
   // step with --ds-value-positive / --ds-value-negative in styles/tailwind.css;
   // the negative one here was still the pre-fix #E5555A, which measured
   // 4.49:1 on this card and failed AA.
-  const lineColor = isPositive ? '#00D4AA' : '#E85D62';
+  const POSITIVE = '#00D4AA';
+  const NEGATIVE = '#E85D62';
+  const lineColor = isPositive ? POSITIVE : NEGATIVE;
 
   // Target fewer ticks when each label carries a date as well as an hour
   // ("Aug 1, 3 PM" is roughly twice the width of "3:17 PM"), and let Recharts
@@ -271,6 +320,15 @@ export default function PnLAreaChart() {
 
   const { domain: yDomain, ticks: yTicks } = niceScale(lo, hi, spansZero);
   const includeZero = yDomain[0] <= 0 && yDomain[1] >= 0;
+
+  // Fraction of the plot height at which the opening value sits, used as the
+  // hard stop in both gradients so stroke and fill change colour on the same
+  // line rather than a pixel apart. Measured against the rendered domain, not
+  // the data range, or the split lands off the line once the axis is padded.
+  const splitOffset =
+    yDomain[1] === yDomain[0]
+      ? 0.5
+      : Math.max(0, Math.min(1, (yDomain[1] - baseValue) / (yDomain[1] - yDomain[0])));
 
   return (
     <div className="bg-[#122131] border border-[#212A35] rounded-2xl p-5">
@@ -361,11 +419,21 @@ export default function PnLAreaChart() {
           {/* right:5 clipped the final x-axis label - the last tick rendered as
               "4:24" with its AM sheared off at the plot edge. The margin now
               leaves room for a full timestamp. */}
-          <AreaChart data={data} margin={{ top: 5, right: 28, bottom: 0, left: 0 }}>
+          <AreaChart data={data} margin={{ top: 8, right: 76, bottom: 0, left: 0 }}>
             <defs>
+              {/* Fill fades toward the opening line from both directions, so
+                  the shaded area reads as distance travelled from the open. */}
               <linearGradient id="pnlGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={lineColor} stopOpacity={0.32} />
-                <stop offset="100%" stopColor={lineColor} stopOpacity={0.02} />
+                <stop offset={0} stopColor={POSITIVE} stopOpacity={0.3} />
+                <stop offset={splitOffset} stopColor={POSITIVE} stopOpacity={0.03} />
+                <stop offset={splitOffset} stopColor={NEGATIVE} stopOpacity={0.03} />
+                <stop offset={1} stopColor={NEGATIVE} stopOpacity={0.3} />
+              </linearGradient>
+              {/* Two stops at the same offset give a hard colour change rather
+                  than a blend, so the stroke flips exactly at the open. */}
+              <linearGradient id="pnlStroke" x1="0" y1="0" x2="0" y2="1">
+                <stop offset={splitOffset} stopColor={POSITIVE} />
+                <stop offset={splitOffset} stopColor={NEGATIVE} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
@@ -393,32 +461,37 @@ export default function PnLAreaChart() {
             {includeZero && (
               <ReferenceLine y={0} stroke="rgba(255,255,255,0.08)" strokeDasharray="3 3" />
             )}
+            {/* The opening value, which every colour on the chart is measured
+                against. Without it the red/green split looks arbitrary. */}
+            <ReferenceLine
+              y={baseValue}
+              stroke={isPositive ? 'rgba(0,212,170,0.45)' : 'rgba(232,93,98,0.45)'}
+              strokeDasharray="2 3"
+            />
+            <ReferenceLine
+              y={latestValue}
+              stroke="transparent"
+              label={<CurrentValueBadge value={latestValue} color={lineColor} />}
+            />
             <Area
-              type="monotone"
+              // Linear, not monotone. Monotone smooths a spline through the
+              // points, rounding off every reversal - which is most of what
+              // made the line look designed rather than observed.
+              type="linear"
               dataKey="value"
-              stroke={lineColor}
-              strokeWidth={2}
+              stroke="url(#pnlStroke)"
+              strokeWidth={1.75}
+              // Fill down to the opening value, not to the axis floor. Filling
+              // to the floor drew a solid slab across the whole width wherever
+              // the axis dipped below the open, including under stretches
+              // where the line was up.
+              baseValue={baseValue}
               fill="url(#pnlGradient)"
               isAnimationActive={false}
-              // A dot only on the final point, so "where does this stand right
-              // now" is visible without hovering. Rendering all 145 would bury
-              // the line.
-              dot={(props: { cx?: number; cy?: number; index?: number }) =>
-                props.index === data.length - 1 && props.cx != null && props.cy != null ? (
-                  <circle
-                    key="current"
-                    cx={props.cx}
-                    cy={props.cy}
-                    r={3.5}
-                    fill={lineColor}
-                    stroke="#122131"
-                    strokeWidth={2}
-                  />
-                ) : (
-                  <g key={`empty-${props.index}`} />
-                )
-              }
-              activeDot={{ r: 4, fill: lineColor, strokeWidth: 0 }}
+              // No per-point dots: at ~288 points they merge into a band and
+              // bury the line. The badge marks the current value instead.
+              dot={false}
+              activeDot={{ r: 3.5, fill: lineColor, strokeWidth: 0 }}
             />
           </AreaChart>
         </ResponsiveContainer>

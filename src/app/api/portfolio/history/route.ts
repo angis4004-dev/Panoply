@@ -22,11 +22,22 @@ import { pnlPercentSeries, type ProjectableBot } from '@/lib/bot-pnl';
  * figure the rest of the dashboard shows.
  */
 
-// Enough resolution that hourly market regimes are visible on a one-day view
-// without sending a point per tick. 145 points over 24h is one every 10
-// minutes; over a year it is roughly one every 2.5 days.
-const DEFAULT_POINTS = 145;
 const MAX_POINTS = 400;
+
+/**
+ * Resolution per window.
+ *
+ * A day gets a point every five minutes. Coarser sampling smoothed the
+ * intra-hour texture away and left a line that ramped tidily between hourly
+ * closes - the shape read as predictable because most of the detail was being
+ * averaged out before it ever reached the client.
+ */
+function pointsFor(days: number): number {
+  if (days <= 1) return 288; // every 5 minutes
+  if (days <= 7) return 336; // every 30 minutes
+  if (days <= 30) return 240;
+  return 180;
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -43,9 +54,10 @@ export async function GET(request: NextRequest) {
     }
 
     const pointsParam = searchParams.get('points');
-    const requestedPoints = pointsParam ? Number(pointsParam) : DEFAULT_POINTS;
+    const fallback = pointsFor(days);
+    const requestedPoints = pointsParam ? Number(pointsParam) : fallback;
     const points = Math.min(
-      Math.max(Number.isFinite(requestedPoints) ? Math.floor(requestedPoints) : DEFAULT_POINTS, 2),
+      Math.max(Number.isFinite(requestedPoints) ? Math.floor(requestedPoints) : fallback, 2),
       MAX_POINTS
     );
 
