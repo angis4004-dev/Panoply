@@ -103,7 +103,61 @@ function fullLabel(ms: number, days: number): string {
 function formatAxisDollar(v: number): string {
   const sign = v < 0 ? '-' : '';
   const abs = Math.abs(v);
-  return abs >= 1000 ? `${sign}$${(abs / 1000).toFixed(1)}k` : `${sign}$${abs.toFixed(0)}`;
+  if (abs >= 1000) return `${sign}$${(abs / 1000).toFixed(1)}k`;
+  // Sub-$10 ranges need a decimal or several gridlines collapse onto the same
+  // label - a chart spanning $3.20 to $4.10 otherwise reads "$3, $4, $4".
+  return abs < 10 && !Number.isInteger(v)
+    ? `${sign}$${abs.toFixed(1)}`
+    : `${sign}$${abs.toFixed(0)}`;
+}
+
+/**
+ * Rounded, evenly-spaced y-axis ticks.
+ *
+ * Recharts picked its own from a padded domain and produced $3 / $6 / $12 -
+ * evenly spaced down the axis but not evenly valued, so the gridlines implied
+ * a scale the chart was not using. Choosing a round step and snapping the
+ * domain to multiples of it means every gap is worth the same amount.
+ *
+ * The domain still fits the data rather than anchoring at zero: cumulative P&L
+ * only grows, so a zero-anchored axis crushes real movement into a flat line
+ * once the total is large. Zero is included whenever the series is near or
+ * across it, which is exactly when "am I up?" is the question being asked.
+ */
+function niceScale(lo: number, hi: number, spansZero: boolean) {
+  const low = spansZero ? Math.min(0, lo) : lo;
+  const high = spansZero ? Math.max(0, hi) : hi;
+  const range = high - low;
+
+  if (range <= 0) {
+    const step = Math.max(Math.abs(high) * 0.1, 1);
+    return { domain: [low - step, high + step] as [number, number], ticks: [low, high] };
+  }
+
+  const target = 4;
+  const raw = range / target;
+  const magnitude = Math.pow(10, Math.floor(Math.log10(raw)));
+  const normalized = raw / magnitude;
+  const step =
+    (normalized <= 1
+      ? 1
+      : normalized <= 2
+        ? 2
+        : normalized <= 2.5
+          ? 2.5
+          : normalized <= 5
+            ? 5
+            : 10) * magnitude;
+
+  const domainLo = Math.floor(low / step) * step;
+  const domainHi = Math.ceil(high / step) * step;
+
+  const ticks: number[] = [];
+  for (let v = domainLo; v <= domainHi + step * 1e-6; v += step) {
+    ticks.push(Number(v.toPrecision(12)));
+  }
+
+  return { domain: [domainLo, domainHi] as [number, number], ticks };
 }
 
 export default function PnLAreaChart() {
@@ -152,9 +206,12 @@ export default function PnLAreaChart() {
 
     fetchHistory();
 
-    // Matches the snapshot write cadence in lib/portfolio-snapshot.ts, so a
-    // refetch is likely to actually pick up a new point.
-    const interval = setInterval(fetchHistory, 5 * 60 * 1000);
+    // Every 30 seconds, matching the engine's tick interval - a refetch now
+    // always returns a moved line, because the series is computed rather than
+    // read back from snapshots. The old 5-minute poll was pinned to the
+    // snapshot write cadence, so for most of that window there was nothing new
+    // to fetch and the chart sat visibly still.
+    const interval = setInterval(fetchHistory, 30 * 1000);
     return () => {
       isMounted = false;
       clearInterval(interval);
@@ -175,6 +232,9 @@ export default function PnLAreaChart() {
   // A flow with capital in it is never exactly flat at zero across a window,
   // so this separates "nothing allocated" from "allocated and currently even".
   const hasMovement = data.length >= 2 && data.some((d) => d.value !== 0);
+  // Movement across the selected window, not since inception - the caption
+  // says "Last 24 hours", so the figure beside it has to mean the same thing.
+  const windowChange = data.length > 0 ? latestValue - data[0].value : 0;
   // Literals because Recharts writes these straight into SVG stroke/stopColor
   // attributes, which cannot read a CSS custom property. They must be kept in
   // step with --ds-value-positive / --ds-value-negative in styles/tailwind.css;
@@ -207,17 +267,52 @@ export default function PnLAreaChart() {
   const values = data.map((d) => d.value);
   const lo = values.length ? Math.min(...values) : 0;
   const hi = values.length ? Math.max(...values) : 0;
-  const pad = Math.max((hi - lo) * 0.15, 1);
   const spansZero = lo <= 0 && hi >= 0;
-  // Within a pad of zero, snap to it rather than floating just above.
-  const includeZero = spansZero || lo - pad <= 0;
-  const yDomain: [number, number] = [includeZero ? Math.min(0, lo - pad) : lo - pad, hi + pad];
+
+  const { domain: yDomain, ticks: yTicks } = niceScale(lo, hi, spansZero);
+  const includeZero = yDomain[0] <= 0 && yDomain[1] >= 0;
 
   return (
     <div className="bg-[#122131] border border-[#212A35] rounded-2xl p-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
         <div>
-          <h3 className="text-sm font-semibold text-zinc-200">Cumulative P&L</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-zinc-200">Cumulative P&L</h3>
+            {hasMovement && (
+              <span className="inline-flex items-center gap-1.5 text-ds-caption text-ds-text-muted">
+                <span
+                  className="inline-block h-1.5 w-1.5 rounded-full bg-ds-value-positive motion-safe:animate-pulse"
+                  aria-hidden
+                />
+                Live
+              </span>
+            )}
+          </div>
+          {hasMovement && (
+            <div className="flex items-baseline gap-2 mt-1">
+              {/* The headline figure the card was missing. Without it the chart
+                  showed a shape but never stated where the portfolio actually
+                  stands, and nothing on the card visibly changed on a refetch. */}
+              <span
+                className={`text-2xl font-bold font-mono tabular-nums ${isPositive ? 'text-ds-value-positive' : 'text-ds-value-negative'}`}
+              >
+                {latestValue >= 0 ? '+' : '-'}$
+                {Math.abs(latestValue).toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </span>
+              <span
+                className={`text-ds-caption font-medium tabular-nums ${windowChange >= 0 ? 'text-ds-value-positive' : 'text-ds-value-negative'}`}
+              >
+                {windowChange >= 0 ? '▲' : '▼'} $
+                {Math.abs(windowChange).toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </span>
+            </div>
+          )}
           <p className="text-ds-caption text-ds-text-secondary mt-0.5">
             {rangeDescription[selectedRange]} · signal flows
           </p>
@@ -269,8 +364,8 @@ export default function PnLAreaChart() {
           <AreaChart data={data} margin={{ top: 5, right: 28, bottom: 0, left: 0 }}>
             <defs>
               <linearGradient id="pnlGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={lineColor} stopOpacity={0.25} />
-                <stop offset="100%" stopColor={lineColor} stopOpacity={0} />
+                <stop offset="0%" stopColor={lineColor} stopOpacity={0.32} />
+                <stop offset="100%" stopColor={lineColor} stopOpacity={0.02} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
@@ -287,8 +382,9 @@ export default function PnLAreaChart() {
               axisLine={false}
               tickLine={false}
               tickFormatter={formatAxisDollar}
-              width={48}
+              width={52}
               domain={yDomain}
+              ticks={yTicks}
             />
             <Tooltip content={<CustomTooltip />} />
             {/* Only drawn when zero is actually inside the fitted range -
@@ -303,7 +399,25 @@ export default function PnLAreaChart() {
               stroke={lineColor}
               strokeWidth={2}
               fill="url(#pnlGradient)"
-              dot={false}
+              isAnimationActive={false}
+              // A dot only on the final point, so "where does this stand right
+              // now" is visible without hovering. Rendering all 145 would bury
+              // the line.
+              dot={(props: { cx?: number; cy?: number; index?: number }) =>
+                props.index === data.length - 1 && props.cx != null && props.cy != null ? (
+                  <circle
+                    key="current"
+                    cx={props.cx}
+                    cy={props.cy}
+                    r={3.5}
+                    fill={lineColor}
+                    stroke="#122131"
+                    strokeWidth={2}
+                  />
+                ) : (
+                  <g key={`empty-${props.index}`} />
+                )
+              }
               activeDot={{ r: 4, fill: lineColor, strokeWidth: 0 }}
             />
           </AreaChart>
