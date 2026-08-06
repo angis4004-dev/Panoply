@@ -2,10 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
-import Link from 'next/link';
-import { CheckCircle, FileCheck, Lock, Monitor, Shield } from 'lucide-react';
+import { CheckCircle, Lock, Monitor, Shield } from 'lucide-react';
 import { Reveal } from '@/components/ui/Reveal';
-import { AUDIT } from '@/lib/audit-report';
 
 // ssr:false for two reasons: Stack's randomRotation calls Math.random()
 // during render, which would desync the server pass from hydration, and it
@@ -100,24 +98,6 @@ export function SecuritySection() {
             Aegis never takes custody of your assets. Every strategy runs non-custodially, with
             bank-level encryption and 24/7 automated monitoring on your account.
           </p>
-
-          {/* The "Audited & Verified" card below asserts an audit. Until this
-              existed, nothing on the site said by whom or when, which makes the
-              claim weaker than saying nothing. Naming the auditor and linking
-              the assessment is the whole point of a trust indicator. */}
-          <Link
-            href="/security"
-            className="mt-6 inline-flex min-h-[44px] items-center gap-2.5 rounded-lg border border-[#212A35] bg-[#122131]/50 px-4 py-2 text-sm transition-colors duration-fast ease-ds-out hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
-          >
-            <FileCheck className="h-4 w-4 shrink-0 text-primary" />
-            <span className="text-[#8B95A5]">
-              Independently reviewed by{' '}
-              <span className="font-semibold text-white">{AUDIT.auditor}</span>
-            </span>
-            <span aria-hidden className="text-primary">
-              →
-            </span>
-          </Link>
         </div>
 
         {/* Mobile: a swipeable deck instead of four stacked cards, which

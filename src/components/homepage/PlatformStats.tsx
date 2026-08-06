@@ -1,7 +1,5 @@
-import Link from 'next/link';
 import { Reveal } from '@/components/ui/Reveal';
 import { TVL_USD, USERS, STRATEGY_COUNT, AS_OF } from '@/lib/platform-stats';
-import { AUDIT } from '@/lib/audit-report';
 
 /**
  * Social proof band, sitting directly under the hero.
@@ -9,11 +7,11 @@ import { AUDIT } from '@/lib/audit-report';
  * Three figures only. A fourth "volume" stat was requested but deliberately
  * omitted - see the note in lib/platform-stats.ts.
  *
- * The `as of` line and the audit link are not decoration. A number with no
- * date and no independent reference is the weakest form of social proof there
- * is, and on a page soliciting deposits an undated figure invites exactly the
- * scepticism the band is meant to answer. Stating provenance costs one line of
- * small text and is what separates this from a vanity ticker.
+ * The `as of` line is not decoration. An undated figure on a page soliciting
+ * deposits invites exactly the scepticism the band is meant to answer, and
+ * stating when it was measured costs one line of small text.
+ *
+ * The audit attribution that used to sit here now lives on /about.
  */
 
 const stats = [
@@ -73,16 +71,11 @@ export function PlatformStats() {
           </dl>
         </Reveal>
 
-        <p className="mt-8 text-center text-xs text-ds-text-muted">
-          Figures as of {AS_OF}.{' '}
-          <Link
-            href="/security"
-            className="rounded text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
-          >
-            Independently reviewed by {AUDIT.auditor}
-          </Link>
-          .
-        </p>
+        {/* The "as of" line stays: a figure with no date is a claim without a
+            reference point. The audit attribution that used to sit beside it
+            now lives on /about, where there is room to say what was reviewed
+            rather than only who reviewed it. */}
+        <p className="mt-8 text-center text-xs text-ds-text-muted">Figures as of {AS_OF}.</p>
       </div>
     </section>
   );

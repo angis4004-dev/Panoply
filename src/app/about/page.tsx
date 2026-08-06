@@ -3,6 +3,7 @@ import Link from 'next/link';
 import {
   ArrowRight,
   BarChart3,
+  FileCheck,
   Layers,
   LineChart,
   Lock,
@@ -25,6 +26,7 @@ import {
   ROADMAP,
   FAQ_ITEMS,
 } from '@/lib/about-content';
+import { AUDIT, AUDIT_SCOPE } from '@/lib/audit-report';
 
 export const metadata: Metadata = {
   title: 'About Aegis — Quantitative Intelligence for Decentralized Finance',
@@ -265,6 +267,64 @@ export default function AboutPage() {
                 Allocations, risk exposure, and performance are visible in your dashboard in real
                 time. Strategy logic and risk parameters are documented, not left as a black box.
               </p>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* Independent audit.
+          Moved here from the homepage. A one-line "reviewed by X" badge beside
+          a hero asserts the review without describing it; on this page there is
+          room to say who, when, and over what scope, which is the part that
+          makes the claim checkable. */}
+      <section className="py-16 border-t border-[#212A35]">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <SectionEyebrow>Verified independently</SectionEyebrow>
+            <h2 className="text-3xl font-bold text-white mb-4">Security Audit</h2>
+            <p className="text-[#8B95A5] max-w-2xl mx-auto">
+              {AUDIT.title} was carried out by {AUDIT.auditor}, an independent blockchain security
+              research organization, with a review date of {AUDIT.reviewDate}.
+            </p>
+          </div>
+
+          <Reveal>
+            <div className="rounded-xl border border-[#212A35] bg-[#122131]/50 p-7 sm:p-9">
+              <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                  <FileCheck className="h-5 w-5 text-primary" />
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-lg font-semibold text-white">{AUDIT.subtitle}</h3>
+                  <p className="mt-1 text-sm text-[#8B95A5]">
+                    {AUDIT.auditor} · {AUDIT.reviewDate}
+                  </p>
+
+                  <p className="mt-5 text-ds-caption font-semibold uppercase tracking-[0.25em] text-ds-text-muted">
+                    Scope
+                  </p>
+                  <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+                    {AUDIT_SCOPE.map((group) => (
+                      <li key={group.group} className="text-sm text-[#8B95A5]">
+                        <span className="text-white">{group.group}</span>
+                        <span className="text-ds-text-muted">
+                          {' '}
+                          · {group.items.length} components
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <Link
+                    href="/security"
+                    className="mt-7 inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-[#212A35] px-4 py-2 text-sm font-medium text-white transition-colors duration-fast ease-ds-out hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+                  >
+                    Read the full assessment
+                    <ArrowRight className="h-4 w-4 shrink-0 text-primary" />
+                  </Link>
+                </div>
+              </div>
             </div>
           </Reveal>
         </div>
