@@ -286,8 +286,9 @@ export async function updateUser(
   if (index === -1) {
     throw new Error('User not found');
   }
-  const updatedUser = { ...users[index], ...updates };
-  // Remove undefined fields
+  const updatedUser = { ...users[index], ...updates } as PersistedUser & Record<string, unknown>;
+  // Remove undefined fields. Widened to an index signature because the keys
+  // come from Object.keys and cannot be narrowed to the declared shape.
   Object.keys(updatedUser).forEach(
     (key) => updatedUser[key] === undefined && delete updatedUser[key]
   );

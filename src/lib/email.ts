@@ -14,7 +14,10 @@ export async function sendEmail({ to, subject, html }: SendEmailOptions): Promis
   try {
     const resend = new Resend(process.env.RESEND_API_KEY);
     const { error } = await resend.emails.send({
-      from: process.env.EMAIL_FROM,
+      // Resend requires a sender; falling back to its shared onboarding
+      // address keeps a missing EMAIL_FROM from becoming a type error at the
+      // call site and a silent failure at runtime.
+      from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
       to: [to],
       subject,
       html,

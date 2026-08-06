@@ -53,15 +53,24 @@ AdminAuditLogSchema.index({ actorUserId: 1, createdAt: -1 });
 // Append-only. As with the ledger, this stops accidental application code
 // rather than a determined actor with database credentials - the durable
 // control is a database role holding insert-only rights on this collection.
-const REJECT_MUTATION = function reject(this: unknown, next: (err?: Error) => void) {
+function rejectMutation(next: (err?: Error) => void) {
   next(new Error('Audit log entries are append-only.'));
-};
-AdminAuditLogSchema.pre('updateOne', REJECT_MUTATION);
-AdminAuditLogSchema.pre('updateMany', REJECT_MUTATION);
-AdminAuditLogSchema.pre('findOneAndUpdate', REJECT_MUTATION);
-AdminAuditLogSchema.pre('deleteOne', REJECT_MUTATION);
-AdminAuditLogSchema.pre('deleteMany', REJECT_MUTATION);
-AdminAuditLogSchema.pre('findOneAndDelete', REJECT_MUTATION);
+}
+
+for (const op of [
+  'updateOne',
+  'updateMany',
+  'findOneAndUpdate',
+  'deleteOne',
+  'deleteMany',
+  'findOneAndDelete',
+] as const) {
+  // See the matching comment in LedgerEntry.ts for why this is cast.
+  (AdminAuditLogSchema.pre as unknown as (o: string, fn: typeof rejectMutation) => void)(
+    op,
+    rejectMutation
+  );
+}
 
 export const AdminAuditLogModel: Model<IAdminAuditLog> =
   mongoose.models.AdminAuditLog ||

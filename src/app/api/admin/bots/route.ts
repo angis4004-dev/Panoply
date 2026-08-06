@@ -117,6 +117,16 @@ export async function POST(request: NextRequest) {
       .populate('userId', 'name email')
       .lean();
 
+    // Only null if the flow vanished between the save and this read. Reported
+    // rather than assumed away, because dereferencing it would surface as an
+    // opaque 500 instead of something an operator can act on.
+    if (!populatedBot) {
+      return NextResponse.json(
+        { error: 'Flow was created but could not be read back.' },
+        { status: 500 }
+      );
+    }
+
     // Transform to match frontend format
     const formattedBot = {
       id: populatedBot._id.toString(),

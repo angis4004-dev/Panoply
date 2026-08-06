@@ -119,15 +119,26 @@ LedgerEntrySchema.index(
 // is a guard against accidental application code, not a security boundary -
 // the durable protection is a database role without update/delete on this
 // collection, which is a deployment concern.
-const REJECT_MUTATION = function reject(this: unknown, next: (err?: Error) => void) {
+function rejectMutation(next: (err?: Error) => void) {
   next(new Error('Ledger entries are append-only; post a compensating entry instead.'));
-};
-LedgerEntrySchema.pre('updateOne', REJECT_MUTATION);
-LedgerEntrySchema.pre('updateMany', REJECT_MUTATION);
-LedgerEntrySchema.pre('findOneAndUpdate', REJECT_MUTATION);
-LedgerEntrySchema.pre('deleteOne', REJECT_MUTATION);
-LedgerEntrySchema.pre('deleteMany', REJECT_MUTATION);
-LedgerEntrySchema.pre('findOneAndDelete', REJECT_MUTATION);
+}
+
+for (const op of [
+  'updateOne',
+  'updateMany',
+  'findOneAndUpdate',
+  'deleteOne',
+  'deleteMany',
+  'findOneAndDelete',
+] as const) {
+  // Cast at the loop rather than per-call: Mongoose types `pre` as a union of
+  // per-hook overloads that a variable operation name cannot satisfy, even
+  // though every member takes the same next-callback shape.
+  (LedgerEntrySchema.pre as unknown as (o: string, fn: typeof rejectMutation) => void)(
+    op,
+    rejectMutation
+  );
+}
 
 export const LedgerEntryModel: Model<ILedgerEntry> =
   mongoose.models.LedgerEntry || mongoose.model<ILedgerEntry>('LedgerEntry', LedgerEntrySchema);

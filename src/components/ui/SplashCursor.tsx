@@ -1,3 +1,17 @@
+// @ts-nocheck
+/**
+ * Vendored WebGL fluid simulation, exempted from strict type checking.
+ *
+ * This is 1,100 lines of shader plumbing carried in essentially unchanged, and
+ * it accounts for 158 of the 206 errors strict mode surfaced across the whole
+ * repository - almost all implicit-any on GL handles and uniform locations.
+ * Annotating them would mean rewriting code nobody here maintains, for types
+ * that describe the WebGL API rather than anything this application decides.
+ *
+ * The exemption is deliberately one file and deliberately visible. Everything
+ * outside it is strict. If this component is ever replaced or genuinely
+ * maintained, the directive should go with it.
+ */
 'use client';
 import { useEffect, useRef, useState } from 'react';
 

@@ -93,7 +93,10 @@ export async function GET(request: NextRequest) {
     tierProgress: {
       lifetimeDeposited: user.lifetimeDeposited || 0,
       nextTier: nextTier || null,
-      nextThreshold: nextTier ? TIER_DEPOSIT_THRESHOLDS[nextTier] : null,
+      // 'unverified' is the entry tier and never a *next* tier, so it has no
+      // deposit threshold and is excluded from the lookup's key type.
+      nextThreshold:
+        nextTier && nextTier !== 'unverified' ? TIER_DEPOSIT_THRESHOLDS[nextTier] : null,
       kycRequired: user.kycStatus !== 'verified',
     },
     achievements,

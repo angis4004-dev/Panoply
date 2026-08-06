@@ -42,7 +42,7 @@ async function sendEmailReport(email: string, htmlContent: string): Promise<bool
   try {
     const resend = new Resend(process.env.RESEND_API_KEY);
     const { error } = await resend.emails.send({
-      from: process.env.EMAIL_FROM,
+      from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
       to: [email],
       subject: 'Your Portfolio Report',
       html: htmlContent,
@@ -446,7 +446,12 @@ export async function POST(request: Request) {
       moderate: 6.2,
       aggressive: 8.8,
     };
-    const riskScore = riskScoreMap[body.risk] || 6.2;
+    const riskProfile: RiskProfile = (['conservative', 'moderate', 'aggressive'] as const).includes(
+      body.risk
+    )
+      ? (body.risk as RiskProfile)
+      : 'moderate';
+    const riskScore = riskScoreMap[riskProfile] || 6.2;
 
     // Calculate volatility based on risk profile
     const volatilityMap: Record<RiskProfile, number> = {
@@ -454,7 +459,7 @@ export async function POST(request: Request) {
       moderate: 28,
       aggressive: 45,
     };
-    const volatility = volatilityMap[body.risk] || 28;
+    const volatility = volatilityMap[riskProfile] || 28;
 
     // Calculate Sharpe ratio
     const targetReturn = body.targetReturn || 15;

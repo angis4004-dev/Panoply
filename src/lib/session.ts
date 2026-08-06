@@ -5,12 +5,16 @@ import { UserModel } from './models/user';
 // Configuration. No fallback: signing session cookies (including Admin-role
 // sessions) with a hardcoded, publicly-known secret would let anyone forge a
 // valid cookie by computing the same HMAC, so fail closed instead.
-const SESSION_SECRET = process.env.SESSION_SECRET;
-if (!SESSION_SECRET) {
+// Read into a separate binding and re-declared as a definite string: a throw
+// guarding a module-level const does not narrow it for the rest of the module,
+// so every crypto call downstream would otherwise see `string | undefined`.
+const SESSION_SECRET_ENV = process.env.SESSION_SECRET;
+if (!SESSION_SECRET_ENV) {
   throw new Error(
     'SESSION_SECRET environment variable is required to sign and verify session cookies.'
   );
 }
+const SESSION_SECRET: string = SESSION_SECRET_ENV;
 const SESSION_COOKIE_NAME = 'auth_session';
 const SESSION_COOKIE_OPTIONS = {
   httpOnly: true,

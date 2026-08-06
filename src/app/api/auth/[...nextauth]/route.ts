@@ -1,8 +1,11 @@
-import NextAuth from 'next-auth';
+import NextAuth, { type AuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import { getUserByEmail, updateUser, createUser } from '@/lib/auth-store';
 
-const authOptions = {
+// Annotated rather than inferred so the callback parameters pick up NextAuth's
+// own types. Left bare, each destructured argument is an implicit any under
+// strict mode, and the object as a whole then fails to satisfy AuthOptions.
+const authOptions: AuthOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -34,7 +37,9 @@ const authOptions = {
           await createUser({
             email: user.email!,
             name: user.name!,
-            image: user.image,
+            // Google may return null for a missing avatar; the store expects
+            // the field absent rather than explicitly null.
+            image: user.image ?? undefined,
             role: 'Trader', // default role for new users
             createdAt: new Date().toISOString(),
             googleId: profile?.sub,
@@ -81,13 +86,17 @@ const authOptions = {
       // This is called when a session is checked.
       // We want to set the session.user to be the object we stored in the token.
       if (token) {
+        // NextAuth's DefaultSession['user'] carries only name/email/image. The
+        // app has always attached id, role and createdAt here and read them
+        // downstream; the cast states that rather than widening the library's
+        // type globally, which would affect every consumer of Session.
         session.user = {
           id: token.id as string,
           email: token.email as string,
           name: token.name as string,
           role: token.role as 'Admin' | 'Trader',
           createdAt: token.createdAt as string,
-        };
+        } as typeof session.user;
       }
       return session;
     },
