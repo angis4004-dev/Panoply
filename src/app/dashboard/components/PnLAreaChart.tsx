@@ -13,8 +13,8 @@ import {
 } from 'recharts';
 
 interface ChartDataPoint {
-  /** Axis label. */
-  date: string;
+  /** Epoch ms. The x-axis is a real time scale, not a category index. */
+  ts: number;
   /** Full timestamp for the tooltip, so a reading is never ambiguous. */
   fullLabel: string;
   value: number;
@@ -58,25 +58,59 @@ const RANGES: { label: string; days: number }[] = [
   { label: '1y', days: 365 },
 ];
 
+const HOUR_MS = 60 * 60 * 1000;
+const DAY_MS = 24 * HOUR_MS;
+
 /**
- * Axis label format, chosen from the window that was REQUESTED.
+ * Tick spacings that land on times a person would name.
  *
- * This used to key off the span the returned data happened to cover, which was
- * the wrong input: the series now always fills the whole requested window, and
- * even before that, letting the data decide meant selecting "1d" and getting
- * an axis reading 3:37am to 7:03am - the hours a dashboard had been open, not
- * a day.
+ * Ticks used to be taken every Nth point, so their times came from wherever
+ * the window happened to start: an axis reading 9:09 AM, 12:40 PM, 4:10 PM.
+ * The gaps were even but the labels were arbitrary, which is why it looked
+ * like an hour was missing between them. Choosing from this list and aligning
+ * to local midnight gives 9:00, 12:00, 3:00 instead.
  */
-function labelFormat(days: number) {
-  if (days <= 1) {
-    // Within a day a bare clock time is unambiguous.
+const TICK_STEPS = [
+  HOUR_MS,
+  2 * HOUR_MS,
+  3 * HOUR_MS,
+  6 * HOUR_MS,
+  12 * HOUR_MS,
+  DAY_MS,
+  2 * DAY_MS,
+  5 * DAY_MS,
+  7 * DAY_MS,
+  14 * DAY_MS,
+  30 * DAY_MS,
+  60 * DAY_MS,
+  90 * DAY_MS,
+];
+
+// Eight, so a day lands on a 3-hour step. Seven asked for 3.43h, which rounds
+// up to 6h and leaves a sparse axis with only four labels across 24 hours.
+function pickTickStep(spanMs: number, target = 8): number {
+  const raw = spanMs / target;
+  return TICK_STEPS.find((s) => s >= raw) ?? TICK_STEPS[TICK_STEPS.length - 1];
+}
+
+/** Tick times on round boundaries, aligned to local midnight. */
+function alignedTicks(fromMs: number, toMs: number, step: number): number[] {
+  const midnight = new Date(fromMs);
+  midnight.setHours(0, 0, 0, 0);
+  const base = midnight.getTime();
+
+  const ticks: number[] = [];
+  for (let t = base + Math.ceil((fromMs - base) / step) * step; t <= toMs; t += step) {
+    ticks.push(t);
+  }
+  return ticks;
+}
+
+/** Label format follows the tick spacing, not the window length. */
+function labelForStep(step: number) {
+  if (step < DAY_MS) {
     return (ms: number) =>
       new Date(ms).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-  }
-  if (days <= 14) {
-    // Past a day it is not: "3 AM" on a 7d axis could be any of seven mornings.
-    return (ms: number) =>
-      new Date(ms).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric' });
   }
   return (ms: number) =>
     new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -116,9 +150,11 @@ function CurrentValueBadge(props: {
   if (!viewBox || viewBox.y == null || viewBox.x == null || viewBox.width == null) return null;
 
   const text = `${value >= 0 ? '+' : '-'}$${Math.abs(value).toFixed(2)}`;
-  const width = Math.max(text.length * 7.2 + 12, 52);
-  const height = 20;
-  const x = viewBox.x + viewBox.width + 4;
+  const width = Math.max(text.length * 6.4 + 10, 48);
+  const height = 19;
+  // Sits in the y-axis gutter, deliberately overlaying whichever value label
+  // it lands on - the current figure matters more than a gridline number.
+  const x = viewBox.x + viewBox.width + 2;
   const y = viewBox.y - height / 2;
 
   return (
@@ -224,10 +260,9 @@ export default function PnLAreaChart() {
         // The series already spans the requested window at an even interval,
         // so there is nothing to bucket - each point is a value the portfolio
         // actually held at that moment.
-        const toLabel = labelFormat(days);
         const processed: ChartDataPoint[] = (body.points ?? []).map((p) => {
           const ms = new Date(p.timestamp).getTime();
-          return { date: toLabel(ms), fullLabel: fullLabel(ms, days), value: p.value };
+          return { ts: ms, fullLabel: fullLabel(ms, days), value: p.value };
         });
 
         setData(processed);
@@ -291,12 +326,12 @@ export default function PnLAreaChart() {
   const NEGATIVE = '#E85D62';
   const lineColor = isPositive ? POSITIVE : NEGATIVE;
 
-  // Target fewer ticks when each label carries a date as well as an hour
-  // ("Aug 1, 3 PM" is roughly twice the width of "3:17 PM"), and let Recharts
-  // drop any that would still collide via minTickGap below.
-  const longLabels = data.some((d) => d.date.includes(','));
-  const targetTicks = longLabels ? 5 : 7;
-  const xAxisInterval = Math.max(0, Math.ceil(data.length / targetTicks) - 1);
+  // Ticks come from the clock, not from the array. See pickTickStep.
+  const firstTs = data.length ? data[0].ts : 0;
+  const lastTs = data.length ? data[data.length - 1].ts : 0;
+  const tickStep = pickTickStep(Math.max(lastTs - firstTs, 1));
+  const xTicks = data.length ? alignedTicks(firstTs, lastTs, tickStep) : [];
+  const formatTick = labelForStep(tickStep);
 
   /**
    * Fit the y-axis to the data instead of anchoring it at zero.
@@ -419,7 +454,10 @@ export default function PnLAreaChart() {
           {/* right:5 clipped the final x-axis label - the last tick rendered as
               "4:24" with its AM sheared off at the plot edge. The margin now
               leaves room for a full timestamp. */}
-          <AreaChart data={data} margin={{ top: 8, right: 76, bottom: 0, left: 0 }}>
+          {/* left:8 keeps the first time label off the card edge; the y-axis
+              reserves its own width on the right, and bottom:4 stops the time
+              row from sitting flush against the plot. */}
+          <AreaChart data={data} margin={{ top: 8, right: 4, bottom: 4, left: 8 }}>
             <defs>
               {/* Fill fades toward the opening line from both directions, so
                   the shaded area reads as distance travelled from the open. */}
@@ -438,19 +476,29 @@ export default function PnLAreaChart() {
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
             <XAxis
-              dataKey="date"
+              dataKey="ts"
+              type="number"
+              scale="time"
+              domain={['dataMin', 'dataMax']}
+              ticks={xTicks}
+              tickFormatter={formatTick}
               tick={{ fill: '#A1A1AA', fontSize: 12 }}
               axisLine={false}
               tickLine={false}
-              interval={xAxisInterval}
-              minTickGap={24}
+              minTickGap={20}
+              tickMargin={10}
             />
+            {/* Right-hand axis, as on the price charts this mirrors. On the
+                left, the bottom value label sat directly above the first time
+                label - "$0" with "9:36 AM" stacked under it - because the axis
+                column and the first tick share that corner. */}
             <YAxis
+              orientation="right"
               tick={{ fill: '#A1A1AA', fontSize: 12 }}
               axisLine={false}
               tickLine={false}
               tickFormatter={formatAxisDollar}
-              width={52}
+              width={56}
               domain={yDomain}
               ticks={yTicks}
             />
