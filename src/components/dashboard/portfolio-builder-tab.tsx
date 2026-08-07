@@ -128,61 +128,103 @@ export default function PortfolioBuilderTab() {
               </div>
               <h3 className="font-semibold text-white">Your Holdings</h3>
             </div>
-            <div className="space-y-3">
+            {/* Two columns on phones, the full 12-column row only from `sm` up.
+                At 375px the twelve-column version gave each field a fraction of
+                a 278px row - the chain <select> came out 36px wide, too narrow
+                to read a single option, and "Price USD" got 61px. Steps 2 and 3
+                below were already responsive; this row was the one that was
+                missed. */}
+            <div className="space-y-5 sm:space-y-3">
               {holdings.map((h, i) => (
-                <div key={i} className="grid grid-cols-12 gap-3">
-                  <div className="col-span-4">
+                <div key={i} className="grid grid-cols-2 gap-3 sm:grid-cols-12">
+                  {/* Labels are rendered, not implied by placeholder. A
+                      placeholder disappears the moment the field has content,
+                      so on review the user sees four unlabelled values, and a
+                      screen reader gets nothing at all once typing starts. */}
+                  <div className="col-span-2 sm:col-span-4">
+                    <label
+                      htmlFor={`holding-token-${i}`}
+                      className="mb-1.5 block text-xs font-medium text-[#8B95A5]"
+                    >
+                      Token
+                    </label>
                     <input
+                      id={`holding-token-${i}`}
                       type="text"
-                      placeholder="Token (e.g. BTC)"
+                      placeholder="e.g. BTC"
                       value={h.token}
                       onChange={(e) => updateHolding(i, 'token', e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-lg text-sm bg-[#122131] border border-[#212A35] text-white placeholder-[#4b5563] focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      className="w-full min-h-[44px] px-4 py-2.5 rounded-lg text-sm bg-[#122131] border border-[#212A35] text-white placeholder-[#8B95A5] focus:outline-none focus:ring-2 focus:ring-primary/50"
                       required
                     />
                   </div>
-                  <div className="col-span-3">
+                  <div className="col-span-1 sm:col-span-3">
+                    <label
+                      htmlFor={`holding-amount-${i}`}
+                      className="mb-1.5 block text-xs font-medium text-[#8B95A5]"
+                    >
+                      Amount
+                    </label>
                     <input
+                      id={`holding-amount-${i}`}
                       type="number"
-                      placeholder="Amount"
+                      inputMode="decimal"
+                      placeholder="0.00"
                       value={h.amount}
                       onChange={(e) => updateHolding(i, 'amount', e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-lg text-sm bg-[#122131] border border-[#212A35] text-white placeholder-[#4b5563] focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      className="w-full min-h-[44px] px-4 py-2.5 rounded-lg text-sm bg-[#122131] border border-[#212A35] text-white placeholder-[#8B95A5] focus:outline-none focus:ring-2 focus:ring-primary/50"
                       required
                     />
                   </div>
-                  <div className="col-span-3">
+                  <div className="col-span-1 sm:col-span-3">
+                    <label
+                      htmlFor={`holding-price-${i}`}
+                      className="mb-1.5 block text-xs font-medium text-[#8B95A5]"
+                    >
+                      Price (USD)
+                    </label>
                     <input
+                      id={`holding-price-${i}`}
                       type="number"
-                      placeholder="Price USD"
+                      inputMode="decimal"
+                      placeholder="0.00"
                       value={h.price}
                       onChange={(e) => updateHolding(i, 'price', e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-lg text-sm bg-[#122131] border border-[#212A35] text-white placeholder-[#4b5563] focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      className="w-full min-h-[44px] px-4 py-2.5 rounded-lg text-sm bg-[#122131] border border-[#212A35] text-white placeholder-[#8B95A5] focus:outline-none focus:ring-2 focus:ring-primary/50"
                       required
                     />
                   </div>
-                  <div className="col-span-2 flex items-center gap-2">
-                    <select
-                      value={h.chain}
-                      onChange={(e) => updateHolding(i, 'chain', e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-lg text-sm bg-[#122131] border border-[#212A35] text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  <div className="col-span-2 sm:col-span-2">
+                    <label
+                      htmlFor={`holding-chain-${i}`}
+                      className="mb-1.5 block text-xs font-medium text-[#8B95A5]"
                     >
-                      <option>Bitcoin</option>
-                      <option>Ethereum</option>
-                      <option>Arbitrum</option>
-                      <option>Base</option>
-                      <option>Solana</option>
-                    </select>
-                    {holdings.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeRow(i)}
-                        className="rounded text-red-400 hover:text-red-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/50"
-                        aria-label="Remove asset"
+                      Chain
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <select
+                        id={`holding-chain-${i}`}
+                        value={h.chain}
+                        onChange={(e) => updateHolding(i, 'chain', e.target.value)}
+                        className="w-full min-h-[44px] px-4 py-2.5 rounded-lg text-sm bg-[#122131] border border-[#212A35] text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
                       >
-                        <X className="w-4 h-4" />
-                      </button>
-                    )}
+                        <option>Bitcoin</option>
+                        <option>Ethereum</option>
+                        <option>Arbitrum</option>
+                        <option>Base</option>
+                        <option>Solana</option>
+                      </select>
+                      {holdings.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeRow(i)}
+                          className="inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded text-red-400 hover:text-red-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/50"
+                          aria-label={`Remove asset ${i + 1}`}
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -244,8 +286,11 @@ export default function PortfolioBuilderTab() {
                 </div>
               </div>
               <div>
-                <label className="text-sm text-[#8B95A5] mb-2 block">Investment time horizon</label>
+                <label htmlFor="pb-horizon" className="text-sm text-[#8B95A5] mb-2 block">
+                  Investment time horizon
+                </label>
                 <select
+                  id="pb-horizon"
                   value={horizon}
                   onChange={(e) => setHorizon(e.target.value)}
                   className="w-full px-4 py-2.5 rounded-lg text-sm bg-[#122131] border border-[#212A35] text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
@@ -267,10 +312,11 @@ export default function PortfolioBuilderTab() {
             </div>
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm text-[#8B95A5] mb-2 block">
+                <label htmlFor="pb-target-return" className="text-sm text-[#8B95A5] mb-2 block">
                   Target annual return (%)
                 </label>
                 <input
+                  id="pb-target-return"
                   type="number"
                   value={targetReturn}
                   onChange={(e) => setTargetReturn(Number(e.target.value))}
@@ -278,8 +324,13 @@ export default function PortfolioBuilderTab() {
                 />
               </div>
               <div>
-                <label className="text-sm text-[#8B95A5] mb-2 block">Primary objective</label>
-                <select className="w-full px-4 py-2.5 rounded-lg text-sm bg-[#122131] border border-[#212A35] text-white focus:outline-none focus:ring-2 focus:ring-primary/50">
+                <label htmlFor="pb-objective" className="text-sm text-[#8B95A5] mb-2 block">
+                  Primary objective
+                </label>
+                <select
+                  id="pb-objective"
+                  className="w-full px-4 py-2.5 rounded-lg text-sm bg-[#122131] border border-[#212A35] text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                >
                   <option value="growth">Capital Growth</option>
                   <option value="income">Passive Income</option>
                   <option value="balanced">Balanced</option>
@@ -297,10 +348,11 @@ export default function PortfolioBuilderTab() {
             </div>
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm text-[#8B95A5] mb-2 block">
+                <label htmlFor="pb-max-allocation" className="text-sm text-[#8B95A5] mb-2 block">
                   Max allocation per asset (%)
                 </label>
                 <input
+                  id="pb-max-allocation"
                   type="number"
                   value={maxAllocation}
                   onChange={(e) => setMaxAllocation(Number(e.target.value))}
@@ -308,15 +360,16 @@ export default function PortfolioBuilderTab() {
                 />
               </div>
               <div>
-                <label className="text-sm text-[#8B95A5] mb-2 block">
+                <label htmlFor="pb-blacklist" className="text-sm text-[#8B95A5] mb-2 block">
                   Assets to exclude (comma separated)
                 </label>
                 <input
+                  id="pb-blacklist"
                   type="text"
                   value={blacklist}
                   onChange={(e) => setBlacklist(e.target.value)}
                   placeholder="e.g. SHIB, DOGE"
-                  className="w-full px-4 py-2.5 rounded-lg text-sm bg-[#122131] border border-[#212A35] text-white placeholder-[#4b5563] focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className="w-full px-4 py-2.5 rounded-lg text-sm bg-[#122131] border border-[#212A35] text-white placeholder-[#8B95A5] focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
               </div>
             </div>
