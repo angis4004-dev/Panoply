@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { LegalPageLayout } from '@/components/legal/LegalPageLayout';
+import { OperatingEntities } from '@/components/legal/OperatingEntities';
 
 export const metadata: Metadata = {
   title: 'Disclaimer — Aegis',
@@ -73,6 +74,11 @@ export default function DisclaimerPage() {
           and Aegis. You remain solely responsible for your own decisions and outcomes.
         </p>
       </section>
+
+      {/* Last here rather than first, unlike Terms and Privacy: this page
+          exists to lead with the risk warnings, and the entity detail is
+          reference the reader comes back for. */}
+      <OperatingEntities />
     </LegalPageLayout>
   );
 }

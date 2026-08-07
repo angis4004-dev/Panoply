@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { AegisMark } from '@/components/ui/AegisLogo';
+import { PLATFORM_ENTITY, TECHNOLOGY_ENTITY } from '@/lib/legal-entities';
 
 /**
  * Shared link styling.
@@ -91,8 +92,22 @@ export function Footer() {
         {/* Left-aligned rather than centred: everything above it is left-aligned
             on a 4-column grid, so a centred line read as a stray element rather
             than the end of the block. */}
-        <div className="mt-10 pt-5 border-t border-[#212A35] text-xs text-[#8B95A5]">
-          © {new Date().getFullYear()} Aegis. All rights reserved.
+        {/* Corporate disclosure sits with the copyright line, which is where a
+            reader looks for it. Kept to the two facts that identify each
+            company - name, jurisdiction, register number - with the full
+            registered addresses on the legal pages rather than repeated here. */}
+        <div className="mt-10 pt-5 border-t border-[#212A35] space-y-2 text-xs text-[#8B95A5]">
+          <p>
+            Aegis is operated by {TECHNOLOGY_ENTITY.name} ({TECHNOLOGY_ENTITY.jurisdiction},{' '}
+            {TECHNOLOGY_ENTITY.registration}) and {PLATFORM_ENTITY.name} (
+            {PLATFORM_ENTITY.jurisdiction}, {PLATFORM_ENTITY.registration}). Client funds are held
+            by {PLATFORM_ENTITY.name}. Full details in our{' '}
+            <Link href="/terms" className="underline hover:text-[#C5CCD6]">
+              Terms of Service
+            </Link>
+            .
+          </p>
+          <p>© {new Date().getFullYear()} Aegis. All rights reserved.</p>
         </div>
       </div>
     </footer>

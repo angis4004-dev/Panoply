@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { LegalPageLayout } from '@/components/legal/LegalPageLayout';
+import { OperatingEntities } from '@/components/legal/OperatingEntities';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy — Aegis',
@@ -15,6 +16,10 @@ export default function PrivacyPage() {
         non-custodial: we never take control of your assets, but we do process certain account and
         verification data to operate the service and meet compliance obligations.
       </p>
+
+      {/* Placed before the collection detail: a reader cannot evaluate what is
+          done with their data without knowing which company is doing it. */}
+      <OperatingEntities />
 
       <section>
         <h2>Information we collect</h2>

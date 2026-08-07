@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { LegalPageLayout } from '@/components/legal/LegalPageLayout';
+import { OperatingEntities } from '@/components/legal/OperatingEntities';
 
 export const metadata: Metadata = {
   title: 'Terms of Service — Aegis',
@@ -13,6 +14,10 @@ export default function TermsPage() {
         These Terms of Service (&quot;Terms&quot;) govern your access to and use of Aegis. By
         creating an account or otherwise using the platform, you agree to be bound by these Terms.
       </p>
+
+      {/* Placed before Eligibility: the first thing these Terms should settle
+          is who the reader is contracting with. */}
+      <OperatingEntities />
 
       <section>
         <h2>Eligibility</h2>
