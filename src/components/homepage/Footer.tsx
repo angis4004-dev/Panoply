@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { LineChart } from 'lucide-react';
 import { AegisMark } from '@/components/ui/AegisLogo';
 import { describeEntity, PLATFORM_ENTITY, TECHNOLOGY_ENTITY } from '@/lib/legal-entities';
 
@@ -16,7 +17,7 @@ import { describeEntity, PLATFORM_ENTITY, TECHNOLOGY_ENTITY } from '@/lib/legal-
 const linkClass =
   'inline-flex min-h-[44px] sm:min-h-0 sm:py-1 items-center rounded text-ds-text-muted hover:text-[#E7ECF2] transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]';
 
-const navClass = 'flex flex-col gap-2 sm:gap-0.5 text-sm';
+const navClass = 'flex flex-col gap-2 sm:gap-1.5 text-sm';
 
 const columns = [
   {
@@ -62,22 +63,42 @@ export function Footer() {
             only ever hold short labels - previously all four were equal width,
             leaving the link columns padded with dead space on wide screens. */}
         <div className="grid grid-cols-1 gap-y-10 sm:grid-cols-2 sm:gap-x-8 lg:grid-cols-[1.6fr_1fr_1fr_1fr] lg:gap-x-12">
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <AegisMark size={22} />
-              <span className="font-wordmark text-lg font-extrabold uppercase tracking-[0.12em] text-white">
+          {/* Wordmark carries the brand column on its own, at roughly double
+              its previous size. The descriptor paragraph that used to sit here
+              repeated the hero almost verbatim; a reader who has scrolled the
+              whole page does not need it restated at the bottom. */}
+          <div className="space-y-5">
+            <div className="flex items-center gap-2.5">
+              <AegisMark size={30} />
+              <span className="font-wordmark text-2xl font-extrabold uppercase tracking-[0.14em] text-white sm:text-3xl">
                 AEGIS
               </span>
             </div>
-            <p className="text-sm text-[#8B95A5] leading-relaxed max-w-xs">
-              Quantitative Intelligence for Decentralized Finance — signal-driven automation, vault
-              investing, and transparent portfolio analytics.
-            </p>
+
+            {/* Attribution, not decoration: every price and chart in the
+                product is CoinGecko data (lib/coingecko.ts, /api/prices), and
+                their terms ask for it to be credited. It is the one badge
+                here that states a fact rather than a slogan. */}
+            <a
+              href="https://www.coingecko.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-[44px] items-center gap-2.5 rounded-xl border border-[#212A35] bg-[#122131]/60 py-1.5 pl-1.5 pr-4 transition-colors duration-fast ease-ds-out hover:border-primary/40 hover:bg-[#17202e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+            >
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#0A0E13]">
+                <LineChart className="h-4 w-4 text-primary" aria-hidden />
+              </span>
+              <span className="text-sm font-medium text-[#E7ECF2]">Market data by CoinGecko</span>
+            </a>
           </div>
 
           {columns.map((col) => (
             <div key={col.heading}>
-              <h3 className="text-sm font-semibold text-white mb-3">{col.heading}</h3>
+              {/* Larger and lighter than the links beneath, rather than smaller
+                  and bolder. The heading is a signpost, not a label: at 14px
+                  semibold it competed with the link text it was meant to
+                  introduce. */}
+              <h3 className="mb-4 text-lg font-medium text-white">{col.heading}</h3>
               <nav className={navClass} aria-label={col.heading}>
                 {col.links.map((link) => (
                   <Link key={link.label} href={link.href} className={linkClass}>
