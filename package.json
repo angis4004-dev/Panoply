@@ -12,7 +12,12 @@
     "serve": "next start",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "verify:auth": "node scripts/verify-pin-login.mjs && node scripts/verify-pin-management.mjs && node scripts/verify-session-revocation.mjs",
+    "verify:pin-login": "node scripts/verify-pin-login.mjs",
+    "verify:pin-management": "node scripts/verify-pin-management.mjs",
+    "verify:session": "node scripts/verify-session-revocation.mjs",
+    "verify:ledger": "node scripts/verify-ledger.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
