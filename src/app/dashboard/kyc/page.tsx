@@ -14,7 +14,7 @@ const ID_TYPES: { value: 'passport' | 'drivers_license' | 'national_id'; label: 
 ];
 
 const inputClass =
-  'w-full rounded-lg border border-[#212A35] bg-[#122131] px-3 py-2.5 text-sm text-white placeholder-[#4b5563] focus:outline-none focus:ring-2 focus:ring-primary/50';
+  'w-full rounded-lg border border-[#212A35] bg-[#122131] px-3 py-2.5 text-sm text-white placeholder-[#8B95A5] focus:outline-none focus:ring-2 focus:ring-primary/50';
 const labelClass = 'block text-xs font-semibold text-[#8B95A5] mb-1.5 uppercase tracking-wide';
 
 interface FormState {

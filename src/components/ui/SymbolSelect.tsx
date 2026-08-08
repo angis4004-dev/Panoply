@@ -114,11 +114,11 @@ export function SymbolSelect({
             onKeyDown={handleKeyDown}
             placeholder="Search…"
             aria-label={`Search ${ariaLabel.toLowerCase()}`}
-            className="w-full border-b border-[#212A35] bg-transparent px-3 py-2 text-sm text-white placeholder-[#4b5563] focus:outline-none"
+            className="w-full border-b border-[#212A35] bg-transparent px-3 py-2 text-sm text-white placeholder-[#8B95A5] focus:outline-none"
           />
           <div className="max-h-48 overflow-y-auto py-1">
             {filtered.length === 0 && (
-              <p className="px-3 py-2 text-xs text-[#4b5563]">No matches</p>
+              <p className="px-3 py-2 text-xs text-[#8B95A5]">No matches</p>
             )}
             {filtered.map((symbol, i) => (
               <button

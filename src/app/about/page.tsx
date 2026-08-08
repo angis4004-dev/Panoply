@@ -173,25 +173,25 @@ export default function AboutPage() {
                   <h3 className="text-sm font-semibold text-white mb-3">{s.name}</h3>
                   <dl className="space-y-2.5 text-xs leading-relaxed">
                     <div>
-                      <dt className="text-[#4b5563] uppercase tracking-wide text-[10px] mb-0.5">
+                      <dt className="text-[#8B95A5] uppercase tracking-wide text-[10px] mb-0.5">
                         Purpose
                       </dt>
                       <dd className="text-[#8B95A5]">{s.purpose}</dd>
                     </div>
                     <div>
-                      <dt className="text-[#4b5563] uppercase tracking-wide text-[10px] mb-0.5">
+                      <dt className="text-[#8B95A5] uppercase tracking-wide text-[10px] mb-0.5">
                         Typical use case
                       </dt>
                       <dd className="text-[#8B95A5]">{s.useCase}</dd>
                     </div>
                     <div>
-                      <dt className="text-[#4b5563] uppercase tracking-wide text-[10px] mb-0.5">
+                      <dt className="text-[#8B95A5] uppercase tracking-wide text-[10px] mb-0.5">
                         Risk profile
                       </dt>
                       <dd className="text-[#8B95A5]">{s.riskProfile}</dd>
                     </div>
                     <div>
-                      <dt className="text-[#4b5563] uppercase tracking-wide text-[10px] mb-0.5">
+                      <dt className="text-[#8B95A5] uppercase tracking-wide text-[10px] mb-0.5">
                         Expected behavior
                       </dt>
                       <dd className="text-[#8B95A5]">{s.behavior}</dd>
