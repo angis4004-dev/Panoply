@@ -11,6 +11,14 @@ export interface KycInfo {
   idType: 'passport' | 'drivers_license' | 'national_id' | '';
   idNumber: string;
   documentProvided: boolean;
+  /**
+   * Metadata about the stored document, so the owner can see which file is on
+   * file without the image itself ever being served back. Absent when nothing
+   * has been uploaded.
+   */
+  documentMimeType?: string | null;
+  documentSize?: number | null;
+  documentUploadedAt?: string | null;
   rejectionReason: string | null;
 }
 

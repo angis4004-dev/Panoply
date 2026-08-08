@@ -77,6 +77,42 @@ export function encryptPii(plaintext: string): string {
   ].join('.');
 }
 
+/**
+ * Same construction, same `v1.<iv>.<tag>.<data>` envelope, for binary input.
+ *
+ * Identity document images go through here. Routing them through encryptPii
+ * would mean base64-encoding the image first and encrypting that text, which
+ * inflates the stored value to roughly 1.8x the original - base64 once for the
+ * plaintext and again for the ciphertext. Encrypting the bytes directly costs
+ * only the single base64url pass, about 1.33x, which matters against MongoDB's
+ * 16MB document ceiling.
+ */
+export function encryptPiiBuffer(plaintext: Buffer): string {
+  const iv = crypto.randomBytes(IV_BYTES);
+  const cipher = crypto.createCipheriv(ALGORITHM, getKey(), iv);
+  const ciphertext = Buffer.concat([cipher.update(plaintext), cipher.final()]);
+  const authTag = cipher.getAuthTag();
+
+  return [
+    VERSION,
+    iv.toString('base64url'),
+    authTag.toString('base64url'),
+    ciphertext.toString('base64url'),
+  ].join('.');
+}
+
+export function decryptPiiBuffer(stored: string): Buffer {
+  const [version, ivPart, tagPart, dataPart] = stored.split('.');
+  if (version !== VERSION || !ivPart || !tagPart || !dataPart) {
+    throw new PiiCryptoError('Value is not in a recognized encrypted format.');
+  }
+
+  const decipher = crypto.createDecipheriv(ALGORITHM, getKey(), Buffer.from(ivPart, 'base64url'));
+  decipher.setAuthTag(Buffer.from(tagPart, 'base64url'));
+
+  return Buffer.concat([decipher.update(Buffer.from(dataPart, 'base64url')), decipher.final()]);
+}
+
 export function decryptPii(stored: string): string {
   const [version, ivPart, tagPart, dataPart] = stored.split('.');
   if (version !== VERSION || !ivPart || !tagPart || !dataPart) {

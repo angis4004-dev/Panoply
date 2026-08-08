@@ -35,7 +35,13 @@ export async function GET(request: NextRequest) {
     // re-entered, which is correct - it is not ours to hand back.
     idNumber: '',
     idNumberMasked: maskFromLastFour(user.kycIdNumberLast4),
+    // Metadata only. The document itself is never served back to its owner:
+    // they already have it, and a read path would be one more place an
+    // identity document could leak from. Only the admin review route decrypts.
     documentProvided: user.kycDocumentProvided || false,
+    documentMimeType: user.kycDocumentMimeType || null,
+    documentSize: user.kycDocumentSize ?? null,
+    documentUploadedAt: user.kycDocumentUploadedAt || null,
     rejectionReason: user.kycRejectionReason || null,
   });
 }

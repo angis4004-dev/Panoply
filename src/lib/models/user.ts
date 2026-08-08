@@ -82,7 +82,26 @@ export interface IUser extends Document {
    * document is on file without anything having to decrypt the full value.
    */
   kycIdNumberLast4?: string;
+  /**
+   * Whether an identity document is on file. Until now this was the only
+   * record of one: the upload control set it to true and discarded the file,
+   * so a reviewer was told a document existed with no way to look at it. It is
+   * now derived from kycDocumentData actually being present.
+   */
   kycDocumentProvided?: boolean;
+  /**
+   * The document itself, AES-256-GCM encrypted by encryptPiiBuffer and stored
+   * as the same `v1.<iv>.<tag>.<data>` envelope the identity number uses.
+   *
+   * `select: false` so it is never returned by an ordinary query. A scanned
+   * passport is the most sensitive thing this collection holds, and every
+   * existing findById would otherwise start dragging megabytes of it into
+   * memory. The two places that need it ask for it explicitly.
+   */
+  kycDocumentData?: string;
+  kycDocumentMimeType?: string;
+  kycDocumentSize?: number;
+  kycDocumentUploadedAt?: Date;
   kycRejectionReason?: string;
   // Achievement / tier engine
   emailVerified: boolean;
@@ -155,6 +174,12 @@ const UserSchema = new Schema<IUser>(
     kycIdNumber: { type: String },
     kycIdNumberLast4: { type: String },
     kycDocumentProvided: { type: Boolean, default: false },
+    // select: false keeps megabytes of encrypted image out of every ordinary
+    // query. Only the upload route and the admin review route ask for it.
+    kycDocumentData: { type: String, select: false },
+    kycDocumentMimeType: { type: String },
+    kycDocumentSize: { type: Number },
+    kycDocumentUploadedAt: { type: Date },
     kycRejectionReason: { type: String },
     // Achievement / tier engine
     emailVerified: { type: Boolean, default: false },

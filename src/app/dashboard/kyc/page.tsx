@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ShieldCheck, Clock, ShieldAlert, ShieldX, Paperclip } from 'lucide-react';
+import { ShieldCheck, Clock, ShieldAlert, ShieldX } from 'lucide-react';
 import { PageHeader } from '@/components/dashboard/page-header';
+import { IdDocumentCapture } from '@/components/dashboard/id-document-capture';
 import { useAuth } from '@/hooks/use-auth';
 import { useAppStore } from '@/store/app-store';
 import type { KycInfo } from '@/lib/types';
@@ -41,7 +42,11 @@ export default function KycPage() {
   const [info, setInfo] = useState<KycInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [fileName, setFileName] = useState('');
+  const [documentOnFile, setDocumentOnFile] = useState<{
+    mimeType: string;
+    size: number;
+    uploadedAt: string;
+  } | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
 
   useEffect(() => {
@@ -58,18 +63,19 @@ export default function KycPage() {
           idNumber: data.idNumber || '',
           documentProvided: data.documentProvided,
         });
+        if (data.documentProvided && data.documentMimeType) {
+          setDocumentOnFile({
+            mimeType: data.documentMimeType,
+            size: data.documentSize ?? 0,
+            uploadedAt: data.documentUploadedAt ?? new Date().toISOString(),
+          });
+        }
       })
       .finally(() => setLoading(false));
   }, []);
 
   const updateField = <K extends keyof FormState>(key: K, value: FormState[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    setFileName(file?.name || '');
-    updateField('documentProvided', !!file);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -253,19 +259,15 @@ export default function KycPage() {
               />
             </div>
 
-            <div>
-              <label className={labelClass}>Upload ID document</label>
-              <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-ds-border bg-ds-surface-raised px-3 py-2.5 text-sm text-ds-text-muted transition-colors hover:border-primary/40 focus-within:ring-2 focus-within:ring-primary/50">
-                <Paperclip className="h-4 w-4 shrink-0" />
-                <span className="truncate">{fileName || 'Choose a file (front of ID)'}</span>
-                <input
-                  type="file"
-                  onChange={handleFileChange}
-                  className="sr-only"
-                  accept="image/*,.pdf"
-                />
-              </label>
-            </div>
+            {/* Replaces a file input that set a boolean and discarded the
+                file. This one uploads on its own, separately from the form
+                submit below, so a large photo is already stored by the time
+                the details are sent and a slow upload never looks like a
+                hung form. */}
+            <IdDocumentCapture
+              existing={documentOnFile}
+              onChange={(present) => updateField('documentProvided', present)}
+            />
 
             <button
               type="submit"
