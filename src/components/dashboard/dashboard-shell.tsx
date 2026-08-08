@@ -1,14 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import DashboardSidebar from '@/components/dashboard/sidebar';
 import { DashboardHeader } from '@/components/dashboard/dashboard-header';
 import { useAuth } from '@/hooks/use-auth';
 import { useAppStore } from '@/store/app-store';
 import { ACHIEVEMENT_CATALOG, type AchievementKey } from '@/lib/achievements/catalog';
-
-const KYC_PATH = '/dashboard/kyc';
 
 function sectionFromPathname(pathname: string): string | null {
   if (pathname === '/dashboard') return 'overview';
@@ -22,16 +20,23 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const { addToast } = useAppStore();
   const pathname = usePathname();
-  const router = useRouter();
 
-  useEffect(() => {
-    // First-time KYC submission is mandatory before the rest of the
-    // dashboard is reachable; once submitted (pending/verified/rejected),
-    // navigation is unrestricted regardless of review outcome.
-    if (!loading && user?.kycStatus === 'unverified' && pathname !== KYC_PATH) {
-      router.replace(KYC_PATH);
-    }
-  }, [loading, user, pathname, router]);
+  /*
+   * Unverified users are no longer bounced to /dashboard/kyc from every route.
+   *
+   * The redirect was silent and fired on arrival, so signing in looked broken:
+   * you entered your PIN, the dashboard painted for a frame, and you were
+   * teleported to a form you had not asked for. Clicking Portfolio Builder did
+   * the same thing. Two people read that as "the PIN does not work" - the last
+   * thing they did was type a PIN, so the PIN got the blame.
+   *
+   * Nothing is lost by removing it. KYC is enforced where it actually matters,
+   * on the server: POST /api/wallet refuses a deposit unless kycStatus is
+   * 'verified', POST /api/bots gives an unverified tier a slot limit of 0, and
+   * a vault position cannot be opened without a wallet balance that only a
+   * KYC-gated deposit can create. The dashboard and the vaults page each carry
+   * an inline prompt linking here, which asks rather than compels.
+   */
 
   useEffect(() => {
     if (loading || !user) return;
