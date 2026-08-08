@@ -250,7 +250,11 @@ export default function PortfolioBuilderTab() {
                 <label className="text-sm text-[#8B95A5] mb-2 block">
                   How would you describe your risk tolerance?
                 </label>
-                <div className="grid grid-cols-3 gap-3">
+                {/* Stacked on phones. Three across gave each card 85px at
+                    375px, and p-4 leaves 51px of that for the label - but
+                    "Conservative" needs 96px, so the centred text spilled out
+                    of both sides of its card and ran into the next one. */}
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                   {(['conservative', 'moderate', 'aggressive'] as RiskProfile[]).map((r) => {
                     const colors: Record<string, string> = {
                       conservative: 'peer-checked:border-green-400 peer-checked:bg-green-400/10',
