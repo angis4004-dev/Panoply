@@ -52,11 +52,14 @@ export function Hero() {
                 Quantitative Intelligence for Decentralized Finance
               </span>
             </div>
-            <h1 className="text-3xl sm:text-5xl font-bold text-white mb-5 leading-tight">
-              Disciplined automation for{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-brand-cyan to-[#7B61FF]">
-                on-chain portfolios.
-              </span>
+            {/* Display serif at 400, not the body sans at 700. The emphasis on
+                the second clause was a cream-to-cyan-to-purple gradient clip,
+                which is the most recognisable stock-SaaS headline treatment
+                there is; it now leans on the brand cream and an italic, which
+                the serif actually has a drawn face for. */}
+            <h1 className="font-display font-normal text-[2.75rem] leading-[1.05] sm:text-[4rem] sm:leading-[1.03] tracking-[-0.015em] text-white mb-6">
+              Disciplined automation for <em className="not-italic text-primary">on-chain</em>{' '}
+              <span className="italic text-primary">portfolios.</span>
             </h1>
             <p className="text-[#8B95A5] text-base sm:text-lg mb-8 max-w-xl leading-relaxed">
               Aegis combines quantitative research, automated execution, and risk management in a

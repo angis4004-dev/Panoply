@@ -162,13 +162,25 @@ export function FeaturesGrid() {
     <section id="features" className="relative py-20 sm:py-24 overflow-hidden">
       <div className="ds-network-glow -z-10" aria-hidden />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16 sm:mb-20">
-          <p className="text-ds-caption font-semibold uppercase tracking-[0.35em] text-primary mb-3">
-            Automated strategies, or build your own
+        {/* Left-aligned and asymmetric, deliberately unlike the centred
+            eyebrow-over-heading block every other section uses. When all five
+            sections run the identical centred formula the page never gives the
+            eye a change of shape, which is a large part of why it read as
+            templated. The hairline carries the alignment across the full
+            measure so the break looks intentional rather than stray. */}
+        <div className="mb-16 sm:mb-20 grid gap-x-10 gap-y-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+          <div>
+            <p className="text-ds-caption font-semibold uppercase tracking-[0.35em] text-primary mb-3">
+              Automated strategies, or build your own
+            </p>
+            <h2 className="font-display font-normal text-[2rem] leading-[1.1] sm:text-[3rem] tracking-[-0.01em] text-white">
+              Every position, non-custodial.
+            </h2>
+          </div>
+          <p className="text-sm text-ds-text-muted sm:max-w-[16rem] sm:text-right">
+            Four ways to put capital to work, each one visible on-chain.
           </p>
-          <h2 className="text-2xl sm:text-3xl font-bold text-white">
-            Every position, non-custodial.
-          </h2>
+          <div className="h-px w-full bg-[#212A35] sm:col-span-2" aria-hidden />
         </div>
 
         <div className="space-y-20 sm:space-y-24 lg:space-y-28">
@@ -184,7 +196,7 @@ export function FeaturesGrid() {
                   <p className="text-ds-caption font-semibold uppercase tracking-[0.3em] text-primary mb-3">
                     {row.eyebrow}
                   </p>
-                  <h3 className="text-xl sm:text-3xl font-bold text-white mb-4 leading-tight">
+                  <h3 className="font-display font-normal text-[1.75rem] sm:text-[2.25rem] leading-[1.1] tracking-[-0.01em] text-white mb-4">
                     {row.title}
                   </h3>
                   <p className="text-[#8B95A5] leading-relaxed mb-6 max-w-md">{row.desc}</p>

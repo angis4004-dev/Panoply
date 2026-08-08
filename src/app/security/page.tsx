@@ -57,7 +57,7 @@ export default function SecurityReviewPage() {
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <Reveal>
             <SectionEyebrow>Independent assessment</SectionEyebrow>
-            <h1 className="text-3xl sm:text-5xl font-bold text-white mb-6 leading-tight">
+            <h1 className="font-display font-normal text-[2.75rem] sm:text-[4rem] leading-[1.05] tracking-[-0.015em] text-white mb-6">
               {AUDIT.title}
             </h1>
             <p className="text-[#8B95A5] text-base sm:text-lg leading-relaxed max-w-2xl mx-auto mb-8">
@@ -94,7 +94,9 @@ export default function SecurityReviewPage() {
                   <FileCheck className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-white mb-2">Assessment outcome</h2>
+                  <h2 className="font-display font-normal text-xl text-white mb-2">
+                    Assessment outcome
+                  </h2>
                   <p className="text-sm text-[#8B95A5] leading-relaxed mb-3">
                     No evidence of intentionally malicious functionality was identified within the
                     reviewed codebase. Subject to the remediation of the findings presented in the
@@ -115,7 +117,9 @@ export default function SecurityReviewPage() {
       <section className="py-16 border-t border-[#212A35]">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionEyebrow>The auditor</SectionEyebrow>
-          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-6">About {AUDIT.auditor}</h2>
+          <h2 className="font-display font-normal text-[2rem] sm:text-[2.75rem] leading-[1.1] tracking-[-0.01em] text-white mb-6">
+            About {AUDIT.auditor}
+          </h2>
           <div className="space-y-4">
             {AUDITOR_INTRO.map((p) => (
               <p key={p.slice(0, 24)} className="text-sm text-[#8B95A5] leading-relaxed">
@@ -129,7 +133,9 @@ export default function SecurityReviewPage() {
       <section className="py-16 border-t border-[#212A35] bg-[#0D1219]">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionEyebrow>Objective</SectionEyebrow>
-          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">What was assessed for</h2>
+          <h2 className="font-display font-normal text-[2rem] sm:text-[2.75rem] leading-[1.1] tracking-[-0.01em] text-white mb-4">
+            What was assessed for
+          </h2>
           <p className="text-sm text-[#8B95A5] leading-relaxed mb-8">
             The review focused on identifying vulnerabilities that could impact:
           </p>
@@ -148,7 +154,9 @@ export default function SecurityReviewPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mb-12">
             <SectionEyebrow>Coverage</SectionEyebrow>
-            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">Audit scope</h2>
+            <h2 className="font-display font-normal text-[2rem] sm:text-[2.75rem] leading-[1.1] tracking-[-0.01em] text-white mb-4">
+              Audit scope
+            </h2>
             <p className="text-sm text-[#8B95A5] leading-relaxed">
               The assessment covered the core smart contract ecosystem, protocol architecture, and
               supporting infrastructure that power the Aegis platform.
@@ -177,7 +185,9 @@ export default function SecurityReviewPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mb-12">
             <SectionEyebrow>How it was done</SectionEyebrow>
-            <h2 className="text-2xl sm:text-3xl font-bold text-white">Review methodology</h2>
+            <h2 className="text-2xl sm:font-display font-normal text-[2rem] sm:text-[2.5rem] leading-[1.1] tracking-[-0.01em] text-white">
+              Review methodology
+            </h2>
           </div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {METHODOLOGY.map((m, i) => (
@@ -196,7 +206,9 @@ export default function SecurityReviewPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mb-10">
             <SectionEyebrow>Classification</SectionEyebrow>
-            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">Severity levels</h2>
+            <h2 className="font-display font-normal text-[2rem] sm:text-[2.75rem] leading-[1.1] tracking-[-0.01em] text-white mb-4">
+              Severity levels
+            </h2>
             <p className="text-sm text-[#8B95A5] leading-relaxed">
               Findings are categorized by potential impact and likelihood of exploitation. The
               report does not publish per-severity counts.
@@ -247,7 +259,9 @@ export default function SecurityReviewPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid gap-10 lg:grid-cols-2">
           <div>
             <SectionEyebrow>Findings</SectionEyebrow>
-            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">Recommendations made</h2>
+            <h2 className="font-display font-normal text-[2rem] sm:text-[2.75rem] leading-[1.1] tracking-[-0.01em] text-white mb-4">
+              Recommendations made
+            </h2>
             <p className="text-sm text-[#8B95A5] leading-relaxed mb-6">
               Several recommendations were made to strengthen:
             </p>
@@ -265,7 +279,7 @@ export default function SecurityReviewPage() {
           </div>
           <div>
             <SectionEyebrow>Observed</SectionEyebrow>
-            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
+            <h2 className="font-display font-normal text-[2rem] sm:text-[2.75rem] leading-[1.1] tracking-[-0.01em] text-white mb-4">
               During the engagement
             </h2>
             <ul className="space-y-2.5 mb-8">
@@ -294,7 +308,7 @@ export default function SecurityReviewPage() {
       <section className="py-16 border-t border-[#212A35]">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionEyebrow>Ongoing</SectionEyebrow>
-          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
+          <h2 className="font-display font-normal text-[2rem] sm:text-[2.75rem] leading-[1.1] tracking-[-0.01em] text-white mb-4">
             Security is not a one-time event
           </h2>
           <p className="text-sm text-[#8B95A5] leading-relaxed mb-6">
@@ -333,7 +347,7 @@ export default function SecurityReviewPage() {
                 className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(30,99,255,0.08),transparent_70%)]"
               />
               <div className="relative">
-                <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
+                <h2 className="font-display font-normal text-[2rem] sm:text-[2.75rem] leading-[1.1] tracking-[-0.01em] text-white mb-4">
                   Your keys, your crypto.
                 </h2>
                 <p className="text-[#8B95A5] mb-8 max-w-xl mx-auto leading-relaxed">

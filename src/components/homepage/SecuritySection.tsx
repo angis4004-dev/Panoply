@@ -40,7 +40,7 @@ function SecurityCard({ item }: { item: (typeof items)[number] }) {
       <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 transition-transform duration-base ease-ds-out group-hover:scale-110">
         <Icon className="h-6 w-6 text-primary" />
       </div>
-      <h3 className="font-semibold text-white mb-2">{item.title}</h3>
+      <h3 className="font-display font-normal text-xl text-white mb-2">{item.title}</h3>
       <p className="text-sm text-[#8B95A5]">{item.desc}</p>
     </div>
   );
@@ -91,7 +91,7 @@ export function SecuritySection() {
           <p className="text-ds-caption font-semibold uppercase tracking-[0.35em] text-primary mb-3">
             Before anything else
           </p>
-          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
+          <h2 className="font-display font-normal text-[2rem] leading-[1.1] sm:text-[2.75rem] tracking-[-0.01em] text-white mb-4">
             Your Keys. Your Crypto. Always.
           </h2>
           <p className="text-[#8B95A5] max-w-2xl mx-auto">

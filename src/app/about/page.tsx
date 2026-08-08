@@ -63,7 +63,7 @@ export default function AboutPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <Reveal>
             <SectionEyebrow>About Aegis</SectionEyebrow>
-            <h1 className="text-4xl sm:text-5xl font-bold text-white mb-6 leading-tight">
+            <h1 className="font-display font-normal text-[2.75rem] sm:text-[4rem] leading-[1.05] tracking-[-0.015em] text-white mb-6">
               {MOTTO}
             </h1>
             <p className="text-[#8B95A5] text-lg leading-relaxed max-w-2xl mx-auto">
@@ -83,7 +83,7 @@ export default function AboutPage() {
               <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 mb-5">
                 <Target className="h-5 w-5 text-primary" />
               </div>
-              <h2 className="text-xl font-semibold text-white mb-3">Mission</h2>
+              <h2 className="font-display font-normal text-xl text-white mb-3">Mission</h2>
               <p className="text-sm text-[#8B95A5] leading-relaxed">
                 To bring institutional-grade quantitative discipline to decentralized finance -
                 replacing guesswork with structured, risk-aware automation that operates
@@ -96,7 +96,7 @@ export default function AboutPage() {
               <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 mb-5">
                 <Sparkles className="h-5 w-5 text-primary" />
               </div>
-              <h2 className="text-xl font-semibold text-white mb-3">Vision</h2>
+              <h2 className="font-display font-normal text-xl text-white mb-3">Vision</h2>
               <p className="text-sm text-[#8B95A5] leading-relaxed">
                 We believe on-chain investing should be held to the same standards of risk
                 management, transparency, and accountability as traditional institutional finance -
@@ -112,7 +112,9 @@ export default function AboutPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <SectionEyebrow>What we stand for</SectionEyebrow>
-            <h2 className="text-3xl font-bold text-white">Core Principles</h2>
+            <h2 className="font-display font-normal text-[2rem] sm:text-[2.5rem] leading-[1.1] tracking-[-0.01em] text-white">
+              Core Principles
+            </h2>
           </div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
             {CORE_PRINCIPLES.map((p, i) => {
@@ -138,7 +140,9 @@ export default function AboutPage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <SectionEyebrow>The pipeline</SectionEyebrow>
-            <h2 className="text-3xl font-bold text-white">How Aegis Works</h2>
+            <h2 className="font-display font-normal text-[2rem] sm:text-[2.5rem] leading-[1.1] tracking-[-0.01em] text-white">
+              How Aegis Works
+            </h2>
           </div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {HOW_IT_WORKS.map((step, i) => (
@@ -159,7 +163,9 @@ export default function AboutPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12 max-w-2xl mx-auto">
             <SectionEyebrow>Educational overview</SectionEyebrow>
-            <h2 className="text-3xl font-bold text-white mb-4">Strategy Categories</h2>
+            <h2 className="font-display font-normal text-[2rem] sm:text-[2.5rem] leading-[1.1] tracking-[-0.01em] text-white mb-4">
+              Strategy Categories
+            </h2>
             <p className="text-sm text-[#8B95A5] leading-relaxed">
               Aegis strategies fall into distinct categories, each with a different purpose, risk
               profile, and expected behavior. No single category is presented as superior - the
@@ -209,7 +215,9 @@ export default function AboutPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12 max-w-2xl mx-auto">
             <SectionEyebrow>Risk as a feature, not an afterthought</SectionEyebrow>
-            <h2 className="text-3xl font-bold text-white mb-4">Risk Framework</h2>
+            <h2 className="font-display font-normal text-[2rem] sm:text-[2.5rem] leading-[1.1] tracking-[-0.01em] text-white mb-4">
+              Risk Framework
+            </h2>
             <p className="text-sm text-[#8B95A5] leading-relaxed">
               Risk management runs continuously alongside every strategy - not as a disclaimer, but
               as active infrastructure.
@@ -236,7 +244,7 @@ export default function AboutPage() {
               <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 mb-5">
                 <Layers className="h-5 w-5 text-primary" />
               </div>
-              <h2 className="text-lg font-semibold text-white mb-3">Technology</h2>
+              <h2 className="font-display font-normal text-2xl text-white mb-3">Technology</h2>
               <p className="text-sm text-[#8B95A5] leading-relaxed">
                 Quantitative models, real-time market data, and on-chain execution infrastructure
                 work together to move a signal from generation to execution with minimal latency,
@@ -249,7 +257,7 @@ export default function AboutPage() {
               <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 mb-5">
                 <ShieldCheck className="h-5 w-5 text-primary" />
               </div>
-              <h2 className="text-lg font-semibold text-white mb-3">Security</h2>
+              <h2 className="font-display font-normal text-2xl text-white mb-3">Security</h2>
               <p className="text-sm text-[#8B95A5] leading-relaxed">
                 Non-custodial architecture means Aegis never holds user funds or private keys.
                 Session security, encrypted infrastructure, and continuous account monitoring
@@ -262,7 +270,7 @@ export default function AboutPage() {
               <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 mb-5">
                 <BarChart3 className="h-5 w-5 text-primary" />
               </div>
-              <h2 className="text-lg font-semibold text-white mb-3">Transparency</h2>
+              <h2 className="font-display font-normal text-2xl text-white mb-3">Transparency</h2>
               <p className="text-sm text-[#8B95A5] leading-relaxed">
                 Allocations, risk exposure, and performance are visible in your dashboard in real
                 time. Strategy logic and risk parameters are documented, not left as a black box.
@@ -281,7 +289,9 @@ export default function AboutPage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <SectionEyebrow>Verified independently</SectionEyebrow>
-            <h2 className="text-3xl font-bold text-white mb-4">Security Audit</h2>
+            <h2 className="font-display font-normal text-[2rem] sm:text-[2.5rem] leading-[1.1] tracking-[-0.01em] text-white mb-4">
+              Security Audit
+            </h2>
             <p className="text-[#8B95A5] max-w-2xl mx-auto">
               {AUDIT.title} was carried out by {AUDIT.auditor}, an independent blockchain security
               research organization, with a review date of {AUDIT.reviewDate}.
@@ -335,7 +345,9 @@ export default function AboutPage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <SectionEyebrow>Where we&apos;re headed</SectionEyebrow>
-            <h2 className="text-3xl font-bold text-white">Roadmap</h2>
+            <h2 className="font-display font-normal text-[2rem] sm:text-[2.5rem] leading-[1.1] tracking-[-0.01em] text-white">
+              Roadmap
+            </h2>
           </div>
           <div className="space-y-6">
             {ROADMAP.map((phase, i) => (
@@ -370,7 +382,9 @@ export default function AboutPage() {
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <SectionEyebrow>Common questions</SectionEyebrow>
-            <h2 className="text-3xl font-bold text-white">Frequently Asked Questions</h2>
+            <h2 className="font-display font-normal text-[2rem] sm:text-[2.5rem] leading-[1.1] tracking-[-0.01em] text-white">
+              Frequently Asked Questions
+            </h2>
           </div>
           <Reveal>
             <FaqAccordion items={[...FAQ_ITEMS]} />
@@ -388,7 +402,7 @@ export default function AboutPage() {
                 className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(30,99,255,0.08),transparent_70%)]"
               />
               <div className="relative">
-                <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
+                <h2 className="font-display font-normal text-[2rem] sm:text-[2.75rem] leading-[1.1] tracking-[-0.01em] text-white mb-4">
                   Disciplined automation. Measurable process. No guarantees implied.
                 </h2>
                 <p className="text-[#8B95A5] mb-8 max-w-xl mx-auto leading-relaxed">

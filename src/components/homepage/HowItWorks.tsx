@@ -26,7 +26,9 @@ export function HowItWorks() {
           <p className="text-ds-caption font-semibold uppercase tracking-[0.35em] text-primary mb-3">
             Getting started
           </p>
-          <h2 className="text-2xl sm:text-3xl font-bold text-white">How It Works</h2>
+          <h2 className="font-display font-normal text-[2rem] sm:text-[2.75rem] leading-[1.1] tracking-[-0.01em] text-white">
+            How It Works
+          </h2>
         </div>
         <div className="relative grid gap-10 sm:grid-cols-3">
           <div
@@ -35,10 +37,10 @@ export function HowItWorks() {
           />
           {steps.map((step, i) => (
             <Reveal key={step.num} delay={i * 100} className="text-center group">
-              <div className="relative mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-[#0D1219] border border-primary/40 text-lg font-bold text-primary transition duration-base ease-ds-out group-hover:border-primary group-hover:bg-primary/15 group-hover:scale-110">
+              <div className="relative mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-[#0D1219] border border-primary/40 font-display text-2xl font-normal text-primary transition duration-base ease-ds-out group-hover:border-primary group-hover:bg-primary/15 group-hover:scale-110">
                 {step.num}
               </div>
-              <h3 className="text-lg font-semibold text-white mb-2">{step.title}</h3>
+              <h3 className="font-display font-normal text-2xl text-white mb-2">{step.title}</h3>
               <p className="text-sm text-[#8B95A5] leading-relaxed max-w-xs mx-auto">{step.desc}</p>
             </Reveal>
           ))}

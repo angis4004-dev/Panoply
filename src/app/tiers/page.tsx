@@ -114,7 +114,7 @@ export default function TiersPage() {
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <Reveal>
             <SectionEyebrow>Deposit-based, not a subscription</SectionEyebrow>
-            <h1 className="text-4xl sm:text-5xl font-bold text-white mb-6 leading-tight">
+            <h1 className="font-display font-normal text-[2.75rem] sm:text-[4rem] leading-[1.05] tracking-[-0.015em] text-white mb-6">
               Account Tiers
             </h1>
             <p className="text-[#8B95A5] text-lg leading-relaxed max-w-2xl mx-auto">
@@ -137,7 +137,7 @@ export default function TiersPage() {
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-1.5">
                       <Star className={`h-4 w-4 ${tier.accent}`} fill="currentColor" />
-                      <h2 className="text-xl font-semibold text-white">{tier.name}</h2>
+                      <h2 className="font-display font-normal text-xl text-white">{tier.name}</h2>
                     </div>
                     <span
                       className={`text-xs font-medium px-2 py-0.5 rounded ${tier.accentBg} ${tier.accent}`}
@@ -171,7 +171,9 @@ export default function TiersPage() {
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <SectionEyebrow>Common questions</SectionEyebrow>
-            <h2 className="text-3xl font-bold text-white">About the tiers</h2>
+            <h2 className="font-display font-normal text-[2rem] sm:text-[2.5rem] leading-[1.1] tracking-[-0.01em] text-white">
+              About the tiers
+            </h2>
           </div>
           <Reveal>
             <FaqAccordion items={faqItems} />
