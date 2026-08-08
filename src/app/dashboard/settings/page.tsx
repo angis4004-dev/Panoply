@@ -59,12 +59,12 @@ export default function SettingsPage() {
       />
 
       <div className="mx-auto max-w-xl space-y-6">
-        <section className="rounded-xl border border-[#212A35] bg-[#122131]/50 p-5">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-[#8B95A5]">
+        <section className="rounded-xl border border-ds-border bg-ds-surface-raised/50 p-5">
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-ds-text-muted">
             Identity Score
           </h2>
           <IdentityScore score={0} size="sm" />
-          <p className="mt-2 text-xs text-[#8B95A5]">
+          <p className="mt-2 text-xs text-ds-text-muted">
             Refreshes on the{' '}
             <a href="/dashboard/achievements" className="text-primary hover:underline">
               Achievements page
@@ -73,13 +73,13 @@ export default function SettingsPage() {
           </p>
         </section>
 
-        <section className="rounded-xl border border-[#212A35] bg-[#122131]/50 p-5">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-[#8B95A5]">
+        <section className="rounded-xl border border-ds-border bg-ds-surface-raised/50 p-5">
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-ds-text-muted">
             Account
           </h2>
           <div className="space-y-4">
             <div>
-              <label className="text-xs text-[#8B95A5]" htmlFor="settings-name">
+              <label className="text-xs text-ds-text-muted" htmlFor="settings-name">
                 Name
               </label>
               <input
@@ -87,15 +87,15 @@ export default function SettingsPage() {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-[#212A35] bg-[#0A0E13] px-3 py-2 text-sm text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#122131]"
+                className="mt-1 w-full rounded-lg border border-ds-border bg-ds-surface px-3 py-2 text-sm text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface-raised"
               />
             </div>
             <div>
-              <label className="text-xs text-[#8B95A5]">Email</label>
+              <label className="text-xs text-ds-text-muted">Email</label>
               <p className="mt-1 text-white">{user?.email || '—'}</p>
             </div>
             <div>
-              <label className="text-xs text-[#8B95A5]">Role</label>
+              <label className="text-xs text-ds-text-muted">Role</label>
               <p className="mt-1">
                 <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
                   {user?.role || 'Trader'}
@@ -105,7 +105,7 @@ export default function SettingsPage() {
             <button
               onClick={handleSaveProfile}
               disabled={saving}
-              className="min-h-[44px] rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#122131]"
+              className="min-h-[44px] rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface-raised"
             >
               {saving ? 'Saving...' : 'Save Profile'}
             </button>
@@ -113,15 +113,15 @@ export default function SettingsPage() {
         </section>
 
         {user?.walletAddress && !user?.walletOwnershipConfirmed && (
-          <section className="rounded-xl border border-[#212A35] bg-[#122131]/50 p-5">
-            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-[#8B95A5]">
+          <section className="rounded-xl border border-ds-border bg-ds-surface-raised/50 p-5">
+            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-ds-text-muted">
               Wallet
             </h2>
             <p className="mb-3 text-sm text-white">Assigned address: {user.walletAddress}</p>
             <button
               onClick={handleConfirmWallet}
               disabled={confirmingWallet}
-              className="rounded-lg border border-primary/40 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#122131]"
+              className="rounded-lg border border-primary/40 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface-raised"
             >
               {confirmingWallet ? 'Confirming...' : 'Confirm this is your wallet'}
             </button>
@@ -130,8 +130,8 @@ export default function SettingsPage() {
 
         <PinSection />
 
-        <section className="rounded-xl border border-[#212A35] bg-[#122131]/50 p-5">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-[#8B95A5]">
+        <section className="rounded-xl border border-ds-border bg-ds-surface-raised/50 p-5">
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-ds-text-muted">
             Notifications
           </h2>
           <div className="space-y-3">
@@ -146,7 +146,7 @@ export default function SettingsPage() {
                 <input
                   type="checkbox"
                   defaultChecked
-                  className="h-4 w-4 rounded border-[#212A35] accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#122131]"
+                  className="h-4 w-4 rounded border-ds-border accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface-raised"
                 />
               </label>
             ))}

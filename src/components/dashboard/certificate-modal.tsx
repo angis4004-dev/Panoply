@@ -49,12 +49,12 @@ export function CertificateModal({
       <div ref={backdropRef} className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
       <div
         ref={cardRef}
-        className="relative z-10 w-full max-w-lg rounded-2xl border border-primary/30 bg-[#0D131C] p-10 text-center shadow-2xl"
+        className="relative z-10 w-full max-w-lg rounded-2xl border border-primary/30 bg-ds-surface-overlay p-10 text-center shadow-2xl"
       >
         <button
           onClick={handleClose}
           aria-label="Close certificate"
-          className="absolute right-4 top-4 inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-[#8B95A5] hover:bg-[#17202e] hover:text-white transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0D131C]"
+          className="absolute right-4 top-4 inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-ds-text-muted hover:bg-ds-surface-inset hover:text-white transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface-overlay"
         >
           <X className="h-5 w-5" />
         </button>
@@ -66,14 +66,14 @@ export function CertificateModal({
           </span>
         </div>
 
-        <p className="mb-2 text-xs uppercase tracking-[0.2em] text-[#8B95A5]">
+        <p className="mb-2 text-xs uppercase tracking-[0.2em] text-ds-text-muted">
           Certificate of Achievement
         </p>
-        <p className="mb-6 text-sm text-[#8B95A5]">This certifies that</p>
+        <p className="mb-6 text-sm text-ds-text-muted">This certifies that</p>
         <h2 className="mb-6 text-2xl font-bold text-white">{name}</h2>
-        <p className="mb-2 text-sm text-[#8B95A5]">has achieved</p>
+        <p className="mb-2 text-sm text-ds-text-muted">has achieved</p>
         <h3 className="mb-6 text-xl font-semibold text-primary">{achievementName}</h3>
-        <p className="text-xs text-[#8B95A5]">
+        <p className="text-xs text-ds-text-muted">
           {new Date(earnedAt).toLocaleDateString(undefined, {
             year: 'numeric',
             month: 'long',

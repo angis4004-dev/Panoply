@@ -53,8 +53,8 @@ export default function DashboardSidebar({ onNavigate }: DashboardSidebarProps) 
     exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
 
   return (
-    <aside className="flex h-full min-h-screen w-64 flex-col border-r border-[#212A35] bg-[#10151C]">
-      <div className="flex h-14 items-center gap-2.5 border-b border-[#212A35] px-5">
+    <aside className="flex h-full min-h-screen w-64 flex-col border-r border-ds-border bg-[#10151C]">
+      <div className="flex h-14 items-center gap-2.5 border-b border-ds-border px-5">
         <AegisMark size={28} />
         <div>
           <Link
@@ -81,7 +81,7 @@ export default function DashboardSidebar({ onNavigate }: DashboardSidebarProps) 
               className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#10151C] ${
                 active
                   ? 'bg-primary/12 text-primary border-l-2 border-primary pl-[10px]'
-                  : 'text-[#8B95A5] hover:bg-[#17202e] hover:text-[#E7ECF2] border-l-2 border-transparent pl-[10px]'
+                  : 'text-ds-text-muted hover:bg-ds-surface-inset hover:text-[#E7ECF2] border-l-2 border-transparent pl-[10px]'
               }`}
             >
               <Icon className="h-4 w-4 shrink-0" />
@@ -94,7 +94,7 @@ export default function DashboardSidebar({ onNavigate }: DashboardSidebarProps) 
         })}
       </nav>
 
-      <div className="border-t border-[#212A35] p-3">
+      <div className="border-t border-ds-border p-3">
         {user && (
           <div className="mb-2 flex items-center gap-2.5 rounded-lg px-2 py-2">
             <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-xs font-bold text-primary">
@@ -111,7 +111,7 @@ export default function DashboardSidebar({ onNavigate }: DashboardSidebarProps) 
             logout();
             window.location.href = '/sign-up-login-screen';
           }}
-          className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm text-[#8B95A5] hover:bg-[#17202e] hover:text-[#E7ECF2] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#10151C]"
+          className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm text-ds-text-muted hover:bg-ds-surface-inset hover:text-[#E7ECF2] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#10151C]"
         >
           <LogOut className="h-4 w-4" />
           Sign Out

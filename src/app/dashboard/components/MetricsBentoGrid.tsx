@@ -52,7 +52,7 @@ export default function MetricsBentoGrid() {
         {[...Array(7)].map((_, i) => (
           <div
             key={i}
-            className={`bg-[#122131] border border-zinc-800 rounded-2xl p-5 animate-pulse ${i === 0 ? 'col-span-2' : ''}`}
+            className={`bg-ds-surface-raised border border-zinc-800 rounded-2xl p-5 animate-pulse ${i === 0 ? 'col-span-2' : ''}`}
           >
             <div className="w-8 h-8 rounded-lg bg-zinc-800 mb-3" />
             <div className="h-6 w-20 bg-zinc-800 rounded mb-2" />
@@ -137,7 +137,7 @@ export default function MetricsBentoGrid() {
       </div>
 
       {/* Profitable Flows (was a simulated Win Rate) */}
-      <div className="bg-[#122131] border border-zinc-800 rounded-2xl p-5 hover:border-zinc-700 transition-colors duration-base ease-ds-out group">
+      <div className="bg-ds-surface-raised border border-zinc-800 rounded-2xl p-5 hover:border-zinc-700 transition-colors duration-base ease-ds-out group">
         <div className="flex items-center justify-between mb-3">
           <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center">
             <Target
@@ -165,7 +165,7 @@ export default function MetricsBentoGrid() {
       </div>
 
       {/* Avg Confidence */}
-      <div className="bg-[#122131] border border-zinc-800 rounded-2xl p-5 hover:border-zinc-700 transition-colors duration-base ease-ds-out group">
+      <div className="bg-ds-surface-raised border border-zinc-800 rounded-2xl p-5 hover:border-zinc-700 transition-colors duration-base ease-ds-out group">
         <div className="flex items-center justify-between mb-3">
           <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center">
             <Cpu size={16} className="text-zinc-400 group-hover:text-primary transition-colors" />
@@ -188,7 +188,7 @@ export default function MetricsBentoGrid() {
       </div>
 
       {/* Active Position — largest-allocation signal flow */}
-      <div className="bg-[#122131] border border-zinc-800 rounded-2xl p-5 hover:border-zinc-700 transition-colors duration-base ease-ds-out">
+      <div className="bg-ds-surface-raised border border-zinc-800 rounded-2xl p-5 hover:border-zinc-700 transition-colors duration-base ease-ds-out">
         <div className="flex items-center gap-2 mb-3">
           <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center">
             <Activity size={16} className="text-zinc-400" />
@@ -218,7 +218,7 @@ export default function MetricsBentoGrid() {
       </div>
 
       {/* Signal Flows (was a simulated Last Signal) */}
-      <div className="bg-[#122131] border border-zinc-800 rounded-2xl p-5 hover:border-zinc-700 transition-colors duration-base ease-ds-out">
+      <div className="bg-ds-surface-raised border border-zinc-800 rounded-2xl p-5 hover:border-zinc-700 transition-colors duration-base ease-ds-out">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center">
@@ -242,7 +242,7 @@ export default function MetricsBentoGrid() {
       </div>
 
       {/* Capital Deployed (was a simulated Trades 24h) */}
-      <div className="bg-[#122131] border border-zinc-800 rounded-2xl p-5 hover:border-zinc-700 transition-colors duration-base ease-ds-out">
+      <div className="bg-ds-surface-raised border border-zinc-800 rounded-2xl p-5 hover:border-zinc-700 transition-colors duration-base ease-ds-out">
         <div className="flex items-center gap-2 mb-3">
           <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center">
             <TrendingUp size={16} className="text-zinc-400" />

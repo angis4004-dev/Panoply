@@ -14,8 +14,8 @@ const ID_TYPES: { value: 'passport' | 'drivers_license' | 'national_id'; label: 
 ];
 
 const inputClass =
-  'w-full rounded-lg border border-[#212A35] bg-[#122131] px-3 py-2.5 text-sm text-white placeholder-[#8B95A5] focus:outline-none focus:ring-2 focus:ring-primary/50';
-const labelClass = 'block text-xs font-semibold text-[#8B95A5] mb-1.5 uppercase tracking-wide';
+  'w-full rounded-lg border border-ds-border bg-ds-surface-raised px-3 py-2.5 text-sm text-white placeholder-[#8B95A5] focus:outline-none focus:ring-2 focus:ring-primary/50';
+const labelClass = 'block text-xs font-semibold text-ds-text-muted mb-1.5 uppercase tracking-wide';
 
 interface FormState {
   fullName: string;
@@ -109,7 +109,7 @@ export default function KycPage() {
           title="Identity Verification"
           description="Confirm your identity to unlock vault deposits and withdrawals."
         />
-        <p className="text-sm text-[#8B95A5]">Loading verification status...</p>
+        <p className="text-sm text-ds-text-muted">Loading verification status...</p>
       </div>
     );
   }
@@ -129,7 +129,7 @@ export default function KycPage() {
             <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-green-400" />
             <div>
               <h2 className="font-semibold text-white">You&apos;re verified</h2>
-              <p className="mt-1 text-sm text-[#8B95A5]">
+              <p className="mt-1 text-sm text-ds-text-muted">
                 Identity verification is complete. Vault deposits and withdrawals are unlocked.
                 {info?.submittedAt && (
                   <>
@@ -153,7 +153,7 @@ export default function KycPage() {
             <Clock className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
             <div>
               <h2 className="font-semibold text-white">Under review</h2>
-              <p className="mt-1 text-sm text-[#8B95A5]">
+              <p className="mt-1 text-sm text-ds-text-muted">
                 Your application is being reviewed. This typically completes within 24-48 hours.
                 Vault deposits and withdrawals stay locked until verification is approved.
               </p>
@@ -166,7 +166,7 @@ export default function KycPage() {
             <ShieldX className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
             <div>
               <h2 className="font-semibold text-white">Verification rejected</h2>
-              <p className="mt-1 text-sm text-[#8B95A5]">
+              <p className="mt-1 text-sm text-ds-text-muted">
                 {info?.rejectionReason ||
                   'Your application could not be verified. Please review your details and resubmit.'}
               </p>
@@ -177,12 +177,12 @@ export default function KycPage() {
         {(status === 'unverified' || status === 'rejected') && (
           <form
             onSubmit={handleSubmit}
-            className="rounded-xl border border-[#212A35] bg-[#122131]/50 p-5 sm:p-6 space-y-4"
+            className="rounded-xl border border-ds-border bg-ds-surface-raised/50 p-5 sm:p-6 space-y-4"
           >
             {status === 'unverified' && (
-              <div className="mb-2 flex items-start gap-3 rounded-lg border border-[#212A35] bg-[#17202e]/60 p-4">
-                <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-[#8B95A5]" />
-                <p className="text-xs text-[#8B95A5]">
+              <div className="mb-2 flex items-start gap-3 rounded-lg border border-ds-border bg-ds-surface-inset/60 p-4">
+                <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-ds-text-muted" />
+                <p className="text-xs text-ds-text-muted">
                   This information is used only to confirm your identity and is never shared. No
                   documents are verified by a third party in this demo environment.
                 </p>
@@ -255,7 +255,7 @@ export default function KycPage() {
 
             <div>
               <label className={labelClass}>Upload ID document</label>
-              <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-[#212A35] bg-[#122131] px-3 py-2.5 text-sm text-[#8B95A5] transition-colors hover:border-primary/40 focus-within:ring-2 focus-within:ring-primary/50">
+              <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-ds-border bg-ds-surface-raised px-3 py-2.5 text-sm text-ds-text-muted transition-colors hover:border-primary/40 focus-within:ring-2 focus-within:ring-primary/50">
                 <Paperclip className="h-4 w-4 shrink-0" />
                 <span className="truncate">{fileName || 'Choose a file (front of ID)'}</span>
                 <input
@@ -270,7 +270,7 @@ export default function KycPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+              className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
             >
               {submitting
                 ? 'Submitting...'

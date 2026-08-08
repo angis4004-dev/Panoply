@@ -18,7 +18,7 @@ import { useAuth } from '@/hooks/use-auth';
 const PnLAreaChart = dynamic(() => import('@/app/dashboard/components/PnLAreaChart'), {
   ssr: false,
   loading: () => (
-    <div className="bg-[#122131] border border-[#212A35] rounded-2xl p-5 h-[289px]">
+    <div className="bg-ds-surface-raised border border-ds-border rounded-2xl p-5 h-[289px]">
       <Skeleton className="h-4 w-32 mb-2" />
       <Skeleton className="h-3 w-24 mb-6" />
       <Skeleton className="h-[190px] w-full" />
@@ -127,7 +127,7 @@ export default function DashboardPage() {
           </div>
           <Link
             href="/dashboard/settings#pin"
-            className="inline-flex min-h-[44px] shrink-0 items-center justify-center rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+            className="inline-flex min-h-[44px] shrink-0 items-center justify-center rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
           >
             Set a PIN
           </Link>
@@ -135,10 +135,10 @@ export default function DashboardPage() {
       )}
 
       {/* Portfolio hero */}
-      <section className="mb-6 rounded-xl border border-[#212A35] bg-[#122131]/60 p-5 sm:p-6">
+      <section className="mb-6 rounded-xl border border-ds-border bg-ds-surface-raised/60 p-5 sm:p-6">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-[#8B95A5]">
+            <p className="text-xs font-medium uppercase tracking-wider text-ds-text-muted">
               Wallet Balance
             </p>
             <div className="mt-1 flex flex-wrap items-baseline gap-3">
@@ -150,7 +150,7 @@ export default function DashboardPage() {
                 })}
               </span>
             </div>
-            <p className="mt-2 text-sm text-[#8B95A5]">
+            <p className="mt-2 text-sm text-ds-text-muted">
               {bots.length} signal flow{bots.length === 1 ? '' : 's'} active
             </p>
           </div>
@@ -163,20 +163,20 @@ export default function DashboardPage() {
                 }
                 setDepositOpen(true);
               }}
-              className="inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-[#212A35] px-4 py-2 text-sm font-medium text-[#E7ECF2] hover:border-primary/40 hover:bg-[#17202e] transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+              className="inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-ds-border px-4 py-2 text-sm font-medium text-[#E7ECF2] hover:border-primary/40 hover:bg-ds-surface-inset transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
             >
               Deposit
             </button>
             <Link
               href="/dashboard/bots"
-              className="inline-flex min-h-[44px] items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+              className="inline-flex min-h-[44px] items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
             >
               <BotIcon className="h-4 w-4" />
               Create Signal Flow
             </Link>
             <Link
               href="/dashboard/builder"
-              className="inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-[#212A35] px-4 py-2 text-sm font-medium text-[#E7ECF2] hover:border-primary/40 hover:bg-[#17202e] transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+              className="inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-ds-border px-4 py-2 text-sm font-medium text-[#E7ECF2] hover:border-primary/40 hover:bg-ds-surface-inset transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
             >
               Run Builder
               <ArrowUpRight className="h-3.5 w-3.5" />
@@ -184,10 +184,10 @@ export default function DashboardPage() {
           </div>
         </div>
         {!isVerified && (
-          <p className="mt-4 text-xs text-[#8B95A5]">
+          <p className="mt-4 text-xs text-ds-text-muted">
             <Link
               href="/dashboard/kyc"
-              className="rounded text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+              className="rounded text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
             >
               Complete identity verification
             </Link>{' '}
@@ -199,7 +199,7 @@ export default function DashboardPage() {
       {depositOpen && <DepositWalletModal onClose={() => setDepositOpen(false)} />}
 
       {/* Identity & tier widget */}
-      <section className="mb-6 flex flex-col gap-4 rounded-xl border border-[#212A35] bg-[#122131]/50 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+      <section className="mb-6 flex flex-col gap-4 rounded-xl border border-ds-border bg-ds-surface-raised/50 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
         <div className="flex items-center gap-4">
           {identityLoading ? (
             <Skeleton className="h-14 w-40" />
@@ -214,23 +214,23 @@ export default function DashboardPage() {
               )}
             </div>
             {identity?.tierProgress.kycRequired ? (
-              <p className="text-xs text-[#8B95A5]">
+              <p className="text-xs text-ds-text-muted">
                 Complete KYC verification to unlock tier progress.
               </p>
             ) : identity?.tierProgress.nextTier && identity.tierProgress.nextThreshold != null ? (
-              <p className="text-xs text-[#8B95A5]">
+              <p className="text-xs text-ds-text-muted">
                 ${identity.tierProgress.lifetimeDeposited.toLocaleString()} of $
                 {identity.tierProgress.nextThreshold.toLocaleString()} deposited toward{' '}
                 {identity.tierProgress.nextTier}
               </p>
             ) : identity ? (
-              <p className="text-xs text-[#8B95A5]">Highest tier reached.</p>
+              <p className="text-xs text-ds-text-muted">Highest tier reached.</p>
             ) : null}
           </div>
         </div>
         <Link
           href="/dashboard/achievements"
-          className="inline-flex min-h-[44px] items-center gap-1.5 rounded text-ds-label font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#122131]"
+          className="inline-flex min-h-[44px] items-center gap-1.5 rounded text-ds-label font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface-raised"
         >
           View achievements
           <ArrowUpRight className="h-3.5 w-3.5" />
@@ -252,7 +252,7 @@ export default function DashboardPage() {
             <h2 className="text-lg font-semibold text-white">Active Signal Flows</h2>
             <Link
               href="/dashboard/bots"
-              className="inline-flex min-h-[44px] items-center rounded text-ds-label font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+              className="inline-flex min-h-[44px] items-center rounded text-ds-label font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
             >
               View all
             </Link>
@@ -260,7 +260,7 @@ export default function DashboardPage() {
           <div className="space-y-3">
             {botsLoading ? (
               [...Array(2)].map((_, i) => (
-                <div key={i} className="rounded-xl border border-[#212A35] bg-[#122131]/50 p-4">
+                <div key={i} className="rounded-xl border border-ds-border bg-ds-surface-raised/50 p-4">
                   <div className="flex items-center gap-3">
                     <Skeleton className="h-9 w-9 rounded-lg" />
                     <div className="space-y-2">
@@ -271,11 +271,11 @@ export default function DashboardPage() {
                 </div>
               ))
             ) : bots.length === 0 ? (
-              <p className="text-sm text-[#8B95A5]">
+              <p className="text-sm text-ds-text-muted">
                 No signal flows deployed yet.{' '}
                 <Link
                   href="/dashboard/bots"
-                  className="rounded text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+                  className="rounded text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
                 >
                   Create one
                 </Link>
@@ -285,7 +285,7 @@ export default function DashboardPage() {
               bots.slice(0, 3).map((bot) => (
                 <div
                   key={bot.id}
-                  className="rounded-xl border border-[#212A35] border-l-primary border-l-[3px] bg-[#122131]/50 p-4 hover:bg-[#17202e]/40 transition-colors"
+                  className="rounded-xl border border-ds-border border-l-primary border-l-[3px] bg-ds-surface-raised/50 p-4 hover:bg-ds-surface-inset/40 transition-colors"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">
@@ -294,7 +294,7 @@ export default function DashboardPage() {
                       </div>
                       <div>
                         <h3 className="font-semibold text-white">{bot.pair}</h3>
-                        <p className="text-xs text-[#8B95A5]">{bot.type} strategy</p>
+                        <p className="text-xs text-ds-text-muted">{bot.type} strategy</p>
                       </div>
                     </div>
                     <span className="rounded-full bg-primary/10 px-2 py-0.5 text-ds-caption font-bold uppercase tracking-wide text-primary">
@@ -303,7 +303,7 @@ export default function DashboardPage() {
                   </div>
                   <div className="mt-4 flex justify-between text-sm">
                     <div>
-                      <p className="text-[#8B95A5]">P&amp;L</p>
+                      <p className="text-ds-text-muted">P&amp;L</p>
                       <p
                         className={`font-mono font-semibold ${bot.pnl.startsWith('+') ? 'text-ds-value-positive' : 'text-ds-value-negative'}`}
                       >
@@ -311,7 +311,7 @@ export default function DashboardPage() {
                       </p>
                     </div>
                     <div>
-                      <p className="text-[#8B95A5]">Allocated</p>
+                      <p className="text-ds-text-muted">Allocated</p>
                       <p className="font-mono font-semibold text-white">
                         {bot.allocatedAmount != null
                           ? `$${bot.allocatedAmount.toLocaleString()}`
@@ -319,7 +319,7 @@ export default function DashboardPage() {
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-[#8B95A5]">Confidence</p>
+                      <p className="text-ds-text-muted">Confidence</p>
                       <p className="font-mono font-semibold text-white">{bot.confidence}%</p>
                     </div>
                   </div>
@@ -335,7 +335,7 @@ export default function DashboardPage() {
             <h2 className="text-lg font-semibold text-white">Top Yields</h2>
             <Link
               href="/dashboard/yield"
-              className="inline-flex min-h-[44px] items-center rounded text-ds-label font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+              className="inline-flex min-h-[44px] items-center rounded text-ds-label font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
             >
               Explore all
             </Link>
@@ -345,7 +345,7 @@ export default function DashboardPage() {
               [...Array(2)].map((_, i) => (
                 <div
                   key={i}
-                  className="flex items-center justify-between rounded-xl border border-[#212A35] bg-[#122131]/50 p-4"
+                  className="flex items-center justify-between rounded-xl border border-ds-border bg-ds-surface-raised/50 p-4"
                 >
                   <div className="flex items-center gap-3">
                     <Skeleton className="h-10 w-10 rounded-full" />
@@ -358,12 +358,12 @@ export default function DashboardPage() {
                 </div>
               ))
             ) : topYields.length === 0 ? (
-              <p className="text-sm text-[#8B95A5]">No yield opportunities available yet.</p>
+              <p className="text-sm text-ds-text-muted">No yield opportunities available yet.</p>
             ) : (
               topYields.map((yield_, i) => (
                 <div
                   key={yield_.id}
-                  className="flex items-center justify-between rounded-xl border border-[#212A35] bg-[#122131]/50 p-4 hover:bg-[#17202e]/40 transition-colors"
+                  className="flex items-center justify-between rounded-xl border border-ds-border bg-ds-surface-raised/50 p-4 hover:bg-ds-surface-inset/40 transition-colors"
                 >
                   <div className="flex items-center gap-3">
                     <div
@@ -377,7 +377,7 @@ export default function DashboardPage() {
                     </div>
                     <div>
                       <h3 className="font-semibold text-white">{yield_.protocol}</h3>
-                      <p className="text-xs text-[#8B95A5]">{yield_.chain}</p>
+                      <p className="text-xs text-ds-text-muted">{yield_.chain}</p>
                     </div>
                   </div>
                   <div className="text-right">
@@ -394,14 +394,14 @@ export default function DashboardPage() {
           </div>
 
           {/* Risk score card — signature element */}
-          <div className="mt-4 rounded-xl border border-[#212A35] bg-[#122131]/50 p-4">
+          <div className="mt-4 rounded-xl border border-ds-border bg-ds-surface-raised/50 p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-[#8B95A5]">
+                <p className="text-xs font-medium uppercase tracking-wider text-ds-text-muted">
                   Aegis Risk Score
                 </p>
                 <p className="mt-1 text-xl font-bold text-ds-value-positive">Low Risk</p>
-                <p className="text-sm text-[#8B95A5]">78 / 100</p>
+                <p className="text-sm text-ds-text-muted">78 / 100</p>
               </div>
               <div className="relative flex h-16 w-16 items-center justify-center">
                 <svg className="h-full w-full -rotate-90" viewBox="0 0 36 36">

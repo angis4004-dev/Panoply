@@ -75,10 +75,10 @@ export default function AchievementsPage() {
           </div>
         </div>
       ) : !data ? (
-        <p className="text-sm text-[#8B95A5]">Unable to load achievements right now.</p>
+        <p className="text-sm text-ds-text-muted">Unable to load achievements right now.</p>
       ) : (
         <>
-          <div className="mb-8 flex flex-col gap-4 rounded-xl border border-[#212A35] bg-[#122131]/50 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mb-8 flex flex-col gap-4 rounded-xl border border-ds-border bg-ds-surface-raised/50 p-5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
               <IdentityScore score={data.identityScore} />
               <div>
@@ -87,17 +87,17 @@ export default function AchievementsPage() {
                   <span className="font-mono text-sm font-semibold text-white">{data.xp} XP</span>
                 </div>
                 {data.tierProgress.kycRequired ? (
-                  <p className="text-xs text-[#8B95A5]">
+                  <p className="text-xs text-ds-text-muted">
                     Complete KYC verification to unlock tier progress.
                   </p>
                 ) : data.tierProgress.nextTier && data.tierProgress.nextThreshold != null ? (
-                  <p className="text-xs text-[#8B95A5]">
+                  <p className="text-xs text-ds-text-muted">
                     ${data.tierProgress.lifetimeDeposited.toLocaleString()} of $
                     {data.tierProgress.nextThreshold.toLocaleString()} deposited toward{' '}
                     {data.tierProgress.nextTier}
                   </p>
                 ) : (
-                  <p className="text-xs text-[#8B95A5]">Highest tier reached.</p>
+                  <p className="text-xs text-ds-text-muted">Highest tier reached.</p>
                 )}
               </div>
             </div>
@@ -108,7 +108,7 @@ export default function AchievementsPage() {
             if (items.length === 0) return null;
             return (
               <section key={category} className="mb-8">
-                <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[#8B95A5]">
+                <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-ds-text-muted">
                   {CATEGORY_LABELS[category]}
                 </h2>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

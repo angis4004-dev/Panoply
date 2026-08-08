@@ -366,7 +366,7 @@ export default function PnLAreaChart() {
       : Math.max(0, Math.min(1, (yDomain[1] - baseValue) / (yDomain[1] - yDomain[0])));
 
   return (
-    <div className="bg-[#122131] border border-[#212A35] rounded-2xl p-5">
+    <div className="bg-ds-surface-raised border border-ds-border rounded-2xl p-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
         <div>
           <div className="flex items-center gap-2">
@@ -417,7 +417,7 @@ export default function PnLAreaChart() {
               type="button"
               onClick={() => setSelectedRange(r.label)}
               aria-pressed={selectedRange === r.label}
-              className={`text-ds-caption inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-ds-sm px-2.5 font-medium transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#122131] ${
+              className={`text-ds-caption inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-ds-sm px-2.5 font-medium transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface-raised ${
                 selectedRange === r.label
                   ? 'bg-primary/15 text-primary'
                   : 'text-ds-text-secondary hover:text-ds-text'

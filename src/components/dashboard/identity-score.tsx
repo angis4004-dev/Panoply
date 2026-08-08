@@ -92,9 +92,9 @@ export function IdentityScore({ score, size = 'lg' }: IdentityScoreProps) {
           }
         >
           {displayScore}
-          <span className="text-sm font-normal text-[#8B95A5]">/100</span>
+          <span className="text-sm font-normal text-ds-text-muted">/100</span>
         </p>
-        <p className="text-xs text-[#8B95A5]">Identity Score</p>
+        <p className="text-xs text-ds-text-muted">Identity Score</p>
       </div>
     </div>
   );

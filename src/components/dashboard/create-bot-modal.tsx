@@ -138,14 +138,14 @@ export function CreateBotModal({ onClose }: CreateBotModalProps) {
       <div ref={backdropRef} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       <div
         ref={cardRef}
-        className="relative z-10 w-full max-w-sm rounded-xl border border-[#212A35] bg-[#0D131C] p-6"
+        className="relative z-10 w-full max-w-sm rounded-xl border border-ds-border bg-ds-surface-overlay p-6"
       >
         <div className="mb-5 flex items-center justify-between">
           <h2 className="text-lg font-bold text-white">New Signal Flow</h2>
           <button
             type="button"
             onClick={handleClose}
-            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-[#8B95A5] hover:text-white transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0D131C]"
+            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-ds-text-muted hover:text-white transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface-overlay"
             aria-label="Close"
           >
             <X className="h-4 w-4" />
@@ -162,7 +162,7 @@ export function CreateBotModal({ onClose }: CreateBotModalProps) {
             </p>
             <Link
               href="/tiers"
-              className="block w-full rounded-lg bg-primary px-4 py-2.5 text-center text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0D131C]"
+              className="block w-full rounded-lg bg-primary px-4 py-2.5 text-center text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface-overlay"
             >
               View tiers
             </Link>
@@ -170,19 +170,19 @@ export function CreateBotModal({ onClose }: CreateBotModalProps) {
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             {tierLabel && (
-              <p className="text-xs text-[#8B95A5]">
+              <p className="text-xs text-ds-text-muted">
                 {bots.length} of {tierInfo?.slotLimit ?? '∞'} signal flows used ·{' '}
                 <span className="font-medium text-[#E7ECF2]">{tierLabel}</span> tier
               </p>
             )}
             <div>
-              <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 uppercase tracking-wide">
+              <label className="block text-xs font-semibold text-ds-text-muted mb-1.5 uppercase tracking-wide">
                 Strategy
               </label>
               <select
                 value={type}
                 onChange={(e) => setType(e.target.value as (typeof BOT_TYPES)[number])}
-                className="w-full rounded-lg border border-[#212A35] bg-[#122131] px-3 py-2.5 text-sm text-white transition-colors duration-fast ease-ds-out focus:outline-none focus:ring-2 focus:ring-primary/50"
+                className="w-full rounded-lg border border-ds-border bg-ds-surface-raised px-3 py-2.5 text-sm text-white transition-colors duration-fast ease-ds-out focus:outline-none focus:ring-2 focus:ring-primary/50"
               >
                 {BOT_TYPES.map((t) => (
                   <option key={t} value={t}>
@@ -193,7 +193,7 @@ export function CreateBotModal({ onClose }: CreateBotModalProps) {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 uppercase tracking-wide">
+              <label className="block text-xs font-semibold text-ds-text-muted mb-1.5 uppercase tracking-wide">
                 Trading pair
               </label>
               <div className="flex items-center gap-2">
@@ -204,7 +204,7 @@ export function CreateBotModal({ onClose }: CreateBotModalProps) {
                   excludeValue={quoteSymbol}
                   ariaLabel="Base asset"
                 />
-                <span className="text-[#8B95A5]">/</span>
+                <span className="text-ds-text-muted">/</span>
                 <SymbolSelect
                   value={quoteSymbol}
                   onChange={handleQuoteChange}
@@ -213,13 +213,13 @@ export function CreateBotModal({ onClose }: CreateBotModalProps) {
                   ariaLabel="Quote asset"
                 />
               </div>
-              <p className="mt-1.5 text-xs text-[#8B95A5]">
+              <p className="mt-1.5 text-xs text-ds-text-muted">
                 Two different assets, both resolved to live CoinGecko price data.
               </p>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 uppercase tracking-wide">
+              <label className="block text-xs font-semibold text-ds-text-muted mb-1.5 uppercase tracking-wide">
                 Allocated capital (USD) — available: ${walletBalance.toLocaleString()}
               </label>
               <input
@@ -229,12 +229,12 @@ export function CreateBotModal({ onClose }: CreateBotModalProps) {
                 value={allocatedAmount}
                 onChange={(e) => setAllocatedAmount(e.target.value)}
                 placeholder="1000"
-                className="w-full rounded-lg border border-[#212A35] bg-[#122131] px-3 py-2.5 text-sm text-white placeholder-[#8B95A5] transition-colors duration-fast ease-ds-out focus:outline-none focus:ring-2 focus:ring-primary/50"
+                className="w-full rounded-lg border border-ds-border bg-ds-surface-raised px-3 py-2.5 text-sm text-white placeholder-[#8B95A5] transition-colors duration-fast ease-ds-out focus:outline-none focus:ring-2 focus:ring-primary/50"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 uppercase tracking-wide">
+              <label className="block text-xs font-semibold text-ds-text-muted mb-1.5 uppercase tracking-wide">
                 Confidence threshold — {confidence}%
               </label>
               <input
@@ -252,7 +252,7 @@ export function CreateBotModal({ onClose }: CreateBotModalProps) {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0D131C]"
+              className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface-overlay"
             >
               {submitting ? 'Creating...' : 'Create Signal Flow'}
             </button>

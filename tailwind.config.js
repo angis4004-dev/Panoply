@@ -85,8 +85,8 @@ module.exports = {
             strong: 'rgb(var(--ds-border-strong-rgb) / <alpha-value>)',
           },
           brand: {
-            DEFAULT: 'var(--ds-brand)',
-            ink: 'var(--ds-brand-ink)',
+            DEFAULT: 'rgb(var(--ds-brand-rgb) / <alpha-value>)',
+            ink: 'rgb(var(--ds-brand-ink-rgb) / <alpha-value>)',
           },
           value: {
             positive: 'var(--ds-value-positive)',

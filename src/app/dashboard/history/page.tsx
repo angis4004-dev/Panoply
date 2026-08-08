@@ -16,15 +16,15 @@ export default function HistoryPage() {
       />
 
       {reports.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[#212A35] bg-[#122131]/30 py-16 text-center">
-          <FileText className="mb-4 h-10 w-10 text-[#8B95A5]" />
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-ds-border bg-ds-surface-raised/30 py-16 text-center">
+          <FileText className="mb-4 h-10 w-10 text-ds-text-muted" />
           <h3 className="text-lg font-semibold text-white">No reports yet</h3>
-          <p className="mt-2 max-w-sm text-sm text-[#8B95A5]">
+          <p className="mt-2 max-w-sm text-sm text-ds-text-muted">
             Run the Portfolio Builder to generate your first AI portfolio analysis.
           </p>
           <Link
             href="/dashboard/builder"
-            className="mt-6 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+            className="mt-6 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
           >
             Open Builder
           </Link>
@@ -34,18 +34,18 @@ export default function HistoryPage() {
           {reports.map((report: { id?: string; createdAt?: string; email?: string }, i: number) => (
             <div
               key={report.id || i}
-              className="flex items-center justify-between rounded-xl border border-[#212A35] bg-[#122131]/50 p-4"
+              className="flex items-center justify-between rounded-xl border border-ds-border bg-ds-surface-raised/50 p-4"
             >
               <div className="flex items-center gap-3">
                 <FileText className="h-5 w-5 text-primary" />
                 <div>
                   <p className="font-medium text-white">Portfolio Report</p>
-                  <p className="text-xs text-[#8B95A5]">
+                  <p className="text-xs text-ds-text-muted">
                     {report.createdAt || 'Recently'} · Sent to {report.email || 'your inbox'}
                   </p>
                 </div>
               </div>
-              <button className="rounded text-sm font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]">
+              <button className="rounded text-sm font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface">
                 View
               </button>
             </div>

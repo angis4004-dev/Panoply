@@ -15,18 +15,18 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
     user?.name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'A';
 
   return (
-    <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-[#212A35] bg-[#0A0E13]/95 px-4 backdrop-blur-md sm:px-6">
+    <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-ds-border bg-ds-surface/95 px-4 backdrop-blur-md sm:px-6">
       <div className="flex items-center gap-3">
         <button
           onClick={onMenuClick}
-          className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2 text-ds-text-muted hover:bg-[#17202e] hover:text-[#E7ECF2] lg:hidden transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+          className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2 text-ds-text-muted hover:bg-ds-surface-inset hover:text-[#E7ECF2] lg:hidden transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
           aria-label="Open menu"
         >
           <Menu className="h-5 w-5" />
         </button>
         <Link
           href="/"
-          className="flex min-h-[44px] items-center gap-2 rounded lg:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+          className="flex min-h-[44px] items-center gap-2 rounded lg:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
         >
           <AegisMark size={20} />
           <span className="font-wordmark font-extrabold uppercase tracking-[0.12em] text-white">
@@ -38,13 +38,13 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-40" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-green-400" />
           </span>
-          <span className="text-xs font-medium text-[#8B95A5]">Markets live</span>
+          <span className="text-xs font-medium text-ds-text-muted">Markets live</span>
         </div>
       </div>
 
       <div className="flex items-center gap-3">
         <button
-          className="relative inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2 text-ds-text-muted hover:bg-[#17202e] hover:text-[#E7ECF2] transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+          className="relative inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2 text-ds-text-muted hover:bg-ds-surface-inset hover:text-[#E7ECF2] transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
           aria-label="Notifications"
         >
           <Bell className="h-4 w-4" />
@@ -52,7 +52,7 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
         </button>
 
         {user ? (
-          <div className="flex items-center gap-2.5 rounded-lg border border-[#212A35] bg-[#122131]/60 py-1 pl-1 pr-3">
+          <div className="flex items-center gap-2.5 rounded-lg border border-ds-border bg-ds-surface-raised/60 py-1 pl-1 pr-3">
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/15 text-xs font-bold text-primary">
               {initial}
             </div>
@@ -63,7 +63,7 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
         ) : (
           <Link
             href="/sign-up-login-screen"
-            className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+            className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
           >
             Sign In
           </Link>

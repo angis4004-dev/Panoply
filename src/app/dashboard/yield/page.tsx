@@ -34,23 +34,23 @@ export default function YieldPage() {
       />
 
       {loading ? (
-        <div className="overflow-hidden rounded-xl border border-[#212A35]">
+        <div className="overflow-hidden rounded-xl border border-ds-border">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-[#212A35] bg-[#17202e]/60 text-left">
-                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-[#8B95A5]">
+              <tr className="border-b border-ds-border bg-ds-surface-inset/60 text-left">
+                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-ds-text-muted">
                   Protocol
                 </th>
-                <th className="hidden px-4 py-3 text-xs font-medium uppercase tracking-wider text-[#8B95A5] sm:table-cell">
+                <th className="hidden px-4 py-3 text-xs font-medium uppercase tracking-wider text-ds-text-muted sm:table-cell">
                   Chain
                 </th>
-                <th className="hidden px-4 py-3 text-xs font-medium uppercase tracking-wider text-[#8B95A5] md:table-cell">
+                <th className="hidden px-4 py-3 text-xs font-medium uppercase tracking-wider text-ds-text-muted md:table-cell">
                   Risk
                 </th>
-                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-[#8B95A5]">
+                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-ds-text-muted">
                   APY
                 </th>
-                <th className="hidden px-4 py-3 text-xs font-medium uppercase tracking-wider text-[#8B95A5] lg:table-cell">
+                <th className="hidden px-4 py-3 text-xs font-medium uppercase tracking-wider text-ds-text-muted lg:table-cell">
                   TVL
                 </th>
               </tr>
@@ -59,7 +59,7 @@ export default function YieldPage() {
               {[...Array(5)].map((_, i) => (
                 <tr
                   key={i}
-                  className={`border-b border-[#212A35]/60 ${i % 2 === 0 ? 'bg-[#122131]/30' : 'bg-transparent'}`}
+                  className={`border-b border-ds-border/60 ${i % 2 === 0 ? 'bg-ds-surface-raised/30' : 'bg-transparent'}`}
                 >
                   <td className="px-4 py-3.5">
                     <Skeleton className="h-4 w-24" />
@@ -82,28 +82,28 @@ export default function YieldPage() {
           </table>
         </div>
       ) : opportunities.length === 0 ? (
-        <div className="rounded-xl border border-[#212A35] bg-[#122131]/50 p-10 text-center">
-          <Zap className="mx-auto mb-3 h-8 w-8 text-[#4b5563]" />
-          <p className="text-sm text-[#8B95A5]">No yield opportunities are available yet.</p>
+        <div className="rounded-xl border border-ds-border bg-ds-surface-raised/50 p-10 text-center">
+          <Zap className="mx-auto mb-3 h-8 w-8 text-ds-text-muted" />
+          <p className="text-sm text-ds-text-muted">No yield opportunities are available yet.</p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-[#212A35]">
+        <div className="overflow-hidden rounded-xl border border-ds-border">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-[#212A35] bg-[#17202e]/60 text-left">
-                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-[#8B95A5]">
+              <tr className="border-b border-ds-border bg-ds-surface-inset/60 text-left">
+                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-ds-text-muted">
                   Protocol
                 </th>
-                <th className="hidden px-4 py-3 text-xs font-medium uppercase tracking-wider text-[#8B95A5] sm:table-cell">
+                <th className="hidden px-4 py-3 text-xs font-medium uppercase tracking-wider text-ds-text-muted sm:table-cell">
                   Chain
                 </th>
-                <th className="hidden px-4 py-3 text-xs font-medium uppercase tracking-wider text-[#8B95A5] md:table-cell">
+                <th className="hidden px-4 py-3 text-xs font-medium uppercase tracking-wider text-ds-text-muted md:table-cell">
                   Risk
                 </th>
-                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-[#8B95A5]">
+                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-ds-text-muted">
                   APY
                 </th>
-                <th className="hidden px-4 py-3 text-xs font-medium uppercase tracking-wider text-[#8B95A5] lg:table-cell">
+                <th className="hidden px-4 py-3 text-xs font-medium uppercase tracking-wider text-ds-text-muted lg:table-cell">
                   TVL
                 </th>
               </tr>
@@ -112,8 +112,8 @@ export default function YieldPage() {
               {opportunities.map((row, i) => (
                 <tr
                   key={row.id}
-                  className={`border-b border-[#212A35]/60 hover:bg-[#17202e]/40 transition-colors ${
-                    i % 2 === 0 ? 'bg-[#122131]/30' : 'bg-transparent'
+                  className={`border-b border-ds-border/60 hover:bg-ds-surface-inset/40 transition-colors ${
+                    i % 2 === 0 ? 'bg-ds-surface-raised/30' : 'bg-transparent'
                   }`}
                 >
                   <td className="px-4 py-3.5">
@@ -122,12 +122,12 @@ export default function YieldPage() {
                       <span className="font-medium text-white">{row.protocol}</span>
                     </div>
                   </td>
-                  <td className="hidden px-4 py-3.5 text-[#8B95A5] sm:table-cell">{row.chain}</td>
-                  <td className="hidden px-4 py-3.5 text-[#8B95A5] md:table-cell">{row.risk}</td>
+                  <td className="hidden px-4 py-3.5 text-ds-text-muted sm:table-cell">{row.chain}</td>
+                  <td className="hidden px-4 py-3.5 text-ds-text-muted md:table-cell">{row.risk}</td>
                   <td className="px-4 py-3.5 font-mono font-semibold text-ds-value-positive">
                     {row.apy}%
                   </td>
-                  <td className="hidden px-4 py-3.5 font-mono text-[#8B95A5] lg:table-cell">
+                  <td className="hidden px-4 py-3.5 font-mono text-ds-text-muted lg:table-cell">
                     {row.tvl ?? '—'}
                   </td>
                 </tr>

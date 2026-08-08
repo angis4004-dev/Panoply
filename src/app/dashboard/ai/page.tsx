@@ -80,7 +80,7 @@ export default function AIPage() {
 
       <div className="mx-auto max-w-2xl">
         {loading ? (
-          <div className="rounded-xl border border-[#212A35] bg-[#122131]/50 p-8">
+          <div className="rounded-xl border border-ds-border bg-ds-surface-raised/50 p-8">
             <Skeleton className="mb-4 h-12 w-12 rounded-xl" />
             <Skeleton className="mb-3 h-5 w-56" />
             <Skeleton className="mb-2 h-4 w-full" />
@@ -88,7 +88,7 @@ export default function AIPage() {
             <Skeleton className="h-11 w-40 rounded-lg" />
           </div>
         ) : isVanguard ? (
-          <div className="rounded-xl border border-green-400/30 bg-[#122131]/50 p-8">
+          <div className="rounded-xl border border-green-400/30 bg-ds-surface-raised/50 p-8">
             <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-green-400/10">
               <Brain className="h-6 w-6 text-green-400" />
             </div>
@@ -98,30 +98,30 @@ export default function AIPage() {
               <TierBadge tier="vanguard" />
             </div>
 
-            <p className="text-sm leading-relaxed text-[#8B95A5]">
+            <p className="text-sm leading-relaxed text-ds-text-muted">
               The AI Command Center is part of your Vanguard tier. It is still being built and is
               not answering questions yet — we would rather show you nothing here than an assistant
               that invents figures. You will keep this access when it opens; nothing further is
               needed from you.
             </p>
 
-            <p className="mt-4 text-sm leading-relaxed text-[#8B95A5]">
+            <p className="mt-4 text-sm leading-relaxed text-ds-text-muted">
               In the meantime, the Portfolio Builder runs concentration, diversification and
               target-return checks against your holdings and emails you the breakdown.
             </p>
 
             <Link
               href="/dashboard/builder"
-              className="mt-6 inline-flex min-h-[44px] items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+              className="mt-6 inline-flex min-h-[44px] items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
             >
               Run the Portfolio Builder
               <ArrowUpRight className="h-3.5 w-3.5" />
             </Link>
           </div>
         ) : (
-          <div className="rounded-xl border border-[#212A35] bg-[#122131]/50 p-8">
-            <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-[#17202e]">
-              <Lock className="h-5 w-5 text-[#8B95A5]" />
+          <div className="rounded-xl border border-ds-border bg-ds-surface-raised/50 p-8">
+            <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-ds-surface-inset">
+              <Lock className="h-5 w-5 text-ds-text-muted" />
             </div>
 
             <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -129,18 +129,18 @@ export default function AIPage() {
               {summary && <TierBadge tier={summary.tier} />}
             </div>
 
-            <p className="text-sm leading-relaxed text-[#8B95A5]">
+            <p className="text-sm leading-relaxed text-ds-text-muted">
               The AI Command Center unlocks at the Aegis Vanguard tier, reached once your lifetime
               deposits cross ${VANGUARD_THRESHOLD.toLocaleString('en-US')}. It is still being built,
               so it is not answering questions yet on any tier.
             </p>
 
             {kycRequired ? (
-              <p className="mt-4 text-sm leading-relaxed text-[#8B95A5]">
+              <p className="mt-4 text-sm leading-relaxed text-ds-text-muted">
                 Tier progress starts once your identity is verified.{' '}
                 <Link
                   href="/dashboard/kyc"
-                  className="rounded text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#122131]"
+                  className="rounded text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface-raised"
                 >
                   Complete verification
                 </Link>{' '}
@@ -153,12 +153,12 @@ export default function AIPage() {
                     <span className="font-mono text-sm tabular-nums text-[#E7ECF2]">
                       ${deposited.toLocaleString('en-US')}
                     </span>
-                    <span className="text-xs text-[#8B95A5]">
+                    <span className="text-xs text-ds-text-muted">
                       of ${VANGUARD_THRESHOLD.toLocaleString('en-US')} deposited
                     </span>
                   </div>
                   <div
-                    className="h-1.5 overflow-hidden rounded-full bg-[#17202e]"
+                    className="h-1.5 overflow-hidden rounded-full bg-ds-surface-inset"
                     role="progressbar"
                     aria-valuenow={Math.round(progressPct)}
                     aria-valuemin={0}
@@ -170,7 +170,7 @@ export default function AIPage() {
                       style={{ width: `${progressPct}%` }}
                     />
                   </div>
-                  <p className="mt-2 text-xs text-[#8B95A5]">
+                  <p className="mt-2 text-xs text-ds-text-muted">
                     ${remaining.toLocaleString('en-US')} more in lifetime deposits to reach
                     Vanguard.
                   </p>
@@ -180,7 +180,7 @@ export default function AIPage() {
 
             <Link
               href="/tiers"
-              className="mt-6 inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-[#212A35] px-4 py-2 text-sm font-medium text-[#E7ECF2] hover:border-primary/40 hover:bg-[#17202e] transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+              className="mt-6 inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-ds-border px-4 py-2 text-sm font-medium text-[#E7ECF2] hover:border-primary/40 hover:bg-ds-surface-inset transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
             >
               How tiers work
               <ArrowUpRight className="h-3.5 w-3.5" />

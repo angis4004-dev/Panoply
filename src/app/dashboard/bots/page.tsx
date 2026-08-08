@@ -10,7 +10,7 @@ import { useAppStore, type Bot as BotData } from '@/store/app-store';
 import { useActivityPhase, type ActivityPhase } from '@/components/ui/RollingNumber';
 
 const STATUS_STYLES: Record<string, string> = {
-  paused: 'bg-[#8B95A5]/10 text-[#8B95A5]',
+  paused: 'bg-[#8B95A5]/10 text-ds-text-muted',
   fallback: 'bg-primary/10 text-primary',
 };
 
@@ -39,7 +39,7 @@ function BotCard({
     : STATUS_STYLES[bot.status] || STATUS_STYLES.fallback;
 
   return (
-    <div className="rounded-xl border border-[#212A35] bg-[#122131]/50 p-5 hover:border-primary/25 transition-colors">
+    <div className="rounded-xl border border-ds-border bg-ds-surface-raised/50 p-5 hover:border-primary/25 transition-colors">
       <div className="mb-4 flex items-start justify-between">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
@@ -47,7 +47,7 @@ function BotCard({
           </div>
           <div>
             <h3 className="font-semibold text-white">{bot.pair}</h3>
-            <p className="text-xs text-[#8B95A5]">{bot.type} strategy</p>
+            <p className="text-xs text-ds-text-muted">{bot.type} strategy</p>
           </div>
         </div>
         <span
@@ -58,7 +58,7 @@ function BotCard({
       </div>
       <div className="flex justify-between text-sm">
         <div>
-          <p className="text-[#8B95A5]">P&amp;L</p>
+          <p className="text-ds-text-muted">P&amp;L</p>
           <p
             className={`font-mono font-semibold ${bot.pnl.startsWith('+') ? 'text-ds-value-positive' : 'text-ds-value-negative'}`}
           >
@@ -66,37 +66,42 @@ function BotCard({
           </p>
         </div>
         <div>
-          <p className="text-[#8B95A5]">Allocated</p>
+          <p className="text-ds-text-muted">Allocated</p>
           <p className="font-mono font-semibold text-white">
             {bot.allocatedAmount != null ? `$${bot.allocatedAmount.toLocaleString()}` : '—'}
           </p>
         </div>
         <div className="text-right">
-          <p className="text-[#8B95A5]">Confidence</p>
+          <p className="text-ds-text-muted">Confidence</p>
           <p className="font-mono font-semibold text-white">{bot.confidence}%</p>
         </div>
       </div>
-      <div className="mt-4 flex gap-2 border-t border-[#212A35] pt-3">
+      <div className="mt-4 flex gap-2 border-t border-ds-border pt-3">
+        {/* 44px minimum, per WCAG 2.5.8 and the Apple/Material guidance. These
+            were 29px tall, and the delete control was a 29x29 box holding a
+            12px icon - the smallest, most destructive target on the page.
+            Icons go to 16px to match the rest of the dashboard rather than
+            being a third size only these two buttons use. */}
         <button
           onClick={onToggle}
-          className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-[#212A35] py-1.5 text-xs font-medium text-[#8B95A5] hover:border-primary/40 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+          className="flex min-h-[44px] flex-1 items-center justify-center gap-1.5 rounded-lg border border-ds-border px-3 text-sm font-medium text-ds-text-muted hover:border-primary/40 hover:text-white transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
         >
           {isRunning ? (
             <>
-              <Pause className="h-3 w-3" /> Pause
+              <Pause className="h-4 w-4" /> Pause
             </>
           ) : (
             <>
-              <Play className="h-3 w-3" /> Resume
+              <Play className="h-4 w-4" /> Resume
             </>
           )}
         </button>
         <button
           onClick={onDelete}
-          className="flex items-center justify-center rounded-lg border border-[#212A35] px-2.5 py-1.5 text-[#8B95A5] hover:border-red-500/40 hover:text-red-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+          className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg border border-ds-border text-ds-text-muted hover:border-[var(--ds-value-negative)]/40 hover:text-[var(--ds-value-negative)] transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-value-negative)]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
           aria-label="Delete signal flow"
         >
-          <Trash2 className="h-3 w-3" />
+          <Trash2 className="h-4 w-4" />
         </button>
       </div>
     </div>
@@ -115,7 +120,7 @@ export default function BotsPage() {
         action={
           <button
             onClick={() => setModalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+            className="inline-flex min-h-[44px] items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
           >
             <Plus className="h-4 w-4" />
             New Signal Flow
@@ -126,7 +131,7 @@ export default function BotsPage() {
       {botsLoading ? (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="rounded-xl border border-[#212A35] bg-[#122131]/50 p-5">
+            <div key={i} className="rounded-xl border border-ds-border bg-ds-surface-raised/50 p-5">
               <div className="mb-4 flex items-start justify-between">
                 <div className="flex items-center gap-3">
                   <Skeleton className="h-10 w-10 rounded-lg" />
@@ -151,19 +156,24 @@ export default function BotsPage() {
                   <Skeleton className="h-4 w-10" />
                 </div>
               </div>
-              <div className="mt-4 border-t border-[#212A35] pt-3">
+              <div className="mt-4 border-t border-ds-border pt-3">
                 <Skeleton className="h-7 w-full rounded-lg" />
               </div>
             </div>
           ))}
         </div>
       ) : bots.length === 0 ? (
-        <div className="rounded-xl border border-[#212A35] bg-[#122131]/50 p-10 text-center">
-          <Bot className="mx-auto mb-3 h-8 w-8 text-[#4b5563]" />
-          <p className="text-sm text-[#8B95A5]">You haven&apos;t deployed any signal flows yet.</p>
+        <div className="rounded-xl border border-ds-border bg-ds-surface-raised/50 p-10 text-center">
+          {/* #4b5563 measured 2.16:1 against this surface - close to invisible.
+              The muted token is the darkest value the system allows to carry
+              meaning. */}
+          <Bot className="mx-auto mb-3 h-8 w-8 text-ds-text-muted" />
+          <p className="text-sm text-ds-text-muted">
+            You haven&apos;t deployed any signal flows yet.
+          </p>
           <button
             onClick={() => setModalOpen(true)}
-            className="mt-4 inline-flex items-center gap-2 rounded-lg border border-primary/40 px-4 py-2 text-sm font-semibold text-primary hover:bg-primary/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+            className="mt-4 inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-primary/40 px-4 py-2 text-sm font-semibold text-primary hover:bg-primary/10 transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
           >
             <Plus className="h-4 w-4" />
             Deploy your first signal flow
@@ -182,11 +192,11 @@ export default function BotsPage() {
         </div>
       )}
 
-      <p className="mt-8 text-center text-sm text-[#8B95A5]">
+      <p className="mt-8 text-center text-sm text-ds-text-muted">
         Need a custom strategy?{' '}
         <Link
           href="/dashboard/ai"
-          className="rounded text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+          className="rounded text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
         >
           Ask the AI Center
         </Link>

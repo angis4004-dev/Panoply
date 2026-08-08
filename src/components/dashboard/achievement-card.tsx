@@ -24,7 +24,7 @@ export function AchievementCard({ achievement, onViewCertificate }: AchievementC
   return (
     <div
       className={`rounded-xl border p-4 transition-colors ${
-        earned ? 'border-primary/30 bg-[#122131]/50' : 'border-[#212A35] bg-[#122131]/20 opacity-70'
+        earned ? 'border-primary/30 bg-ds-surface-raised/50' : 'border-ds-border bg-ds-surface-raised/20 opacity-70'
       }`}
     >
       <div className="mb-3 flex items-start justify-between">
@@ -36,16 +36,16 @@ export function AchievementCard({ achievement, onViewCertificate }: AchievementC
           {earned ? (
             <Award className="h-4 w-4 text-primary" />
           ) : (
-            <Lock className="h-4 w-4 text-[#4b5563]" />
+            <Lock className="h-4 w-4 text-ds-text-muted" />
           )}
         </div>
-        <span className="font-mono text-xs font-semibold text-[#8B95A5]">+{xp} XP</span>
+        <span className="font-mono text-xs font-semibold text-ds-text-muted">+{xp} XP</span>
       </div>
       <h3 className="mb-1 text-sm font-semibold text-white">{name}</h3>
-      <p className="mb-3 text-xs text-[#8B95A5]">{description}</p>
+      <p className="mb-3 text-xs text-ds-text-muted">{description}</p>
 
       {earned && earnedAt && (
-        <p className="text-[10px] uppercase tracking-wide text-[#8B95A5]">
+        <p className="text-[10px] uppercase tracking-wide text-ds-text-muted">
           Earned {new Date(earnedAt).toLocaleDateString()}
         </p>
       )}
@@ -58,7 +58,7 @@ export function AchievementCard({ achievement, onViewCertificate }: AchievementC
               style={{ width: `${Math.min(100, (progress.current / progress.target) * 100)}%` }}
             />
           </div>
-          <p className="text-[10px] text-[#8B95A5]">
+          <p className="text-[10px] text-ds-text-muted">
             {progress.current}/{progress.target}
           </p>
         </div>
@@ -67,7 +67,7 @@ export function AchievementCard({ achievement, onViewCertificate }: AchievementC
       {earned && hasCertificate && onViewCertificate && (
         <button
           onClick={onViewCertificate}
-          className="mt-3 rounded-lg border border-primary/40 px-3 py-1 text-xs font-medium text-primary hover:bg-primary/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#122131]"
+          className="mt-3 rounded-lg border border-primary/40 px-3 py-1 text-xs font-medium text-primary hover:bg-primary/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface-raised"
         >
           View Certificate
         </button>
