@@ -13,6 +13,12 @@ export interface AuthUser {
   emailVerified?: boolean;
   walletOwnershipConfirmed?: boolean;
   walletAddress?: string;
+  /**
+   * Whether a sign-in PIN has been chosen. Setting one happens in the
+   * dashboard rather than during sign-up, so the app has to be able to tell
+   * "no PIN yet" from "PIN already set" in order to prompt for it.
+   */
+  hasPin?: boolean;
 }
 
 interface AuthContextValue {

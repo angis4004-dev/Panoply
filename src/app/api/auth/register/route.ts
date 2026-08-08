@@ -2,8 +2,7 @@ import { NextResponse } from 'next/server';
 import { registerUser, requestEmailVerification } from '@/lib/auth-store';
 import { sendEmail } from '@/lib/email';
 import { grantAchievement } from '@/lib/achievements/engine';
-import { createPendingPinToken, setCookie } from '@/lib/session';
-import { getUserModel } from '@/lib/models';
+import { setCookie } from '@/lib/session';
 import { parseBody, registerSchema } from '@/lib/validation';
 
 export async function POST(request: Request) {
@@ -45,32 +44,18 @@ export async function POST(request: Request) {
       });
     }
 
-    // Registration no longer hands back a session on its own. It returns the
-    // same short-lived pending token the password step of sign-in returns, so
-    // the account gets its PIN before it gets its first session.
+    // Registration signs the user in. Choosing a PIN is not part of this flow:
+    // it happens in the dashboard, from Settings > Security, prompted by a
+    // banner on the overview page.
     //
-    // Previously a brand-new account was signed in immediately with no PIN at
-    // all, and was only prompted to choose one whenever it next signed in -
-    // which might be days away, or never. For that whole window the account
-    // was protected by the password alone, which is exactly the situation the
-    // PIN exists to prevent.
-    //
-    // Abandoning here is safe: the user is left with a password and no PIN,
-    // identical to the old behaviour, and the next sign-in offers setup as it
-    // already did.
-    const userModel = await getUserModel();
-    if (userModel) {
-      return NextResponse.json({
-        pinSetupRequired: true,
-        pendingToken: createPendingPinToken(result.user.id),
-        user: { name: result.user.name },
-      });
-    }
-
-    // JSON-file fallback store: no schema to hold a PIN, so this path keeps
-    // the original single-step behaviour rather than handing back a token that
-    // the PIN endpoints could never satisfy. Mirrors the same branch in
-    // POST /api/auth/signin.
+    // This is a deliberate trade. Interrupting sign-up to demand a second
+    // secret costs completed registrations, and the person choosing it has
+    // just created the password moments earlier, so the PIN adds nothing
+    // against them at that instant. What it does mean is that an account
+    // exists with a session and no second factor until the prompt is
+    // answered - which is why the prompt is persistent rather than
+    // dismissible, and why every sensitive action stays gated server-side
+    // regardless of PIN state.
     const sessionData = {
       user: {
         id: result.user.id,

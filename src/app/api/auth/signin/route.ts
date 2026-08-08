@@ -98,26 +98,36 @@ export async function POST(request: Request) {
       );
     }
 
-    // The password alone no longer produces a session. It produces a
-    // short-lived token whose only use is the PIN endpoints, so a stolen
-    // password cannot reach the dashboard or any API on its own.
+    // For an account that has a PIN, the password alone still produces no
+    // session - only a short-lived token whose sole use is the PIN endpoints,
+    // so a stolen password cannot reach the dashboard on its own.
+    //
+    // For an account that has no PIN yet, sign-in completes normally. It used
+    // to divert into a "choose a PIN" step here, which meant the only way to
+    // reach the app was to invent a second secret on the spot; setting one now
+    // lives in the dashboard, where it can be explained and returned to. The
+    // dashboard prompts persistently until it is done.
     const userModel = await getUserModel();
     if (userModel) {
       const record = await userModel.findById(result.user.id).select('pinHash').lean();
 
-      if (record) {
+      if (record?.pinHash) {
         return NextResponse.json({
-          pinRequired: Boolean(record.pinHash),
-          pinSetupRequired: !record.pinHash,
+          pinRequired: true,
           pendingToken: createPendingPinToken(result.user.id),
           user: { name: result.user.name },
         });
       }
     }
 
-    // JSON-file fallback store: no schema to hold a PIN, so this path keeps
-    // the original single-step behaviour rather than locking the user out of
-    // an account the PIN could never be stored against.
+    // Reached by two kinds of caller now:
+    //
+    //   - a Mongo account with no PIN set yet, which signs in on the password
+    //     alone and is prompted to choose a PIN once inside the dashboard;
+    //   - the JSON-file fallback store, which has no schema to hold a PIN at
+    //     all, so this is the only path it ever takes.
+    //
+    // Both end the same way: a normal session.
     const sessionData = {
       user: {
         id: result.user.id,

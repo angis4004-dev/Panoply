@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { ArrowUpRight, Bot as BotIcon, Vault } from 'lucide-react';
+import { ArrowUpRight, Bot as BotIcon, ShieldAlert, Vault } from 'lucide-react';
 import MetricsBentoGrid from '@/app/dashboard/components/MetricsBentoGrid';
 import { PageHeader } from '@/components/dashboard/page-header';
 import { DepositWalletModal } from '@/components/dashboard/deposit-wallet-modal';
@@ -104,6 +104,35 @@ export default function DashboardPage() {
           Dry-run mode — all trades simulated. No real funds at risk.
         </p>
       </div>
+
+      {/*
+        Setting a PIN is no longer part of sign-up, so this prompt is the only
+        thing that gets it done. It is deliberately not dismissible: an account
+        with no second factor is a state worth nagging about, and a dismissed
+        banner would mean never being asked again. It disappears the moment a
+        PIN exists, which is the only exit.
+
+        `user` is undefined for the first render while the session loads, so
+        this checks `hasPin === false` rather than `!hasPin` - otherwise the
+        banner flashes on every page load before the answer arrives.
+      */}
+      {user?.hasPin === false && (
+        <div className="mb-6 flex flex-col gap-3 rounded-lg border border-[var(--ds-value-warning)]/30 bg-[var(--ds-value-warning)]/5 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-[var(--ds-value-warning)]" />
+            <p className="text-xs text-[#E7ECF2]">
+              <span className="font-semibold">Your account has no sign-in PIN.</span> Adding one
+              means a stolen password is not enough to reach your account on its own.
+            </p>
+          </div>
+          <Link
+            href="/dashboard/settings#pin"
+            className="inline-flex min-h-[44px] shrink-0 items-center justify-center rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+          >
+            Set a PIN
+          </Link>
+        </div>
+      )}
 
       {/* Portfolio hero */}
       <section className="mb-6 rounded-xl border border-[#212A35] bg-[#122131]/60 p-5 sm:p-6">

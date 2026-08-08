@@ -19,11 +19,14 @@ export async function GET(request: NextRequest) {
   let emailVerified: boolean | undefined;
   let walletOwnershipConfirmed: boolean | undefined;
   let walletAddress: string | undefined;
+  let hasPin: boolean | undefined;
   const userModel = await getUserModel();
   if (userModel) {
     const dbUser = await userModel
       .findById(session.user.id)
-      .select('kycStatus lifetimeDeposited xp emailVerified walletOwnershipConfirmed walletAddress')
+      .select(
+        'kycStatus lifetimeDeposited xp emailVerified walletOwnershipConfirmed walletAddress pinHash'
+      )
       .lean();
     kycStatus = dbUser?.kycStatus || 'unverified';
     // Computed live rather than trusting a cached `tier` field: accounts
@@ -36,6 +39,9 @@ export async function GET(request: NextRequest) {
     emailVerified = dbUser?.emailVerified || false;
     walletOwnershipConfirmed = dbUser?.walletOwnershipConfirmed || false;
     walletAddress = dbUser?.walletAddress || undefined;
+    // Only ever the boolean. The hash itself has no business leaving the
+    // server, and the client only needs to know whether to prompt.
+    hasPin = Boolean(dbUser?.pinHash);
   }
 
   return NextResponse.json({
@@ -49,6 +55,7 @@ export async function GET(request: NextRequest) {
       emailVerified,
       walletOwnershipConfirmed,
       walletAddress,
+      hasPin,
     },
   });
 }

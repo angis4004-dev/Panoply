@@ -181,8 +181,11 @@ export const adminUserUpdateSchema = z
     path: ['adjustmentReason'],
   });
 
+/**
+ * Choosing a first PIN. No pendingToken: this is done from the dashboard, so
+ * the session is the credential.
+ */
 export const pinSetSchema = z.object({
-  pendingToken: z.string().min(1, 'is required'),
   pin: pinCode,
   confirmPin: pinCode,
 });

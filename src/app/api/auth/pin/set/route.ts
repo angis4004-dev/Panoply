@@ -1,32 +1,32 @@
 import { NextResponse } from 'next/server';
 import { getUserModel } from '@/lib/models';
-import { setCookie, verifyPendingPinToken } from '@/lib/session';
+import { getSessionFromRequest } from '@/lib/session';
 import { hashPin, isValidPinFormat, isWeakPin, PIN_LENGTH } from '@/lib/pin';
 import { parseBody, pinSetSchema } from '@/lib/validation';
 
 /**
- * POST /api/auth/pin/set - Sets a PIN for an account that has none, and
- * completes sign-in.
+ * POST /api/auth/pin/set - Chooses a PIN for an account that has none.
  *
- * Reachable only with a pending token, so a caller must already have proven
- * the password. Refuses to overwrite an existing PIN: changing one is a
- * different operation with different requirements (it should demand the
- * current PIN), and allowing it here would let anyone holding a password
- * silently replace the second factor.
+ * Authenticated by the session, not by a pending sign-in token. Setting a PIN
+ * used to be a step wedged into sign-in, so the only credential available at
+ * that point was the short-lived token from the password check; now it happens
+ * in the dashboard, where the caller is simply signed in.
+ *
+ * Still refuses to overwrite an existing PIN. Replacing one is
+ * POST /api/auth/pin/change, which demands the current PIN - without that
+ * split, anyone holding a live session could silently swap out the second
+ * factor without knowing the old one.
  */
 export async function POST(request: Request) {
   try {
+    const session = await getSessionFromRequest(request);
+    if (!session) {
+      return NextResponse.json({ error: 'You must be signed in.' }, { status: 401 });
+    }
+
     const { data: body, error: invalid } = await parseBody(request, pinSetSchema);
     if (invalid) return invalid;
-    const { pendingToken, pin, confirmPin } = body;
-
-    const userId = verifyPendingPinToken(pendingToken);
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'Your sign-in attempt expired. Please enter your password again.' },
-        { status: 401 }
-      );
-    }
+    const { pin, confirmPin } = body;
 
     if (!isValidPinFormat(pin)) {
       return NextResponse.json(
@@ -51,14 +51,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Database connection unavailable' }, { status: 503 });
     }
 
-    const user = await userModel.findById(userId);
+    const user = await userModel.findById(session.user.id);
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     if (user.pinHash) {
       return NextResponse.json(
-        { error: 'This account already has a PIN. Enter it to continue.' },
+        { error: 'This account already has a PIN. Use Change PIN instead.' },
         { status: 409 }
       );
     }
@@ -69,27 +69,10 @@ export async function POST(request: Request) {
     user.pinLockedUntil = null;
     await user.save();
 
-    const response = NextResponse.json({
-      user: {
-        id: user._id.toString(),
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        kycStatus: user.kycStatus || 'unverified',
-      },
-    });
-
-    return setCookie(response, {
-      user: {
-        id: user._id.toString(),
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        createdAt: user.createdAt.toISOString(),
-        tokenVersion: user.tokenVersion ?? 0,
-      },
-      createdAt: Date.now(),
-    });
+    // No cookie work here. The caller already holds a valid session and
+    // tokenVersion is untouched, so nothing about their sign-in state changes:
+    // they have simply added a factor they will be asked for next time.
+    return NextResponse.json({ message: 'PIN set.' });
   } catch (error) {
     console.error('Error setting PIN:', error);
     return NextResponse.json({ error: 'Unable to set your PIN right now.' }, { status: 500 });

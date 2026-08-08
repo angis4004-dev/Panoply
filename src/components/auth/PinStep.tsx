@@ -9,27 +9,29 @@ export interface PinStepResult {
 }
 
 /**
- * Second step of sign-in: enter an existing PIN, or choose one if the account
- * has none yet.
+ * Second step of sign-in: enter the existing PIN.
  *
- * The password step no longer issues a session, so until this completes the
- * caller holds only a five-minute pending token that can do nothing else.
+ * Verification only. This used to double as the "choose a PIN" screen for
+ * accounts that had none, which made inventing a second secret the price of
+ * getting in at all; that now lives in the dashboard, so an account without a
+ * PIN never reaches this component.
+ *
+ * The password step issues no session for an account that has a PIN, so until
+ * this completes the caller holds only a five-minute pending token that can do
+ * nothing else.
  */
 export function PinStep({
-  mode,
   pendingToken,
   userName,
   onComplete,
   onCancel,
 }: {
-  mode: 'verify' | 'setup';
   pendingToken: string;
   userName?: string;
   onComplete: (result: PinStepResult) => void;
   onCancel: () => void;
 }) {
   const [pin, setPin] = useState('');
-  const [confirmPin, setConfirmPin] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [recovery, setRecovery] = useState<string | null>(null);
@@ -54,27 +56,19 @@ export function PinStep({
       setError(`Your PIN must be exactly ${PIN_LENGTH} digits.`);
       return;
     }
-    if (mode === 'setup' && pin !== confirmPin) {
-      setError('The two PINs do not match.');
-      return;
-    }
 
     setLoading(true);
     try {
-      const endpoint = mode === 'setup' ? '/api/auth/pin/set' : '/api/auth/pin/verify';
-      const response = await fetch(endpoint, {
+      const response = await fetch('/api/auth/pin/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(
-          mode === 'setup' ? { pendingToken, pin, confirmPin } : { pendingToken, pin }
-        ),
+        body: JSON.stringify({ pendingToken, pin }),
       });
 
       const payload = await response.json();
       if (!response.ok) {
         setError(payload.error || 'Unable to continue.');
         setPin('');
-        setConfirmPin('');
         firstFieldRef.current?.focus();
         setLoading(false);
         return;
@@ -115,25 +109,21 @@ export function PinStep({
     }
   };
 
-  const heading = mode === 'setup' ? 'Choose a 6-digit PIN' : 'Enter your PIN';
-  const blurb =
-    mode === 'setup'
-      ? 'You will enter this each time you sign in, after your password.'
-      : userName
-        ? `Welcome back, ${userName}. One more step.`
-        : 'One more step to finish signing in.';
+  const blurb = userName
+    ? `Welcome back, ${userName}. One more step.`
+    : 'One more step to finish signing in.';
 
   return (
     <form onSubmit={submit} className="space-y-5">
       <div>
-        <h2 className="text-lg font-semibold text-[#E7ECF2]">{heading}</h2>
+        <h2 className="text-lg font-semibold text-[#E7ECF2]">Enter your PIN</h2>
         <p className="mt-1 text-sm text-[#8B95A5]">{blurb}</p>
       </div>
 
       <div className="flex flex-col items-center gap-4">
         <div className="w-full">
           <label htmlFor="pin" className="mb-2 block text-sm font-medium text-[#C5CCD6]">
-            {mode === 'setup' ? 'New PIN' : 'PIN'}
+            PIN
           </label>
           {/* type="password" rather than the design's type="pin": the latter is
               not a valid input type, so browsers treat it as text and render
@@ -157,32 +147,10 @@ export function PinStep({
             disabled={loading}
           />
         </div>
-
-        {mode === 'setup' && (
-          <div className="w-full">
-            <label htmlFor="confirmPin" className="mb-2 block text-sm font-medium text-[#C5CCD6]">
-              Confirm PIN
-            </label>
-            <input
-              id="confirmPin"
-              name="confirmPin"
-              type="password"
-              inputMode="numeric"
-              autoComplete="off"
-              maxLength={PIN_LENGTH}
-              className="pin-input mx-auto block"
-              placeholder="Repeat your pin"
-              value={confirmPin}
-              onChange={(e) => setConfirmPin(onlyDigits(e.target.value))}
-              disabled={loading}
-            />
-          </div>
-        )}
       </div>
 
       <p id="pin-hint" className="text-center text-xs text-[#8B95A5]">
         {pin.length}/{PIN_LENGTH} digits
-        {mode === 'setup' && ' — avoid repeated digits and simple sequences'}
       </p>
 
       {/* aria-live so the message is announced when it replaces a previous one,
@@ -203,31 +171,27 @@ export function PinStep({
         disabled={loading || pin.length !== PIN_LENGTH}
         className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-colors duration-fast ease-ds-out hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13] disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {loading ? 'Checking…' : mode === 'setup' ? 'Set PIN and continue' : 'Continue'}
+        {loading ? 'Checking…' : 'Continue'}
       </button>
 
-      {/* Verify mode only. In setup there is no PIN to have forgotten, and
-          offering recovery there would just be a second way to do the thing
-          the form is already doing. */}
-      {mode === 'verify' &&
-        (recovery ? (
-          <p
-            role="status"
-            aria-live="polite"
-            className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-center text-xs text-[#C5CCD6]"
-          >
-            {recovery}
-          </p>
-        ) : (
-          <button
-            type="button"
-            onClick={requestRecovery}
-            disabled={loading || sendingRecovery}
-            className="w-full rounded text-center text-xs text-primary underline transition-colors duration-fast ease-ds-out hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 disabled:opacity-50"
-          >
-            {sendingRecovery ? 'Sending…' : 'Forgot your PIN?'}
-          </button>
-        ))}
+      {recovery ? (
+        <p
+          role="status"
+          aria-live="polite"
+          className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-center text-xs text-[#C5CCD6]"
+        >
+          {recovery}
+        </p>
+      ) : (
+        <button
+          type="button"
+          onClick={requestRecovery}
+          disabled={loading || sendingRecovery}
+          className="w-full rounded text-center text-xs text-primary underline transition-colors duration-fast ease-ds-out hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 disabled:opacity-50"
+        >
+          {sendingRecovery ? 'Sending…' : 'Forgot your PIN?'}
+        </button>
+      )}
 
       <button
         type="button"
