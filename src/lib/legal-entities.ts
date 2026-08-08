@@ -11,25 +11,30 @@
  * is not the same one that provides the software.
  */
 
-/**
- * Stands in for a legal entity name that has not been supplied yet.
- *
- * Deliberately loud and deliberately not a plausible company name. A legal
- * entity name in a Terms of Service is a legal record; a guessed one is worse
- * than an obviously missing one, because a guess ships silently. The
- * corporate-disclosure block renders this verbatim, so it is visible on the
- * page rather than buried in a comment, and `hasCompleteEntityNames` below
- * lets a build or test assert it never reaches production.
- */
-export const ENTITY_NAME_REQUIRED = '[LEGAL NAME REQUIRED]';
-
 export interface LegalEntity {
-  /** Registered legal name. */
-  name: string;
+  /**
+   * Registered legal name, or null while it has not been supplied.
+   *
+   * Null is a supported state, not a placeholder: the disclosure renders
+   * without a name rather than with an invented one. A registration number is
+   * itself a legal identifier, so "a company incorporated in Saint Lucia under
+   * registration 2025-00579" identifies the entity precisely and can be
+   * checked against the register. A guessed company name could not.
+   *
+   * Set both to real names and every surface picks them up with no other
+   * change.
+   */
+  name: string | null;
   /** What this entity does, in the reader's terms - not a job title. */
   role: string;
-  /** Country of incorporation. */
+  /** Country of incorporation, as it reads in a labelled field. */
   jurisdiction: string;
+  /**
+   * The same country as it reads mid-sentence, where some names need an
+   * article: "incorporated in *the* United Arab Emirates", but "incorporated
+   * in Saint Lucia". Omit when the plain name already reads correctly.
+   */
+  jurisdictionInProse?: string;
   /** Registration or licence number, labelled as the register issues it. */
   registration: string;
   /** Registered address, as filed. */
@@ -48,9 +53,10 @@ export interface LegalEntity {
  * left as supplied pending confirmation.
  */
 export const TECHNOLOGY_ENTITY: LegalEntity = {
-  name: ENTITY_NAME_REQUIRED,
+  name: null,
   role: 'Technology and education',
   jurisdiction: 'United Arab Emirates',
+  jurisdictionInProse: 'the United Arab Emirates',
   registration: 'Licence 35886',
   address: 'Office No. 80 2906F Marina Plaza, Dubai Marina, Dubai, United Arab Emirates',
   activity:
@@ -64,7 +70,7 @@ export const TECHNOLOGY_ENTITY: LegalEntity = {
  * component labels it explicitly rather than listing both entities neutrally.
  */
 export const PLATFORM_ENTITY: LegalEntity = {
-  name: ENTITY_NAME_REQUIRED,
+  name: null,
   role: 'Platform operator',
   jurisdiction: 'Saint Lucia',
   registration: 'Reg. 2025-00579',
@@ -78,10 +84,27 @@ export const PLATFORM_ENTITY: LegalEntity = {
 export const LEGAL_ENTITIES: LegalEntity[] = [TECHNOLOGY_ENTITY, PLATFORM_ENTITY];
 
 /**
- * False while any entity name is still a placeholder.
+ * A short phrase identifying an entity, with or without its registered name.
  *
- * Exists so the gap is assertable rather than a thing someone has to remember
- * to look for before a release.
+ * With a name: "Example Ltd (Saint Lucia, Reg. 2025-00579)".
+ * Without:     "a company incorporated in Saint Lucia (Reg. 2025-00579)".
+ *
+ * Both forms are accurate and both identify the company against its register,
+ * so no caller has to branch on whether the name is known yet.
+ */
+export function describeEntity(entity: LegalEntity): string {
+  const where = entity.jurisdictionInProse ?? entity.jurisdiction;
+  return entity.name
+    ? `${entity.name} (${entity.jurisdiction}, ${entity.registration})`
+    : `a company incorporated in ${where} (${entity.registration})`;
+}
+
+/**
+ * False while any registered name is still missing.
+ *
+ * The disclosure is accurate without the names, so this is not a release
+ * blocker - it is here so "have the names landed yet" is a question the code
+ * can answer rather than something to remember to check.
  */
 export const hasCompleteEntityNames = (): boolean =>
-  LEGAL_ENTITIES.every((entity) => entity.name !== ENTITY_NAME_REQUIRED);
+  LEGAL_ENTITIES.every((entity) => entity.name !== null);

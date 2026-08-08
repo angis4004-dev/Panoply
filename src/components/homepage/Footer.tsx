@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { AegisMark } from '@/components/ui/AegisLogo';
-import { PLATFORM_ENTITY, TECHNOLOGY_ENTITY } from '@/lib/legal-entities';
+import { describeEntity, PLATFORM_ENTITY, TECHNOLOGY_ENTITY } from '@/lib/legal-entities';
 
 /**
  * Shared link styling.
@@ -98,10 +98,9 @@ export function Footer() {
             registered addresses on the legal pages rather than repeated here. */}
         <div className="mt-10 pt-5 border-t border-[#212A35] space-y-2 text-xs text-[#8B95A5]">
           <p>
-            Aegis is operated by {TECHNOLOGY_ENTITY.name} ({TECHNOLOGY_ENTITY.jurisdiction},{' '}
-            {TECHNOLOGY_ENTITY.registration}) and {PLATFORM_ENTITY.name} (
-            {PLATFORM_ENTITY.jurisdiction}, {PLATFORM_ENTITY.registration}). Client funds are held
-            by {PLATFORM_ENTITY.name}. Full details in our{' '}
+            Aegis is operated by {describeEntity(TECHNOLOGY_ENTITY)} and{' '}
+            {describeEntity(PLATFORM_ENTITY)}. Client funds are held by the{' '}
+            {PLATFORM_ENTITY.jurisdiction} entity. Full details in our{' '}
             <Link href="/terms" className="underline hover:text-[#C5CCD6]">
               Terms of Service
             </Link>

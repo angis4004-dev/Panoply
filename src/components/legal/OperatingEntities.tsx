@@ -34,7 +34,10 @@ export function OperatingEntities() {
             <p className="text-xs font-semibold uppercase tracking-wider text-[#8B95A5]">
               {entity.role}
             </p>
-            <p className="mt-1 font-semibold text-[#E7ECF2]">{entity.name}</p>
+            {/* Rendered only when the registered name is known. Until then the
+                registration number below carries the identification, which is
+                what a reader would check the company against anyway. */}
+            {entity.name && <p className="mt-1 font-semibold text-[#E7ECF2]">{entity.name}</p>}
 
             <dl className="mt-3 space-y-1.5 text-sm">
               <div className="flex flex-col gap-0.5 sm:flex-row sm:gap-2">
@@ -59,10 +62,12 @@ export function OperatingEntities() {
       </div>
 
       <p className="mt-4">
-        Client funds are held and administered by <strong>{PLATFORM_ENTITY.name}</strong>,
-        incorporated in {PLATFORM_ENTITY.jurisdiction}. Contractual counterparty and the entity
-        responsible for your account balance is {PLATFORM_ENTITY.name} unless stated otherwise in
-        writing.
+        Client funds are held and administered by the{' '}
+        <strong>{PLATFORM_ENTITY.role.toLowerCase()}</strong> above &mdash;{' '}
+        {PLATFORM_ENTITY.name ??
+          `the company incorporated in ${PLATFORM_ENTITY.jurisdictionInProse ?? PLATFORM_ENTITY.jurisdiction}`}{' '}
+        ({PLATFORM_ENTITY.registration}). That entity is your contractual counterparty and is
+        responsible for your account balance unless stated otherwise in writing.
       </p>
     </section>
   );
