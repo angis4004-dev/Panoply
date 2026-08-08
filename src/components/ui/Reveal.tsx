@@ -50,7 +50,12 @@ export function Reveal({ children, delay = 0, className = '' }: RevealProps) {
   return (
     <div
       ref={ref}
-      className={`transition-all duration-700 ease-out ${
+      // Only opacity and transform actually change here, so they are the only
+      // two properties named. `transition-all` made the browser watch every
+      // animatable property on the wrapper for 700ms, which also meant any
+      // layout-affecting change on a child - a width or colour set by
+      // something else - got dragged into the same 700ms curve.
+      className={`transition-[opacity,transform] duration-700 ease-out ${
         visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
       } ${className}`}
       style={{ transitionDelay: visible ? `${delay}ms` : '0ms' }}
