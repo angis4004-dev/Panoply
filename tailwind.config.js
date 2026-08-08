@@ -8,22 +8,14 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        // Tahoma first, by request. It is a system font rather than a webfont:
-        // present on Windows and macOS, absent on Linux, iOS and Android - so
-        // a large share of visitors, most mobile ones included, will never
-        // render it.
-        //
-        // var(--font-sans) is IBM Plex Sans and stays in the stack directly
-        // behind it. That is the point of listing it: everyone who lacks
-        // Tahoma still gets a face this project chose, rather than dropping to
-        // whatever the operating system happens to default to. Verdana is
-        // there as the closest metric match for the rare case both are
-        // missing.
-        sans: ['Tahoma', 'var(--font-sans)', 'Verdana', 'system-ui', 'sans-serif'],
-        // Its own family now. This used to resolve to var(--font-sans), so
-        // `font-display` and `font-sans` rendered identically and the token
-        // was decorative.
-        display: ['var(--font-display)', 'Georgia', 'serif'],
+        // Both roles resolve to a single variable each, with the whole
+        // fallback chain living in that variable (see the role block at the
+        // top of styles/tailwind.css). Keeping the stack there rather than
+        // here is what lets .type-dashboard swap the entire pairing for one
+        // subtree; a family hardcoded in this array would leak past any such
+        // override.
+        sans: ['var(--font-sans)'],
+        display: ['var(--font-display)'],
         // Was the bare string 'JetBrains Mono', which nothing ever loaded, so
         // every `font-mono` element fell back to the system default.
         mono: ['var(--font-mono)', 'ui-monospace', 'monospace'],

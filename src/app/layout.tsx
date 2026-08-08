@@ -9,7 +9,16 @@ import { IBM_Plex_Sans, IBM_Plex_Mono, Instrument_Serif, Orbitron } from 'next/f
 import { cn } from '@/lib/utils';
 
 /*
- * Three typefaces, three jobs.
+ * Typefaces are loaded here but not assigned here.
+ *
+ * Each family owns a variable named after itself (--font-plex-sans,
+ * --font-instrument, ...). Two role variables, --font-sans and --font-display,
+ * point at whichever family fills that role, and Tailwind's `font-sans` and
+ * `font-display` read only the roles. Custom properties cascade, so any
+ * subtree can repoint a role and every utility inside it follows without a
+ * single component changing - which is how the dashboard runs Archivo and
+ * Abril Fatface while the marketing pages keep Tahoma and Instrument Serif.
+ * See the role definitions in styles/tailwind.css.
  *
  * Previously `--font-sans` fed both `font-sans` and `font-display`, so every
  * heading on the site was the body font at a heavier weight. Weight was the
@@ -20,12 +29,13 @@ import { cn } from '@/lib/utils';
  * editorial serifs hold up at display size unbolded, and asking for `font-bold`
  * on a 400-only family makes the browser synthesise a fake bold that smears the
  * thin strokes. Display headings therefore pair `font-display` with
- * `font-normal`, never `font-bold`.
+ * `font-normal`, never `font-bold`. Abril Fatface is 400-only for the same
+ * reason, so the rule carries over to the dashboard unchanged.
  */
 const plexSans = IBM_Plex_Sans({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
-  variable: '--font-sans',
+  variable: '--font-plex-sans',
 });
 
 /*
@@ -44,7 +54,7 @@ const instrumentSerif = Instrument_Serif({
   subsets: ['latin'],
   weight: '400',
   style: ['normal', 'italic'],
-  variable: '--font-display',
+  variable: '--font-instrument',
 });
 
 const orbitron = Orbitron({

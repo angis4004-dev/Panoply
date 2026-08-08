@@ -18,6 +18,39 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ------------------------------------------------------------------
+ * Typographic roles.
+ *
+ * Tailwind's `font-sans` and `font-display` resolve only these two
+ * variables; the families themselves are loaded in app/layout.tsx under
+ * their own names. Because custom properties cascade, repointing a role
+ * inside a subtree re-types everything in it without touching a single
+ * component - which is what .type-dashboard below does.
+ *
+ * Tahoma leads the body role by request. It is a system font, present on
+ * Windows and macOS and absent on Linux, iOS and Android, so IBM Plex Sans
+ * sits directly behind it: anyone without Tahoma still gets a face this
+ * project chose rather than an OS default.
+ * ------------------------------------------------------------------ */
+:root {
+  --font-sans: Tahoma, var(--font-plex-sans), Verdana, system-ui, sans-serif;
+  --font-display: var(--font-instrument), Georgia, serif;
+}
+
+/* The application runs a different pairing from the marketing pages:
+   Archivo for interface text and Abril Fatface for display. A dashboard is
+   read at a glance and in quantity, and Archivo's larger x-height and
+   narrower set width suit dense figures better than Tahoma; Abril's heavy
+   didone contrast gives page titles more presence at the smaller sizes an
+   app header allows than Instrument Serif's lighter strokes do.
+
+   Applied by DashboardLayout, so it covers every /dashboard route and
+   nothing else. */
+.type-dashboard {
+  --font-sans: var(--font-archivo), system-ui, sans-serif;
+  --font-display: var(--font-abril), Georgia, serif;
+}
+
 :root {
   --primary: 43 100% 89%;
   --primary-foreground: 227 60% 35%;
