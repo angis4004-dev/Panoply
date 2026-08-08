@@ -17,7 +17,8 @@
     "verify:pin-login": "node scripts/verify-pin-login.mjs",
     "verify:pin-management": "node scripts/verify-pin-management.mjs",
     "verify:session": "node scripts/verify-session-revocation.mjs",
-    "verify:ledger": "node scripts/verify-ledger.mjs"
+    "verify:ledger": "node scripts/verify-ledger.mjs",
+    "verify:email": "node scripts/verify-email.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
