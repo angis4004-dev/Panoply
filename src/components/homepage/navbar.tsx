@@ -22,12 +22,12 @@ export function Navbar() {
 
   return (
     <nav className="fixed top-0 w-full z-50">
-      <div className="bg-[#0A0E13]/90 backdrop-blur-md border-b border-[#212A35]">
+      <div className="bg-ds-surface/90 backdrop-blur-md border-b border-ds-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <Link
               href="/"
-              className="flex min-h-[44px] items-center gap-2.5 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+              className="flex min-h-[44px] items-center gap-2.5 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
             >
               <AegisMark size={28} />
               <span className="font-wordmark text-xl font-extrabold uppercase tracking-[0.12em] text-white">
@@ -40,7 +40,7 @@ export function Navbar() {
                 <Link
                   key={link.label}
                   href={link.href}
-                  className="inline-flex min-h-[44px] items-center rounded px-1 text-sm text-ds-text-muted transition-colors duration-fast ease-ds-out hover:text-[#E7ECF2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+                  className="inline-flex min-h-[44px] items-center rounded px-1 text-sm text-ds-text-muted transition-colors duration-fast ease-ds-out hover:text-[#E7ECF2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
                 >
                   {link.label}
                 </Link>
@@ -52,13 +52,13 @@ export function Navbar() {
                 <>
                   <Link
                     href="/dashboard"
-                    className="px-4 py-2 text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+                    className="px-4 py-2 text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
                   >
                     Launch App
                   </Link>
                   <button
                     onClick={logout}
-                    className="rounded-lg p-2 text-[#8B95A5] transition-colors hover:text-[#E7ECF2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+                    className="rounded-lg p-2 text-ds-text-muted transition-colors hover:text-[#E7ECF2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
                     aria-label="Log out"
                   >
                     <LogOut className="w-4 h-4" />
@@ -68,13 +68,13 @@ export function Navbar() {
                 <>
                   <Link
                     href="/sign-up-login-screen"
-                    className="px-4 py-2 text-sm font-medium text-primary border border-primary/40 hover:bg-primary/10 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+                    className="px-4 py-2 text-sm font-medium text-primary border border-primary/40 hover:bg-primary/10 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
                   >
                     Sign In
                   </Link>
                   <Link
                     href="/sign-up-login-screen"
-                    className="px-4 py-2 text-sm font-semibold text-primary-foreground bg-primary hover:bg-primary/90 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+                    className="px-4 py-2 text-sm font-semibold text-primary-foreground bg-primary hover:bg-primary/90 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
                   >
                     Get Started
                   </Link>
@@ -94,7 +94,7 @@ export function Navbar() {
       </div>
 
       {isMenuOpen && (
-        <div className="fixed inset-0 z-50 bg-[#0A0E13]/95 backdrop-blur-sm md:hidden">
+        <div className="fixed inset-0 z-50 bg-ds-surface/95 backdrop-blur-sm md:hidden">
           <div className="flex flex-col h-full p-6">
             <div className="flex justify-end mb-8">
               <button
@@ -111,7 +111,7 @@ export function Navbar() {
                   key={link.label}
                   href={link.href}
                   onClick={() => setIsMenuOpen(false)}
-                  className="rounded-lg px-4 py-3 text-lg text-[#E7ECF2] transition-colors duration-fast ease-ds-out hover:bg-[#17202e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+                  className="rounded-lg px-4 py-3 text-lg text-[#E7ECF2] transition-colors duration-fast ease-ds-out hover:bg-ds-surface-inset focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
                 >
                   {link.label}
                 </Link>
@@ -128,7 +128,7 @@ export function Navbar() {
                   </Link>
                   <button
                     onClick={logout}
-                    className="w-full px-4 py-3 text-sm text-[#E7ECF2] border border-[#212A35] rounded-lg"
+                    className="w-full px-4 py-3 text-sm text-[#E7ECF2] border border-ds-border rounded-lg"
                   >
                     Log Out
                   </button>

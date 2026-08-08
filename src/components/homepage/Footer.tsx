@@ -14,7 +14,7 @@ import { describeEntity, PLATFORM_ENTITY, TECHNOLOGY_ENTITY } from '@/lib/legal-
  * touching the mobile experience.
  */
 const linkClass =
-  'inline-flex min-h-[44px] sm:min-h-0 sm:py-1 items-center rounded text-ds-text-muted hover:text-[#E7ECF2] transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]';
+  'inline-flex min-h-[44px] sm:min-h-0 sm:py-1 items-center rounded text-ds-text-muted hover:text-[#E7ECF2] transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface';
 
 const navClass = 'flex flex-col gap-2 sm:gap-1.5 text-sm';
 
@@ -55,7 +55,7 @@ const columns = [
 
 export function Footer() {
   return (
-    <footer id="about" className="pt-12 pb-8 border-t border-[#212A35]">
+    <footer id="about" className="pt-12 pb-8 border-t border-ds-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Brand column is given more room than the three link columns, which
             only ever hold short labels - previously all four were equal width,
@@ -99,7 +99,7 @@ export function Footer() {
             reader looks for it. Kept to the two facts that identify each
             company - name, jurisdiction, register number - with the full
             registered addresses on the legal pages rather than repeated here. */}
-        <div className="mt-10 pt-5 border-t border-[#212A35] space-y-2 text-xs text-[#8B95A5]">
+        <div className="mt-10 pt-5 border-t border-ds-border space-y-2 text-xs text-ds-text-muted">
           <p>
             Aegis is operated by {describeEntity(TECHNOLOGY_ENTITY)} and{' '}
             {describeEntity(PLATFORM_ENTITY)}. Client funds are held by the{' '}

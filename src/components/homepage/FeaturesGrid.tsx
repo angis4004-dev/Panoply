@@ -12,8 +12,8 @@ import { CountUpOnView } from '@/components/ui/RollingNumber';
 
 function SignalFlowMockup() {
   return (
-    <div className="h-full rounded-2xl border border-[#212A35] bg-[#122131]/60 p-6 transition-all duration-base ease-ds-out hover:border-primary/40 hover:shadow-[0_0_40px_rgba(255,240,201,0.12)]">
-      <div className="rounded-lg bg-[#0D1219] border border-[#212A35] px-4 py-2.5 text-sm text-[#E7ECF2] mb-4 max-w-[85%] ml-auto">
+    <div className="h-full rounded-2xl border border-ds-border bg-ds-surface-raised/60 p-6 transition-all duration-base ease-ds-out hover:border-primary/40 hover:shadow-[0_0_40px_rgba(255,240,201,0.12)]">
+      <div className="rounded-lg bg-[#0D1219] border border-ds-border px-4 py-2.5 text-sm text-[#E7ECF2] mb-4 max-w-[85%] ml-auto">
         Open a grid signal flow on BTC/USDT
       </div>
       <div className="rounded-lg bg-[#0D1219] border border-primary/20 p-4">
@@ -21,7 +21,7 @@ function SignalFlowMockup() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-semibold text-white">Grid · BTC/USDT</p>
-            <p className="text-xs text-[#8B95A5]">Confidence: 87% · ETA ~4s</p>
+            <p className="text-xs text-ds-text-muted">Confidence: 87% · ETA ~4s</p>
           </div>
           <span className="text-sm font-mono text-ds-value-positive">
             <CountUpOnView value={2.1} format={(n) => `+${n.toFixed(1)}%`} />
@@ -34,8 +34,8 @@ function SignalFlowMockup() {
 
 function VaultStatMockup() {
   return (
-    <div className="h-full rounded-2xl border border-[#212A35] bg-[#122131]/60 p-6 transition-all duration-base ease-ds-out hover:border-primary/40 hover:shadow-[0_0_40px_rgba(255,240,201,0.12)]">
-      <div className="flex items-center gap-4 mb-4 text-xs text-[#8B95A5]">
+    <div className="h-full rounded-2xl border border-ds-border bg-ds-surface-raised/60 p-6 transition-all duration-base ease-ds-out hover:border-primary/40 hover:shadow-[0_0_40px_rgba(255,240,201,0.12)]">
+      <div className="flex items-center gap-4 mb-4 text-xs text-ds-text-muted">
         <span>
           <CountUpOnView value={28.07} format={(n) => `$${n.toFixed(2)}M TVL`} />
         </span>
@@ -57,7 +57,7 @@ function VaultStatMockup() {
         </div>
         <div>
           <p className="text-sm font-semibold text-white">Momentum Vault</p>
-          <p className="text-xs text-[#8B95A5]">Risk score 5/10</p>
+          <p className="text-xs text-ds-text-muted">Risk score 5/10</p>
         </div>
       </div>
     </div>
@@ -71,19 +71,19 @@ function YieldMockup() {
     { label: 'Polygon', sub: 'MATIC', on: false },
   ];
   return (
-    <div className="h-full rounded-2xl border border-[#212A35] bg-[#122131]/60 p-6 transition-all duration-base ease-ds-out hover:border-primary/40 hover:shadow-[0_0_40px_rgba(255,240,201,0.12)]">
-      <p className="text-ds-caption uppercase tracking-[0.2em] text-[#8B95A5] mb-4">
+    <div className="h-full rounded-2xl border border-ds-border bg-ds-surface-raised/60 p-6 transition-all duration-base ease-ds-out hover:border-primary/40 hover:shadow-[0_0_40px_rgba(255,240,201,0.12)]">
+      <p className="text-ds-caption uppercase tracking-[0.2em] text-ds-text-muted mb-4">
         Chains enabled for yield routing
       </p>
       <div className="space-y-3">
         {rows.map((row) => (
           <div
             key={row.label}
-            className="flex items-center justify-between rounded-lg bg-[#0D1219] border border-[#212A35] px-4 py-2.5"
+            className="flex items-center justify-between rounded-lg bg-[#0D1219] border border-ds-border px-4 py-2.5"
           >
             <div>
               <p className="text-sm font-medium text-white">{row.label}</p>
-              <p className="text-xs text-[#8B95A5]">{row.sub}</p>
+              <p className="text-xs text-ds-text-muted">{row.sub}</p>
             </div>
             <span
               className={`inline-flex h-5 w-9 items-center rounded-full transition-colors duration-base ease-ds-out ${row.on ? 'bg-primary/70 justify-end' : 'bg-[#212A35] justify-start'} px-0.5`}
@@ -99,27 +99,27 @@ function YieldMockup() {
 
 function ReportMockup() {
   return (
-    <div className="h-full rounded-2xl border border-[#212A35] bg-[#122131]/60 p-6 transition-all duration-base ease-ds-out hover:border-primary/40 hover:shadow-[0_0_40px_rgba(255,240,201,0.12)]">
-      <div className="rounded-lg bg-[#0D1219] border border-[#212A35] p-4 mb-4">
+    <div className="h-full rounded-2xl border border-ds-border bg-ds-surface-raised/60 p-6 transition-all duration-base ease-ds-out hover:border-primary/40 hover:shadow-[0_0_40px_rgba(255,240,201,0.12)]">
+      <div className="rounded-lg bg-[#0D1219] border border-ds-border p-4 mb-4">
         <p className="text-sm font-semibold text-white mb-1">Your Portfolio Report is ready</p>
-        <p className="text-xs text-[#8B95A5]">Risk-adjusted allocation across 4 signal flows</p>
+        <p className="text-xs text-ds-text-muted">Risk-adjusted allocation across 4 signal flows</p>
       </div>
       <div className="grid grid-cols-3 gap-2 text-center">
-        <div className="rounded-lg bg-[#0D1219] border border-[#212A35] py-3">
+        <div className="rounded-lg bg-[#0D1219] border border-ds-border py-3">
           <p className="text-sm font-mono text-primary">Med</p>
-          <p className="text-[10px] uppercase tracking-wide text-[#8B95A5]">Risk</p>
+          <p className="text-[10px] uppercase tracking-wide text-ds-text-muted">Risk</p>
         </div>
-        <div className="rounded-lg bg-[#0D1219] border border-[#212A35] py-3">
+        <div className="rounded-lg bg-[#0D1219] border border-ds-border py-3">
           <p className="text-sm font-mono text-primary">
             <CountUpOnView value={18} format={(n) => `${Math.round(n)}%`} />
           </p>
-          <p className="text-[10px] uppercase tracking-wide text-[#8B95A5]">Est. APY</p>
+          <p className="text-[10px] uppercase tracking-wide text-ds-text-muted">Est. APY</p>
         </div>
-        <div className="rounded-lg bg-[#0D1219] border border-[#212A35] py-3">
+        <div className="rounded-lg bg-[#0D1219] border border-ds-border py-3">
           <p className="text-sm font-mono text-primary">
             <CountUpOnView value={6} format={(n) => `${Math.round(n)}`} />
           </p>
-          <p className="text-[10px] uppercase tracking-wide text-[#8B95A5]">Assets</p>
+          <p className="text-[10px] uppercase tracking-wide text-ds-text-muted">Assets</p>
         </div>
       </div>
     </div>
@@ -199,10 +199,10 @@ export function FeaturesGrid() {
                   <h3 className="font-display font-normal text-[1.75rem] sm:text-[2.25rem] leading-[1.1] tracking-[-0.01em] text-white mb-4">
                     {row.title}
                   </h3>
-                  <p className="text-[#8B95A5] leading-relaxed mb-6 max-w-md">{row.desc}</p>
+                  <p className="text-ds-text-muted leading-relaxed mb-6 max-w-md">{row.desc}</p>
                   <Link
                     href={row.href}
-                    className="inline-flex min-h-[44px] items-center gap-2 text-sm font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13] rounded"
+                    className="inline-flex min-h-[44px] items-center gap-2 text-sm font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface rounded"
                   >
                     Learn more →
                   </Link>

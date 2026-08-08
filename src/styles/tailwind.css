@@ -242,17 +242,33 @@ body {
      * and #5C6675 (2.81:1) - which is why metric captions and the
      * dry-run disclosure were the least readable text on the dashboard.
      * Those four remain valid as BORDER colours; never as text. */
-    --ds-text-primary: #f2f5fa; /* 16.3:1 on raised, 19.4:1 on base */
-    --ds-text-secondary: #a1a1aa; /*  6.4:1 on raised,  7.6:1 on base */
-    --ds-text-muted: #8b95a5; /*  5.4:1 on raised,  6.4:1 on base */
+    /* Each colour is declared once as space-separated RGB channels, then
+     * wrapped back into a normal colour for anything reading the plain
+     * variable. Tailwind 3 can only apply an opacity modifier (bg-x/60) to a
+     * colour it can splice an alpha into, so a token defined as a bare
+     * `var(--x)` silently produces nothing for `/60`. Channels let the config
+     * emit `rgb(var(--x-rgb) / <alpha-value>)`, which is what makes the whole
+     * palette usable with opacity instead of only at full strength. */
+    --ds-text-primary-rgb: 242 245 250; /* #f2f5fa 16.3:1 raised, 19.4:1 base */
+    --ds-text-secondary-rgb: 161 161 170; /* #a1a1aa  6.4:1 raised,  7.6:1 base */
+    --ds-text-muted-rgb: 139 149 165; /* #8b95a5  5.4:1 raised,  6.4:1 base */
+    --ds-text-primary: rgb(var(--ds-text-primary-rgb));
+    --ds-text-secondary: rgb(var(--ds-text-secondary-rgb));
+    --ds-text-muted: rgb(var(--ds-text-muted-rgb));
 
     /* Surfaces */
-    --ds-surface-base: #0a0e13;
-    --ds-surface-raised: #122131;
-    --ds-surface-overlay: #0d131c;
-    --ds-surface-inset: #17202e;
-    --ds-border-subtle: #212a35;
-    --ds-border-strong: #2a3542;
+    --ds-surface-base-rgb: 10 14 19; /* #0a0e13 */
+    --ds-surface-raised-rgb: 18 33 49; /* #122131 */
+    --ds-surface-overlay-rgb: 13 19 28; /* #0d131c */
+    --ds-surface-inset-rgb: 23 32 46; /* #17202e */
+    --ds-border-subtle-rgb: 33 42 53; /* #212a35 */
+    --ds-border-strong-rgb: 42 53 66; /* #2a3542 */
+    --ds-surface-base: rgb(var(--ds-surface-base-rgb));
+    --ds-surface-raised: rgb(var(--ds-surface-raised-rgb));
+    --ds-surface-overlay: rgb(var(--ds-surface-overlay-rgb));
+    --ds-surface-inset: rgb(var(--ds-surface-inset-rgb));
+    --ds-border-subtle: rgb(var(--ds-border-subtle-rgb));
+    --ds-border-strong: rgb(var(--ds-border-strong-rgb));
 
     /* Brand vs. financial value.
      * Cream is the brand/interactive accent; teal and red carry

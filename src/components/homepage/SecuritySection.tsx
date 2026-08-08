@@ -36,12 +36,12 @@ const items = [
 function SecurityCard({ item }: { item: (typeof items)[number] }) {
   const Icon = item.icon;
   return (
-    <div className="h-full w-full bg-[#122131]/50 border border-[#212A35] rounded-xl p-6 text-center transition duration-base ease-ds-out hover:-translate-y-1 hover:border-primary/25">
+    <div className="h-full w-full bg-ds-surface-raised/50 border border-ds-border rounded-xl p-6 text-center transition duration-base ease-ds-out hover:-translate-y-1 hover:border-primary/25">
       <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 transition-transform duration-base ease-ds-out group-hover:scale-110">
         <Icon className="h-6 w-6 text-primary" />
       </div>
       <h3 className="font-display font-normal text-xl text-white mb-2">{item.title}</h3>
-      <p className="text-sm text-[#8B95A5]">{item.desc}</p>
+      <p className="text-sm text-ds-text-muted">{item.desc}</p>
     </div>
   );
 }
@@ -76,7 +76,7 @@ export function SecuritySection() {
       items.map((item) => (
         <div
           key={item.title}
-          className="flex h-full w-full items-center justify-center bg-[#0A0E13] p-1"
+          className="flex h-full w-full items-center justify-center bg-ds-surface p-1"
         >
           <SecurityCard item={item} />
         </div>
@@ -94,7 +94,7 @@ export function SecuritySection() {
           <h2 className="font-display font-normal text-[2rem] leading-[1.1] sm:text-[2.75rem] tracking-[-0.01em] text-white mb-4">
             Your Keys. Your Crypto. Always.
           </h2>
-          <p className="text-[#8B95A5] max-w-2xl mx-auto">
+          <p className="text-ds-text-muted max-w-2xl mx-auto">
             Aegis never takes custody of your assets. Every strategy runs non-custodially, with
             bank-level encryption and 24/7 automated monitoring on your account.
           </p>
@@ -115,7 +115,7 @@ export function SecuritySection() {
                 animationConfig={{ stiffness: 240, damping: 22 }}
               />
             </div>
-            <p className="mt-5 text-center text-xs text-[#8B95A5]">Swipe or tap to browse</p>
+            <p className="mt-5 text-center text-xs text-ds-text-muted">Swipe or tap to browse</p>
           </div>
         )}
 

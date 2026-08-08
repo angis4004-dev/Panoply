@@ -20,7 +20,7 @@ export function HowItWorks() {
   ];
 
   return (
-    <section id="how-it-works" className="py-20 border-y border-[#212A35] bg-[#0D1219]">
+    <section id="how-it-works" className="py-20 border-y border-ds-border bg-[#0D1219]">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-14">
           <p className="text-ds-caption font-semibold uppercase tracking-[0.35em] text-primary mb-3">
@@ -41,7 +41,9 @@ export function HowItWorks() {
                 {step.num}
               </div>
               <h3 className="font-display font-normal text-2xl text-white mb-2">{step.title}</h3>
-              <p className="text-sm text-[#8B95A5] leading-relaxed max-w-xs mx-auto">{step.desc}</p>
+              <p className="text-sm text-ds-text-muted leading-relaxed max-w-xs mx-auto">
+                {step.desc}
+              </p>
             </Reveal>
           ))}
         </div>

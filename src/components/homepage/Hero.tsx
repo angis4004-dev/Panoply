@@ -35,7 +35,7 @@ export function Hero() {
       />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="relative overflow-hidden grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-center rounded-2xl border border-[#212A35] bg-[#0D131C]/50 backdrop-blur-sm p-6 sm:p-10">
+        <div className="relative overflow-hidden grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-center rounded-2xl border border-ds-border bg-ds-surface-overlay/50 backdrop-blur-sm p-6 sm:p-10">
           {/* Below lg there's no second column to hold the orb, so it
               renders as an absolutely-positioned ambient layer behind the
               text instead of its own stacked block - keeps it blended
@@ -61,7 +61,7 @@ export function Hero() {
               Disciplined automation for <em className="not-italic text-primary">on-chain</em>{' '}
               <span className="italic text-primary">portfolios.</span>
             </h1>
-            <p className="text-[#8B95A5] text-base sm:text-lg mb-8 max-w-xl leading-relaxed">
+            <p className="text-ds-text-muted text-base sm:text-lg mb-8 max-w-xl leading-relaxed">
               Aegis combines quantitative research, automated execution, and risk management in a
               single non-custodial platform. Set your risk parameters and let disciplined,
               continuously monitored automation handle the rest.
@@ -69,14 +69,14 @@ export function Hero() {
             <div className="flex flex-wrap gap-4">
               <Link
                 href="/sign-up-login-screen"
-                className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-primary-foreground bg-primary hover:bg-primary/90 rounded-lg transition duration-fast ease-ds-out active:scale-[0.97] hover:shadow-lg hover:shadow-primary/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+                className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-primary-foreground bg-primary hover:bg-primary/90 rounded-lg transition duration-fast ease-ds-out active:scale-[0.97] hover:shadow-lg hover:shadow-primary/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
               >
                 Put Your Portfolio on Autopilot
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <a
                 href="#features"
-                className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-[#E7ECF2] border border-[#212A35] hover:border-primary/50 hover:bg-[#17202e] rounded-lg transition duration-fast ease-ds-out active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
+                className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-[#E7ECF2] border border-ds-border hover:border-primary/50 hover:bg-ds-surface-inset rounded-lg transition duration-fast ease-ds-out active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
               >
                 See How It Works
               </a>

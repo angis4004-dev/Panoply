@@ -26,9 +26,9 @@ const tiers = [
   {
     name: 'Novice',
     threshold: '$0+',
-    accent: 'text-[#8B95A5]',
+    accent: 'text-ds-text-muted',
     accentBg: 'bg-[#8B95A5]/10',
-    border: 'border-[#212A35]',
+    border: 'border-ds-border',
     glow: '',
     for: 'Everyone starts here once KYC is verified, regardless of deposit size.',
     features: ['1 active signal flow', 'Basic analytics', 'Community support'],
@@ -117,7 +117,7 @@ export default function TiersPage() {
             <h1 className="font-display font-normal text-[2.75rem] sm:text-[4rem] leading-[1.05] tracking-[-0.015em] text-white mb-6">
               Account Tiers
             </h1>
-            <p className="text-[#8B95A5] text-lg leading-relaxed max-w-2xl mx-auto">
+            <p className="text-ds-text-muted text-lg leading-relaxed max-w-2xl mx-auto">
               Aegis has four account tiers - Novice, Amateur, Strategist, and Vanguard. Your tier is
               set automatically by your lifetime amount deposited, not a monthly fee, and controls
               how many signal flows you can run at once.
@@ -126,13 +126,13 @@ export default function TiersPage() {
         </div>
       </section>
 
-      <section className="py-16 border-t border-[#212A35]">
+      <section className="py-16 border-t border-ds-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {tiers.map((tier, tierIndex) => (
               <Reveal key={tier.name} delay={tierIndex * 100} className="h-full">
                 <div
-                  className={`h-full rounded-xl border ${tier.border} ${tier.glow} bg-[#122131]/50 p-6 flex flex-col transition duration-base ease-ds-out hover:-translate-y-1`}
+                  className={`h-full rounded-xl border ${tier.border} ${tier.glow} bg-ds-surface-raised/50 p-6 flex flex-col transition duration-base ease-ds-out hover:-translate-y-1`}
                 >
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-1.5">
@@ -145,8 +145,8 @@ export default function TiersPage() {
                       {tier.threshold}
                     </span>
                   </div>
-                  <p className="text-sm text-[#8B95A5] leading-relaxed mb-6">{tier.for}</p>
-                  <ul className="space-y-3 text-sm text-[#8B95A5] mb-8 flex-1">
+                  <p className="text-sm text-ds-text-muted leading-relaxed mb-6">{tier.for}</p>
+                  <ul className="space-y-3 text-sm text-ds-text-muted mb-8 flex-1">
                     {tier.features.map((feature) => (
                       <li key={feature} className="flex items-center gap-2">
                         <CheckCircle className={`h-4 w-4 shrink-0 ${tier.accent}`} />
@@ -156,7 +156,7 @@ export default function TiersPage() {
                   </ul>
                   <Link
                     href="/sign-up-login-screen"
-                    className="w-full text-center px-4 py-3 text-sm font-semibold rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13] text-[#E7ECF2] border border-[#212A35] hover:border-primary/40 hover:bg-[#17202e]"
+                    className="w-full text-center px-4 py-3 text-sm font-semibold rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface text-[#E7ECF2] border border-ds-border hover:border-primary/40 hover:bg-ds-surface-inset"
                   >
                     Get Started
                   </Link>
@@ -167,7 +167,7 @@ export default function TiersPage() {
         </div>
       </section>
 
-      <section className="py-16 border-t border-[#212A35] bg-[#0D1219]">
+      <section className="py-16 border-t border-ds-border bg-[#0D1219]">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <SectionEyebrow>Common questions</SectionEyebrow>

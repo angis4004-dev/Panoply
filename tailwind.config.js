@@ -62,21 +62,27 @@ module.exports = {
         // Design system tokens. Added alongside the existing palette so
         // nothing changes until a component opts in; see the `ds-*`
         // custom properties in src/styles/tailwind.css for the rationale.
+        // Channel form, not `var(--ds-x)`. Tailwind 3 can only splice an alpha
+        // into a colour whose channels it can see, so a bare var() token
+        // silently emits nothing for an opacity modifier like `bg-x/60`. That
+        // is why the design system was bypassed in favour of raw hex almost
+        // everywhere: half the call sites need opacity, and the tokens could
+        // not express it.
         ds: {
           text: {
-            DEFAULT: 'var(--ds-text-primary)',
-            secondary: 'var(--ds-text-secondary)',
-            muted: 'var(--ds-text-muted)',
+            DEFAULT: 'rgb(var(--ds-text-primary-rgb) / <alpha-value>)',
+            secondary: 'rgb(var(--ds-text-secondary-rgb) / <alpha-value>)',
+            muted: 'rgb(var(--ds-text-muted-rgb) / <alpha-value>)',
           },
           surface: {
-            DEFAULT: 'var(--ds-surface-base)',
-            raised: 'var(--ds-surface-raised)',
-            overlay: 'var(--ds-surface-overlay)',
-            inset: 'var(--ds-surface-inset)',
+            DEFAULT: 'rgb(var(--ds-surface-base-rgb) / <alpha-value>)',
+            raised: 'rgb(var(--ds-surface-raised-rgb) / <alpha-value>)',
+            overlay: 'rgb(var(--ds-surface-overlay-rgb) / <alpha-value>)',
+            inset: 'rgb(var(--ds-surface-inset-rgb) / <alpha-value>)',
           },
           border: {
-            DEFAULT: 'var(--ds-border-subtle)',
-            strong: 'var(--ds-border-strong)',
+            DEFAULT: 'rgb(var(--ds-border-subtle-rgb) / <alpha-value>)',
+            strong: 'rgb(var(--ds-border-strong-rgb) / <alpha-value>)',
           },
           brand: {
             DEFAULT: 'var(--ds-brand)',

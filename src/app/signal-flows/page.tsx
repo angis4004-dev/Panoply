@@ -84,7 +84,7 @@ function SectionEyebrow({ children }: { children: React.ReactNode }) {
 
 function SignInBadge() {
   return (
-    <div className="absolute top-3 right-3 inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-[#0A0E13]/80 px-2.5 py-1 backdrop-blur-sm">
+    <div className="absolute top-3 right-3 inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-ds-surface/80 px-2.5 py-1 backdrop-blur-sm">
       <Lock className="h-3 w-3 text-primary" />
       <span className="text-ds-caption font-semibold uppercase tracking-[0.2em] text-primary">
         Sign in to activate
@@ -114,7 +114,7 @@ export default function SignalFlowsPage() {
             <h1 className="font-display font-normal text-[2.75rem] sm:text-[4rem] leading-[1.05] tracking-[-0.015em] text-white mb-6">
               Signal Flows
             </h1>
-            <p className="text-[#8B95A5] text-lg leading-relaxed max-w-2xl mx-auto">
+            <p className="text-ds-text-muted text-lg leading-relaxed max-w-2xl mx-auto">
               Grid, DCA, arbitrage, and momentum signal flows that adapt to market conditions with
               automated parameter tuning - every position stays non-custodial and visible in your
               dashboard.
@@ -144,7 +144,7 @@ export default function SignalFlowsPage() {
         </div>
       </section>
 
-      <section className="py-16 border-t border-[#212A35]">
+      <section className="py-16 border-t border-ds-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <SectionEyebrow>Strategy types</SectionEyebrow>
@@ -155,12 +155,12 @@ export default function SignalFlowsPage() {
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {strategyTypes.map((s, i) => (
               <Reveal key={s.name} delay={i * 80}>
-                <div className="h-full rounded-xl border border-[#212A35] bg-[#122131]/50 p-6 transition duration-base ease-ds-out hover:-translate-y-1 hover:border-primary/25">
+                <div className="h-full rounded-xl border border-ds-border bg-ds-surface-raised/50 p-6 transition duration-base ease-ds-out hover:-translate-y-1 hover:border-primary/25">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 mb-4">
                     <Bot className="h-4 w-4 text-primary" />
                   </div>
                   <h3 className="text-sm font-semibold text-white mb-2">{s.name}</h3>
-                  <p className="text-xs text-[#8B95A5] leading-relaxed">{s.desc}</p>
+                  <p className="text-xs text-ds-text-muted leading-relaxed">{s.desc}</p>
                 </div>
               </Reveal>
             ))}
@@ -168,14 +168,14 @@ export default function SignalFlowsPage() {
         </div>
       </section>
 
-      <section className="py-16 border-t border-[#212A35] bg-[#0D1219]">
+      <section className="py-16 border-t border-ds-border bg-[#0D1219]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-12 max-w-xl">
             <SectionEyebrow>Live preview</SectionEyebrow>
             <h2 className="font-display font-normal text-[2rem] sm:text-[2.5rem] leading-[1.1] tracking-[-0.01em] text-white mb-4">
               Browse the signal flow library
             </h2>
-            <p className="text-[#8B95A5] leading-relaxed">
+            <p className="text-ds-text-muted leading-relaxed">
               Sign in to deploy a signal flow, customize its parameters, or track its P&amp;L
               against your own portfolio.
             </p>
@@ -192,25 +192,25 @@ export default function SignalFlowsPage() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {previewBots.map((bot, i) => (
               <Reveal key={bot.name} delay={i * 80} className="group">
-                <div className="relative h-full rounded-xl border border-[#212A35] bg-[#122131]/50 p-5 select-none transition duration-base ease-ds-out hover:-translate-y-1 hover:border-primary/30">
+                <div className="relative h-full rounded-xl border border-ds-border bg-ds-surface-raised/50 p-5 select-none transition duration-base ease-ds-out hover:-translate-y-1 hover:border-primary/30">
                   <SignInBadge />
                   <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 mb-4 transition-transform duration-base ease-ds-out group-hover:scale-110">
                     <Bot className="h-4 w-4 text-primary" />
                   </div>
                   <h3 className="text-sm font-semibold text-white mb-1">{bot.name}</h3>
-                  <p className="text-xs text-[#8B95A5] mb-4">{bot.strategy} strategy</p>
+                  <p className="text-xs text-ds-text-muted mb-4">{bot.strategy} strategy</p>
                   {/* Success rate is a ratio, not a gain, so it renders
                       neutral. Colouring it green alongside a red P&L would
                       have two figures on one card disagreeing about whether
                       the flow is doing well. */}
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-[#8B95A5]">Success rate</span>
+                    <span className="text-ds-text-muted">Success rate</span>
                     <span className="font-mono font-semibold tabular-nums text-white">
                       {bot.successRate}
                     </span>
                   </div>
                   <div className="mt-2 flex items-center justify-between text-xs">
-                    <span className="text-[#8B95A5]">P&amp;L</span>
+                    <span className="text-ds-text-muted">P&amp;L</span>
                     <span
                       className={`font-mono font-semibold tabular-nums ${
                         bot.pnl.startsWith('-')
@@ -225,7 +225,7 @@ export default function SignalFlowsPage() {
                     <span
                       className={`h-1.5 w-1.5 rounded-full ${STATUS_DOT[bot.status] ?? 'bg-ds-text-muted'}`}
                     />
-                    <span className="text-ds-caption uppercase tracking-wider text-[#8B95A5]">
+                    <span className="text-ds-caption uppercase tracking-wider text-ds-text-muted">
                       {bot.status}
                     </span>
                   </div>
@@ -236,10 +236,10 @@ export default function SignalFlowsPage() {
         </div>
       </section>
 
-      <section className="py-24 border-t border-[#212A35]">
+      <section className="py-24 border-t border-ds-border">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <Reveal>
-            <div className="relative rounded-2xl border border-[#212A35] bg-[#122131]/60 backdrop-blur-sm px-8 py-14 text-center overflow-hidden">
+            <div className="relative rounded-2xl border border-ds-border bg-ds-surface-raised/60 backdrop-blur-sm px-8 py-14 text-center overflow-hidden">
               <div
                 aria-hidden
                 className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(30,99,255,0.08),transparent_70%)]"
@@ -248,7 +248,7 @@ export default function SignalFlowsPage() {
                 <h2 className="font-display font-normal text-[2rem] sm:text-[2.75rem] leading-[1.1] tracking-[-0.01em] text-white mb-4">
                   Put a signal flow on autopilot.
                 </h2>
-                <p className="text-[#8B95A5] mb-8 max-w-xl mx-auto leading-relaxed">
+                <p className="text-ds-text-muted mb-8 max-w-xl mx-auto leading-relaxed">
                   Sign in to deploy your first signal flow with your own risk parameters.
                 </p>
                 <Link
