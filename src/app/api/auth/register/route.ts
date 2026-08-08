@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { registerUser, requestEmailVerification } from '@/lib/auth-store';
 import { sendEmail } from '@/lib/email';
 import { grantAchievement } from '@/lib/achievements/engine';
-import { setCookie } from '@/lib/session';
+import { createPendingPinToken, setCookie } from '@/lib/session';
+import { getUserModel } from '@/lib/models';
 import { parseBody, registerSchema } from '@/lib/validation';
 
 export async function POST(request: Request) {
@@ -44,7 +45,32 @@ export async function POST(request: Request) {
       });
     }
 
-    // Create session data
+    // Registration no longer hands back a session on its own. It returns the
+    // same short-lived pending token the password step of sign-in returns, so
+    // the account gets its PIN before it gets its first session.
+    //
+    // Previously a brand-new account was signed in immediately with no PIN at
+    // all, and was only prompted to choose one whenever it next signed in -
+    // which might be days away, or never. For that whole window the account
+    // was protected by the password alone, which is exactly the situation the
+    // PIN exists to prevent.
+    //
+    // Abandoning here is safe: the user is left with a password and no PIN,
+    // identical to the old behaviour, and the next sign-in offers setup as it
+    // already did.
+    const userModel = await getUserModel();
+    if (userModel) {
+      return NextResponse.json({
+        pinSetupRequired: true,
+        pendingToken: createPendingPinToken(result.user.id),
+        user: { name: result.user.name },
+      });
+    }
+
+    // JSON-file fallback store: no schema to hold a PIN, so this path keeps
+    // the original single-step behaviour rather than handing back a token that
+    // the PIN endpoints could never satisfy. Mirrors the same branch in
+    // POST /api/auth/signin.
     const sessionData = {
       user: {
         id: result.user.id,
@@ -61,14 +87,12 @@ export async function POST(request: Request) {
       createdAt: Date.now(),
     };
 
-    // Create response and set session cookie
     const response = NextResponse.json({
       user: result.user,
       // Note: token is kept for backward compatibility but not used
       token: result.token,
     });
 
-    // Set the session cookie
     return setCookie(response, sessionData);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unable to create account.';

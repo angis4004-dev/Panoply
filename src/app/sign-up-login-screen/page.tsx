@@ -388,6 +388,7 @@ function SignupForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [pinStep, setPinStep] = useState<{ pendingToken: string; userName?: string } | null>(null);
 
   const {
     register,
@@ -435,6 +436,15 @@ function SignupForm() {
         return;
       }
 
+      // Registration returns a pending token rather than a session whenever
+      // the account lives in the database, so the PIN is chosen before the
+      // first session exists. No cookie has been set at this point.
+      if (payload.pendingToken) {
+        setPinStep({ pendingToken: payload.pendingToken, userName: payload.user?.name });
+        setLoading(false);
+        return;
+      }
+
       setUser({
         email: payload.user.email,
         role: 'Trader',
@@ -456,6 +466,35 @@ function SignupForm() {
       setLoading(false);
     }
   };
+
+  /**
+   * Cancelling returns to the empty sign-up form rather than to sign-in: the
+   * account already exists at this point, so the only thing left to do is set
+   * the PIN, and the sign-in tab will ask for exactly that on the next attempt.
+   */
+  if (pinStep) {
+    return (
+      <PinStep
+        mode="setup"
+        pendingToken={pinStep.pendingToken}
+        userName={pinStep.userName}
+        onComplete={(payload) => {
+          setUser({
+            email: payload.user.email,
+            role: payload.user.role,
+            name: payload.user.name,
+            kycStatus: (payload.user.kycStatus || 'unverified') as
+              'unverified' | 'pending' | 'verified' | 'rejected',
+          });
+          toast.success(`Welcome to Aegis, ${payload.user.name}!`, {
+            description: 'Redirecting to your dashboard...',
+          });
+          setTimeout(() => router.push('/dashboard'), 800);
+        }}
+        onCancel={() => setPinStep(null)}
+      />
+    );
+  }
 
   return (
     <form ref={formRef} onSubmit={handleSubmit(onSubmit)} className="space-y-4">
