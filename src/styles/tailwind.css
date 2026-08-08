@@ -52,8 +52,18 @@ body {
   background-color: hsl(var(--background));
 }
 
+/* This hand-written rule shadowed Tailwind's own `font-mono` utility and named
+   four families that nothing ever loaded, so every figure on the site fell
+   through to the system default monospace. The utility now resolves through
+   the `--font-mono` variable that next/font actually populates, so this rule
+   only needs to supply tabular figures - numeric columns should not reflow as
+   digits change.
+
+   Tailwind emits `.font-mono` from the theme too. Setting only
+   font-variant-numeric here means the two rules compose instead of one
+   silently winning. */
 .font-mono {
-  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-variant-numeric: tabular-nums;
 }
 
 .tabular-nums {
@@ -489,13 +499,16 @@ body {
     transparent 68%
   );
 }
+/* The purple stop (rgba(123,97,255)) was the giveaway: cream sweeping into
+   violet is the stock "AI product" gradient. Swapped for the brand navy, so
+   the sweep now travels between the two colours the brand actually owns. */
 .ds-ambient-orb::after {
   background: conic-gradient(
     from 0deg,
     transparent 0%,
-    rgba(255, 240, 201, 0.14) 18%,
+    rgba(255, 240, 201, 0.16) 18%,
     transparent 38%,
-    rgba(123, 97, 255, 0.1) 62%,
+    rgba(36, 59, 143, 0.34) 62%,
     transparent 82%,
     rgba(255, 240, 201, 0.1) 100%
   );
@@ -537,15 +550,19 @@ body {
   filter: blur(90px);
   animation: ds-glow-drift 20s ease-in-out infinite alternate;
 }
+/* Was a cyan blob top-left and a purple blob bottom-right. That exact pairing
+   on near-black is the single most-copied "AI product" background of the last
+   couple of years, and it was fighting the navy/cream palette rather than
+   supporting it. Now navy and cream, the two brand colours. */
 .ds-network-glow::before {
   top: -12%;
   left: -6%;
-  background: radial-gradient(circle, rgba(0, 212, 255, 0.08), transparent 70%);
+  background: radial-gradient(circle, rgba(36, 59, 143, 0.3), transparent 70%);
 }
 .ds-network-glow::after {
   bottom: -12%;
   right: -6%;
-  background: radial-gradient(circle, rgba(123, 97, 255, 0.08), transparent 70%);
+  background: radial-gradient(circle, rgba(255, 240, 201, 0.06), transparent 70%);
   animation-delay: -10s;
 }
 @keyframes ds-glow-drift {

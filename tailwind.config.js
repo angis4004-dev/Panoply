@@ -9,8 +9,13 @@ module.exports = {
     extend: {
       fontFamily: {
         sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
-        display: ['var(--font-sans)', 'system-ui', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace'],
+        // Its own family now. This used to resolve to var(--font-sans), so
+        // `font-display` and `font-sans` rendered identically and the token
+        // was decorative.
+        display: ['var(--font-display)', 'Georgia', 'serif'],
+        // Was the bare string 'JetBrains Mono', which nothing ever loaded, so
+        // every `font-mono` element fell back to the system default.
+        mono: ['var(--font-mono)', 'ui-monospace', 'monospace'],
         wordmark: ['var(--font-wordmark)', 'var(--font-sans)', 'sans-serif'],
       },
       colors: {
@@ -43,44 +48,13 @@ module.exports = {
           600: '#00A884',
           700: '#007A62',
         },
-        // Keep some from original for compatibility
-        'primary-fixed-dim': '#c4c5dd',
-        'on-surface-variant': '#c7c5cd',
-        'secondary-fixed-dim': '#00daf8',
-        'tertiary-fixed-dim': '#d6c5a1',
-        'inverse-primary': '#5b5d72',
-        'on-background': '#d4e4fa',
-        'surface-container-highest': '#273647',
-        'surface-container': '#122131',
-        'surface-container-lowest': '#010f1f',
-        'tertiary-container': '#251c05',
-        'on-tertiary-container': '#928464',
-        'on-primary': '#2d2f42',
-        'on-primary-fixed': '#181a2c',
-        'on-surface': '#d4e4fa',
-        'on-error-container': '#ffdad6',
-        outline: '#919097',
-        surfaceTint: '#c4c5dd',
-        'primary-container': '#1a1c2e',
-        surfaceBright: '#2c3a4c',
-        'on-tertiary-fixed': '#231a04',
-        surfaceDim: '#051424',
-        secondaryFixed: '#a5eeff',
-        onSecondary: '#00363f',
-        onSecondaryContainer: '#005f6d',
-        surfaceVariant: '#273647',
-        inverseOnSurface: '#233143',
-        onError: '#690005',
-        surfaceContainerHigh: '#1c2b3c',
-        primaryFixed: '#e0e0fa',
-        'on-primary-fixed-variant': '#444559',
-        onPrimaryContainer: '#82849a',
-        onSecondaryFixedVariant: '#004e5a',
-        outlineVariant: '#46464c',
-        surfaceContainerLow: '#0d1c2d',
-        onTertiary: '#3a2f16',
-        errorContainer: '#93000a',
-        secondary: '#b9f1ff',
+        // A ~37-entry Material Design token block used to sit here
+        // ('on-surface-variant', 'surfaceContainerHigh', 'primaryFixed',
+        // 'tertiary-container', ...) carried over from the starter this
+        // project was scaffolded from. Every one of them was checked against
+        // the component tree and matched zero files, so the config was
+        // advertising a colour system the app has never used. Removed.
+        //
         // Additional colors used in dashboard
         red: '#E5555A',
         blue: '#5B9BD9',
