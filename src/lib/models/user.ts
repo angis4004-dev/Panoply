@@ -49,6 +49,15 @@ export interface IUser extends Document {
   pinFailedAttempts: number;
   pinLockedUntil?: Date | null;
   /**
+   * One-hour token for the forgotten-PIN flow, issued only to a caller who has
+   * already proven the password. Deliberately separate from
+   * resetPasswordToken: the two recover different secrets, and reusing one
+   * token for both would mean a single stolen link resets the password and the
+   * second factor together.
+   */
+  pinResetToken?: string;
+  pinResetExpires?: Date;
+  /**
    * Password attempt counter, keyed to the account rather than the caller.
    * x-forwarded-for is client-controlled, so an IP-only limit is defeated by
    * rotating it; this one cannot be.
@@ -128,6 +137,8 @@ const UserSchema = new Schema<IUser>(
     pinSetAt: { type: Date },
     pinFailedAttempts: { type: Number, default: 0, min: 0 },
     pinLockedUntil: { type: Date, default: null },
+    pinResetToken: { type: String },
+    pinResetExpires: { type: Date },
     loginFailedAttempts: { type: Number, default: 0, min: 0 },
     loginLockedUntil: { type: Date, default: null },
     // KYC / identity verification (UI-only — no third-party provider)

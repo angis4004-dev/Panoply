@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { PageHeader } from '@/components/dashboard/page-header';
 import { IdentityScore } from '@/components/dashboard/identity-score';
+import { ChangePinSection } from '@/components/dashboard/change-pin-section';
 import { useAppStore } from '@/store/app-store';
 import { useAuth } from '@/hooks/use-auth';
 
@@ -126,6 +127,8 @@ export default function SettingsPage() {
             </button>
           </section>
         )}
+
+        <ChangePinSection />
 
         <section className="rounded-xl border border-[#212A35] bg-[#122131]/50 p-5">
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-[#8B95A5]">

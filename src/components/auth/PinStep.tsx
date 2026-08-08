@@ -32,6 +32,8 @@ export function PinStep({
   const [confirmPin, setConfirmPin] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [recovery, setRecovery] = useState<string | null>(null);
+  const [sendingRecovery, setSendingRecovery] = useState(false);
   const firstFieldRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -82,6 +84,34 @@ export function PinStep({
     } catch {
       setError('Unable to reach the authentication service.');
       setLoading(false);
+    }
+  };
+
+  /**
+   * Sends the reset link. The pending token the user is already holding is the
+   * only credential needed, so there is nothing to type - which matters,
+   * because the person clicking this has just demonstrated they cannot
+   * remember the thing we would otherwise ask them for.
+   */
+  const requestRecovery = async () => {
+    setError(null);
+    setSendingRecovery(true);
+    try {
+      const response = await fetch('/api/auth/pin/forgot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pendingToken }),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        setError(payload.error || 'Unable to send a reset link.');
+        return;
+      }
+      setRecovery(payload.message || 'Check your email for a link to choose a new PIN.');
+    } catch {
+      setError('Unable to reach the authentication service.');
+    } finally {
+      setSendingRecovery(false);
     }
   };
 
@@ -175,6 +205,29 @@ export function PinStep({
       >
         {loading ? 'Checking…' : mode === 'setup' ? 'Set PIN and continue' : 'Continue'}
       </button>
+
+      {/* Verify mode only. In setup there is no PIN to have forgotten, and
+          offering recovery there would just be a second way to do the thing
+          the form is already doing. */}
+      {mode === 'verify' &&
+        (recovery ? (
+          <p
+            role="status"
+            aria-live="polite"
+            className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-center text-xs text-[#C5CCD6]"
+          >
+            {recovery}
+          </p>
+        ) : (
+          <button
+            type="button"
+            onClick={requestRecovery}
+            disabled={loading || sendingRecovery}
+            className="w-full rounded text-center text-xs text-primary underline transition-colors duration-fast ease-ds-out hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 disabled:opacity-50"
+          >
+            {sendingRecovery ? 'Sending…' : 'Forgot your PIN?'}
+          </button>
+        ))}
 
       <button
         type="button"

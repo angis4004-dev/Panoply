@@ -192,6 +192,32 @@ export const pinVerifySchema = z.object({
   pin: pinCode,
 });
 
+/**
+ * Changing a PIN from inside the account. No pendingToken: the caller is
+ * already signed in, and the current PIN is what authorises the change.
+ */
+export const pinChangeSchema = z.object({
+  currentPin: pinCode,
+  pin: pinCode,
+  confirmPin: pinCode,
+});
+
+/**
+ * Requesting a PIN reset link. Carries the pendingToken rather than an email,
+ * so only someone who has just cleared the password step can ask for one -
+ * an email-addressed version would let anyone trigger reset mail for any
+ * account.
+ */
+export const pinForgotSchema = z.object({
+  pendingToken: z.string().min(1, 'is required'),
+});
+
+export const pinResetSchema = z.object({
+  token: z.string().min(1, 'is required'),
+  pin: pinCode,
+  confirmPin: pinCode,
+});
+
 export const signInSchema = z.object({
   email,
   // No length rule on sign-in. Rejecting a short password here would leak that
