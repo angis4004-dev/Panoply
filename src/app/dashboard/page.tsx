@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { ArrowUpRight, Bot as BotIcon, ShieldAlert, Vault } from 'lucide-react';
+import { ArrowUpRight, Bot as BotIcon, Vault } from 'lucide-react';
+import { OnboardingChecklist } from '@/components/dashboard/onboarding-checklist';
 import MetricsBentoGrid from '@/app/dashboard/components/MetricsBentoGrid';
 import { PageHeader } from '@/components/dashboard/page-header';
 import { DepositWalletModal } from '@/components/dashboard/deposit-wallet-modal';
@@ -105,34 +106,10 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      {/*
-        Setting a PIN is no longer part of sign-up, so this prompt is the only
-        thing that gets it done. It is deliberately not dismissible: an account
-        with no second factor is a state worth nagging about, and a dismissed
-        banner would mean never being asked again. It disappears the moment a
-        PIN exists, which is the only exit.
-
-        `user` is undefined for the first render while the session loads, so
-        this checks `hasPin === false` rather than `!hasPin` - otherwise the
-        banner flashes on every page load before the answer arrives.
-      */}
-      {user?.hasPin === false && (
-        <div className="mb-6 flex flex-col gap-3 rounded-lg border border-[var(--ds-value-warning)]/30 bg-[var(--ds-value-warning)]/5 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-3">
-            <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-[var(--ds-value-warning)]" />
-            <p className="text-xs text-[#E7ECF2]">
-              <span className="font-semibold">Your account has no sign-in PIN.</span> Adding one
-              means a stolen password is not enough to reach your account on its own.
-            </p>
-          </div>
-          <Link
-            href="/dashboard/settings#pin"
-            className="inline-flex min-h-[44px] shrink-0 items-center justify-center rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
-          >
-            Set a PIN
-          </Link>
-        </div>
-      )}
+      {/* Setting a PIN and verifying identity used to be two separate banners
+          that could appear together in no particular order. They are one
+          ordered checklist now, which removes itself once both are done. */}
+      <OnboardingChecklist />
 
       {/* Portfolio hero */}
       <section className="mb-6 rounded-xl border border-ds-border bg-ds-surface-raised/60 p-5 sm:p-6">
@@ -183,17 +160,10 @@ export default function DashboardPage() {
             </Link>
           </div>
         </div>
-        {!isVerified && (
-          <p className="mt-4 text-xs text-ds-text-muted">
-            <Link
-              href="/dashboard/kyc"
-              className="rounded text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
-            >
-              Complete identity verification
-            </Link>{' '}
-            to deposit funds and allocate capital to signal flows.
-          </p>
-        )}
+        {/* The "complete identity verification" line that sat here is now a
+            step in OnboardingChecklist above, so it is not asked for twice on
+            one screen. Pressing Deposit while unverified still explains itself
+            through a toast, which is the contextual half of the same message. */}
       </section>
 
       {depositOpen && <DepositWalletModal onClose={() => setDepositOpen(false)} />}
@@ -260,7 +230,10 @@ export default function DashboardPage() {
           <div className="space-y-3">
             {botsLoading ? (
               [...Array(2)].map((_, i) => (
-                <div key={i} className="rounded-xl border border-ds-border bg-ds-surface-raised/50 p-4">
+                <div
+                  key={i}
+                  className="rounded-xl border border-ds-border bg-ds-surface-raised/50 p-4"
+                >
                   <div className="flex items-center gap-3">
                     <Skeleton className="h-9 w-9 rounded-lg" />
                     <div className="space-y-2">
