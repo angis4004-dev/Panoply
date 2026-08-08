@@ -27,7 +27,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })
   );
 
-  const reference = ['/prd', '/terms', '/privacy', '/disclaimer'].map((path) => ({
+  const reference = ['/terms', '/privacy', '/disclaimer'].map((path) => ({
     url: `${SITE_URL}${path}`,
     lastModified,
     changeFrequency: 'monthly' as const,

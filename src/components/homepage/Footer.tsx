@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { LineChart } from 'lucide-react';
 import { AegisMark } from '@/components/ui/AegisLogo';
 import { describeEntity, PLATFORM_ENTITY, TECHNOLOGY_ENTITY } from '@/lib/legal-entities';
 
@@ -42,7 +41,6 @@ const columns = [
       { href: '/about', label: 'About' },
       { href: '/security', label: 'Security' },
       { href: '/tiers', label: 'Tiers' },
-      { href: '/prd', label: 'Product Docs' },
     ],
   },
   {
@@ -63,33 +61,17 @@ export function Footer() {
             only ever hold short labels - previously all four were equal width,
             leaving the link columns padded with dead space on wide screens. */}
         <div className="grid grid-cols-1 gap-y-10 sm:grid-cols-2 sm:gap-x-8 lg:grid-cols-[1.6fr_1fr_1fr_1fr] lg:gap-x-12">
-          {/* Wordmark carries the brand column on its own, at roughly double
-              its previous size. The descriptor paragraph that used to sit here
-              repeated the hero almost verbatim; a reader who has scrolled the
-              whole page does not need it restated at the bottom. */}
-          <div className="space-y-5">
+          {/* Wordmark alone. The descriptor paragraph that used to sit here
+              restated the hero almost verbatim to a reader who had already
+              scrolled the whole page, and nothing has replaced it - an empty
+              brand column reads as deliberate, a filled one has to earn it. */}
+          <div>
             <div className="flex items-center gap-2.5">
               <AegisMark size={30} />
               <span className="font-wordmark text-2xl font-extrabold uppercase tracking-[0.14em] text-white sm:text-3xl">
                 AEGIS
               </span>
             </div>
-
-            {/* Attribution, not decoration: every price and chart in the
-                product is CoinGecko data (lib/coingecko.ts, /api/prices), and
-                their terms ask for it to be credited. It is the one badge
-                here that states a fact rather than a slogan. */}
-            <a
-              href="https://www.coingecko.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex min-h-[44px] items-center gap-2.5 rounded-xl border border-[#212A35] bg-[#122131]/60 py-1.5 pl-1.5 pr-4 transition-colors duration-fast ease-ds-out hover:border-primary/40 hover:bg-[#17202e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13]"
-            >
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#0A0E13]">
-                <LineChart className="h-4 w-4 text-primary" aria-hidden />
-              </span>
-              <span className="text-sm font-medium text-[#E7ECF2]">Market data by CoinGecko</span>
-            </a>
           </div>
 
           {columns.map((col) => (
