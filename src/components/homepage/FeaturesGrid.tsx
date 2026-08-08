@@ -190,7 +190,7 @@ export function FeaturesGrid() {
                   <p className="text-[#8B95A5] leading-relaxed mb-6 max-w-md">{row.desc}</p>
                   <Link
                     href={row.href}
-                    className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13] rounded"
+                    className="inline-flex min-h-[44px] items-center gap-2 text-sm font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E13] rounded"
                   >
                     Learn more →
                   </Link>
