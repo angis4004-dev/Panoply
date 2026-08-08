@@ -216,12 +216,16 @@ function LoginForm({
       </div>
       {/* Email */}
       <div className="auth-field">
-        <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 tracking-wide uppercase">
+        <label
+          htmlFor="signin-email"
+          className="block text-xs font-semibold text-[#8B95A5] mb-1.5 tracking-wide uppercase"
+        >
           Email Address
         </label>
         <div className="relative">
           <Mail size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8B95A5]" />
           <input
+            id="signin-email"
             type="email"
             autoComplete="email"
             placeholder="you@cryptotradeai.io"
@@ -247,12 +251,16 @@ function LoginForm({
 
       {/* Password */}
       <div className="auth-field">
-        <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 tracking-wide uppercase">
+        <label
+          htmlFor="signin-password"
+          className="block text-xs font-semibold text-[#8B95A5] mb-1.5 tracking-wide uppercase"
+        >
           Password
         </label>
         <div className="relative">
           <Lock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8B95A5]" />
           <input
+            id="signin-password"
             type={showPassword ? 'text' : 'password'}
             autoComplete="current-password"
             placeholder="••••••••••••"
@@ -310,7 +318,10 @@ function LoginForm({
       {/* OTP field (conditional) */}
       {showOTP && (
         <div ref={otpRef} style={{ overflow: 'hidden' }}>
-          <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 tracking-wide uppercase">
+          <label
+            htmlFor="signin-otp"
+            className="block text-xs font-semibold text-[#8B95A5] mb-1.5 tracking-wide uppercase"
+          >
             One-Time Password (OTP)
           </label>
           <p className="text-xs text-ds-text-muted mb-1.5">
@@ -322,6 +333,7 @@ function LoginForm({
               className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8B95A5]"
             />
             <input
+              id="signin-otp"
               type="text"
               inputMode="numeric"
               maxLength={6}
@@ -449,10 +461,14 @@ function SignupForm() {
     <form ref={formRef} onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       {/* Full Name */}
       <div className="auth-field">
-        <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 tracking-wide uppercase">
+        <label
+          htmlFor="signup-name"
+          className="block text-xs font-semibold text-[#8B95A5] mb-1.5 tracking-wide uppercase"
+        >
           Full Name
         </label>
         <input
+          id="signup-name"
           type="text"
           placeholder="Alex Thornton"
           className={`w-full bg-[#212A35] border rounded-lg px-4 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_16px_-2px_rgba(30,99,255,0.45)] transition duration-fast ease-ds-out ${
@@ -470,10 +486,14 @@ function SignupForm() {
 
       {/* Email */}
       <div className="auth-field">
-        <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 tracking-wide uppercase">
+        <label
+          htmlFor="signup-email"
+          className="block text-xs font-semibold text-[#8B95A5] mb-1.5 tracking-wide uppercase"
+        >
           Email Address
         </label>
         <input
+          id="signup-email"
           type="email"
           placeholder="you@cryptotradeai.io"
           className={`w-full bg-[#212A35] border rounded-lg px-4 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_16px_-2px_rgba(30,99,255,0.45)] transition duration-fast ease-ds-out ${
@@ -497,7 +517,10 @@ function SignupForm() {
 
       {/* Password */}
       <div className="auth-field">
-        <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 tracking-wide uppercase">
+        <label
+          htmlFor="signup-password"
+          className="block text-xs font-semibold text-[#8B95A5] mb-1.5 tracking-wide uppercase"
+        >
           Password
         </label>
         <p className="text-ds-caption text-ds-text-muted mb-1.5">
@@ -505,6 +528,7 @@ function SignupForm() {
         </p>
         <div className="relative">
           <input
+            id="signup-password"
             type={showPassword ? 'text' : 'password'}
             placeholder="••••••••••••"
             className={`w-full bg-[#212A35] border rounded-lg px-4 pr-10 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_16px_-2px_rgba(30,99,255,0.45)] transition duration-fast ease-ds-out ${
@@ -537,11 +561,15 @@ function SignupForm() {
 
       {/* Confirm Password */}
       <div className="auth-field">
-        <label className="block text-xs font-semibold text-[#8B95A5] mb-1.5 tracking-wide uppercase">
+        <label
+          htmlFor="signup-confirm-password"
+          className="block text-xs font-semibold text-[#8B95A5] mb-1.5 tracking-wide uppercase"
+        >
           Confirm Password
         </label>
         <div className="relative">
           <input
+            id="signup-confirm-password"
             type={showConfirm ? 'text' : 'password'}
             placeholder="••••••••••••"
             className={`w-full bg-[#212A35] border rounded-lg px-4 pr-10 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_16px_-2px_rgba(30,99,255,0.45)] transition duration-fast ease-ds-out ${
