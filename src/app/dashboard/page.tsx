@@ -61,8 +61,9 @@ function inkFor(hex: string): string {
   const lin = (c: number) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
   const luminance = 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
   // 0.18 is the crossover where dark ink starts beating light ink on
-  // contrast for this palette.
-  return luminance > 0.18 ? '#0A0E13' : '#F2F5FA';
+  // contrast for this palette. Both returns are the design system's own
+  // values; applied through a style prop, which resolves custom properties.
+  return luminance > 0.18 ? 'var(--ds-surface-base)' : 'var(--ds-text-primary)';
 }
 
 export default function DashboardPage() {
@@ -119,7 +120,7 @@ export default function DashboardPage() {
               Wallet Balance
             </p>
             <div className="mt-1 flex flex-wrap items-baseline gap-3">
-              <span className="font-mono text-4xl font-bold tabular-nums text-white sm:text-5xl">
+              <span className="font-mono text-4xl font-bold tabular-nums text-ds-text sm:text-5xl">
                 $
                 {walletBalance.toLocaleString('en-US', {
                   minimumFractionDigits: 2,
@@ -140,7 +141,7 @@ export default function DashboardPage() {
                 }
                 setDepositOpen(true);
               }}
-              className="inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-ds-border px-4 py-2 text-sm font-medium text-[#E7ECF2] hover:border-primary/40 hover:bg-ds-surface-inset transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
+              className="inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-ds-border px-4 py-2 text-sm font-medium text-ds-text hover:border-primary/40 hover:bg-ds-surface-inset transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
             >
               Deposit
             </button>
@@ -153,7 +154,7 @@ export default function DashboardPage() {
             </Link>
             <Link
               href="/dashboard/builder"
-              className="inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-ds-border px-4 py-2 text-sm font-medium text-[#E7ECF2] hover:border-primary/40 hover:bg-ds-surface-inset transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
+              className="inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-ds-border px-4 py-2 text-sm font-medium text-ds-text hover:border-primary/40 hover:bg-ds-surface-inset transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
             >
               Run Builder
               <ArrowUpRight className="h-3.5 w-3.5" />
@@ -180,7 +181,9 @@ export default function DashboardPage() {
             <div className="mb-1 flex items-center gap-2">
               <TierBadge tier={identity?.tier || user?.tier || 'unverified'} />
               {identity && (
-                <span className="font-mono text-sm font-semibold text-white">{identity.xp} XP</span>
+                <span className="font-mono text-sm font-semibold text-ds-text">
+                  {identity.xp} XP
+                </span>
               )}
             </div>
             {identity?.tierProgress.kycRequired ? (
@@ -219,7 +222,7 @@ export default function DashboardPage() {
         {/* Active signal flows */}
         <section>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-white">Active Signal Flows</h2>
+            <h2 className="text-lg font-semibold text-ds-text">Active Signal Flows</h2>
             <Link
               href="/dashboard/bots"
               className="inline-flex min-h-[44px] items-center rounded text-ds-label font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
@@ -266,7 +269,7 @@ export default function DashboardPage() {
                         <BotIcon className="h-4 w-4 text-primary" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-white">{bot.pair}</h3>
+                        <h3 className="font-semibold text-ds-text">{bot.pair}</h3>
                         <p className="text-xs text-ds-text-muted">{bot.type} strategy</p>
                       </div>
                     </div>
@@ -285,7 +288,7 @@ export default function DashboardPage() {
                     </div>
                     <div>
                       <p className="text-ds-text-muted">Allocated</p>
-                      <p className="font-mono font-semibold text-white">
+                      <p className="font-mono font-semibold text-ds-text">
                         {bot.allocatedAmount != null
                           ? `$${bot.allocatedAmount.toLocaleString()}`
                           : '—'}
@@ -293,7 +296,7 @@ export default function DashboardPage() {
                     </div>
                     <div className="text-right">
                       <p className="text-ds-text-muted">Confidence</p>
-                      <p className="font-mono font-semibold text-white">{bot.confidence}%</p>
+                      <p className="font-mono font-semibold text-ds-text">{bot.confidence}%</p>
                     </div>
                   </div>
                 </div>
@@ -305,7 +308,7 @@ export default function DashboardPage() {
         {/* Top yields */}
         <section>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-white">Top Yields</h2>
+            <h2 className="text-lg font-semibold text-ds-text">Top Yields</h2>
             <Link
               href="/dashboard/yield"
               className="inline-flex min-h-[44px] items-center rounded text-ds-label font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
@@ -349,7 +352,7 @@ export default function DashboardPage() {
                       {yield_.protocol.charAt(0)}
                     </div>
                     <div>
-                      <h3 className="font-semibold text-white">{yield_.protocol}</h3>
+                      <h3 className="font-semibold text-ds-text">{yield_.protocol}</h3>
                       <p className="text-xs text-ds-text-muted">{yield_.chain}</p>
                     </div>
                   </div>
@@ -378,13 +381,20 @@ export default function DashboardPage() {
               </div>
               <div className="relative flex h-16 w-16 items-center justify-center">
                 <svg className="h-full w-full -rotate-90" viewBox="0 0 36 36">
-                  <circle cx="18" cy="18" r="15" fill="none" stroke="#212A35" strokeWidth="2.5" />
                   <circle
                     cx="18"
                     cy="18"
                     r="15"
                     fill="none"
-                    stroke="#FFF0C9"
+                    className="stroke-ds-border"
+                    strokeWidth="2.5"
+                  />
+                  <circle
+                    cx="18"
+                    cy="18"
+                    r="15"
+                    fill="none"
+                    className="stroke-primary"
                     strokeWidth="2.5"
                     strokeDasharray="78 100"
                     strokeLinecap="round"

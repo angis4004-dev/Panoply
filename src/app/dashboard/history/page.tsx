@@ -18,7 +18,7 @@ export default function HistoryPage() {
       {reports.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-ds-border bg-ds-surface-raised/30 py-16 text-center">
           <FileText className="mb-4 h-10 w-10 text-ds-text-muted" />
-          <h3 className="text-lg font-semibold text-white">No reports yet</h3>
+          <h3 className="text-lg font-semibold text-ds-text">No reports yet</h3>
           <p className="mt-2 max-w-sm text-sm text-ds-text-muted">
             Run the Portfolio Builder to generate your first AI portfolio analysis.
           </p>
@@ -39,7 +39,7 @@ export default function HistoryPage() {
               <div className="flex items-center gap-3">
                 <FileText className="h-5 w-5 text-primary" />
                 <div>
-                  <p className="font-medium text-white">Portfolio Report</p>
+                  <p className="font-medium text-ds-text">Portfolio Report</p>
                   <p className="text-xs text-ds-text-muted">
                     {report.createdAt || 'Recently'} · Sent to {report.email || 'your inbox'}
                   </p>

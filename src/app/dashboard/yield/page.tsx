@@ -119,7 +119,7 @@ export default function YieldPage() {
                   <td className="px-4 py-3.5">
                     <div className="flex items-center gap-2">
                       <Zap className="h-4 w-4 text-primary" />
-                      <span className="font-medium text-white">{row.protocol}</span>
+                      <span className="font-medium text-ds-text">{row.protocol}</span>
                     </div>
                   </td>
                   <td className="hidden px-4 py-3.5 text-ds-text-muted sm:table-cell">

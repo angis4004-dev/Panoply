@@ -234,11 +234,11 @@ export function IdDocumentCapture({
   const btn =
     'inline-flex min-h-[44px] items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface-raised';
   const solid = `${btn} bg-primary text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50`;
-  const outline = `${btn} border border-ds-border-strong text-[#E7ECF2] hover:border-primary/40 hover:bg-ds-surface-inset disabled:cursor-not-allowed disabled:opacity-50`;
+  const outline = `${btn} border border-ds-border-strong text-ds-text hover:border-primary/40 hover:bg-ds-surface-inset disabled:cursor-not-allowed disabled:opacity-50`;
 
   return (
     <div className="rounded-lg border border-ds-border bg-ds-surface/40 p-4">
-      <p className="mb-1 text-sm font-medium text-[#E7ECF2]">Photo of your ID</p>
+      <p className="mb-1 text-sm font-medium text-ds-text">Photo of your ID</p>
       <p className="mb-4 text-xs text-ds-text-muted">
         The front of the document you selected above. Make sure all four corners are visible and the
         text is readable.
@@ -359,7 +359,7 @@ export function IdDocumentCapture({
           <div className="flex items-start gap-3">
             <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
             <div>
-              <p className="text-sm font-medium text-[#E7ECF2]">Document on file</p>
+              <p className="text-sm font-medium text-ds-text">Document on file</p>
               <p className="text-xs text-ds-text-muted">
                 {labelFor(onFile.mimeType)} · {formatSize(onFile.size)} ·{' '}
                 {new Date(onFile.uploadedAt).toLocaleDateString()}

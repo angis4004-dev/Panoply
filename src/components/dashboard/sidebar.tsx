@@ -33,9 +33,9 @@ const navItems = [
 ];
 
 const KYC_DOT_STYLES: Record<string, string> = {
-  unverified: 'bg-[#8B95A5]',
+  unverified: 'bg-ds-text-muted',
   pending: 'bg-primary',
-  rejected: 'bg-red-400',
+  rejected: 'bg-ds-value-negative',
 };
 
 interface DashboardSidebarProps {
@@ -53,14 +53,14 @@ export default function DashboardSidebar({ onNavigate }: DashboardSidebarProps) 
     exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
 
   return (
-    <aside className="flex h-full min-h-screen w-64 flex-col border-r border-ds-border bg-[#10151C]">
+    <aside className="flex h-full min-h-screen w-64 flex-col border-r border-ds-border bg-ds-surface-chrome">
       <div className="flex h-14 items-center gap-2.5 border-b border-ds-border px-5">
         <AegisMark size={28} />
         <div>
           <Link
             href="/"
             onClick={onNavigate}
-            className="rounded font-wordmark text-base font-extrabold uppercase tracking-[0.12em] text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#10151C]"
+            className="rounded font-wordmark text-base font-extrabold uppercase tracking-[0.12em] text-ds-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface-chrome"
           >
             AEGIS
           </Link>
@@ -78,10 +78,10 @@ export default function DashboardSidebar({ onNavigate }: DashboardSidebarProps) 
               key={href}
               href={href}
               onClick={onNavigate}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#10151C] ${
+              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface-chrome ${
                 active
                   ? 'bg-primary/12 text-primary border-l-2 border-primary pl-[10px]'
-                  : 'text-ds-text-muted hover:bg-ds-surface-inset hover:text-[#E7ECF2] border-l-2 border-transparent pl-[10px]'
+                  : 'text-ds-text-muted hover:bg-ds-surface-inset hover:text-ds-text border-l-2 border-transparent pl-[10px]'
               }`}
             >
               <Icon className="h-4 w-4 shrink-0" />
@@ -100,7 +100,7 @@ export default function DashboardSidebar({ onNavigate }: DashboardSidebarProps) 
             <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-xs font-bold text-primary">
               {initial}
             </div>
-            <p className="min-w-0 flex-1 truncate text-sm font-medium text-[#E7ECF2]">
+            <p className="min-w-0 flex-1 truncate text-sm font-medium text-ds-text">
               {user.name || user.email?.split('@')[0] || 'User'}
             </p>
             <TierBadge tier={user.tier || 'unverified'} />
@@ -111,7 +111,7 @@ export default function DashboardSidebar({ onNavigate }: DashboardSidebarProps) 
             logout();
             window.location.href = '/sign-up-login-screen';
           }}
-          className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm text-ds-text-muted hover:bg-ds-surface-inset hover:text-[#E7ECF2] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#10151C]"
+          className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm text-ds-text-muted hover:bg-ds-surface-inset hover:text-ds-text transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface-chrome"
         >
           <LogOut className="h-4 w-4" />
           Sign Out

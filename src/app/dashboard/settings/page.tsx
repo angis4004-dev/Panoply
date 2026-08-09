@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { PageHeader } from '@/components/dashboard/page-header';
 import { IdentityScore } from '@/components/dashboard/identity-score';
 import { PinSection } from '@/components/dashboard/pin-section';
@@ -13,6 +13,33 @@ export default function SettingsPage() {
   const [name, setName] = useState(user?.name || '');
   const [saving, setSaving] = useState(false);
   const [confirmingWallet, setConfirmingWallet] = useState(false);
+
+  /*
+   * The identity score was hardcoded to 0 here, under a note saying it
+   * "refreshes on the Achievements page". It did not refresh anywhere - it
+   * was the literal 0 - so an account showing 83 on the overview and 83 on
+   * the achievements page showed 0 on this one. A number that disagrees with
+   * itself across three screens is worse than no number, because the user
+   * cannot tell which screen to believe.
+   *
+   * Same endpoint the overview already uses.
+   */
+  const [identityScore, setIdentityScore] = useState<number | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/achievements')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!cancelled && typeof data?.identityScore === 'number') {
+          setIdentityScore(data.identityScore);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleSaveProfile = async () => {
     if (!name.trim()) return;
@@ -63,9 +90,16 @@ export default function SettingsPage() {
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-ds-text-muted">
             Identity Score
           </h2>
-          <IdentityScore score={0} size="sm" />
+          {/* Nothing is drawn until the real score arrives. Rendering the
+              ring at 0 first would animate up from a value that was never
+              true, which is how it came to look like a working number. */}
+          {identityScore === null ? (
+            <p className="text-sm text-ds-text-muted">Loading...</p>
+          ) : (
+            <IdentityScore score={identityScore} size="sm" />
+          )}
           <p className="mt-2 text-xs text-ds-text-muted">
-            Refreshes on the{' '}
+            How it is calculated, and how to raise it, on the{' '}
             <a href="/dashboard/achievements" className="text-primary hover:underline">
               Achievements page
             </a>
@@ -87,12 +121,12 @@ export default function SettingsPage() {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-ds-border bg-ds-surface px-3 py-2 text-sm text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface-raised"
+                className="mt-1 w-full rounded-lg border border-ds-border bg-ds-surface px-3 py-2 text-sm text-ds-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface-raised"
               />
             </div>
             <div>
               <label className="text-xs text-ds-text-muted">Email</label>
-              <p className="mt-1 text-white">{user?.email || '—'}</p>
+              <p className="mt-1 text-ds-text">{user?.email || '—'}</p>
             </div>
             <div>
               <label className="text-xs text-ds-text-muted">Role</label>
@@ -117,7 +151,7 @@ export default function SettingsPage() {
             <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-ds-text-muted">
               Wallet
             </h2>
-            <p className="mb-3 text-sm text-white">Assigned address: {user.walletAddress}</p>
+            <p className="mb-3 text-sm text-ds-text">Assigned address: {user.walletAddress}</p>
             <button
               onClick={handleConfirmWallet}
               disabled={confirmingWallet}
@@ -142,7 +176,7 @@ export default function SettingsPage() {
               'Security alerts',
             ].map((label) => (
               <label key={label} className="flex items-center justify-between">
-                <span className="text-sm text-[#E7ECF2]">{label}</span>
+                <span className="text-sm text-ds-text">{label}</span>
                 <input
                   type="checkbox"
                   defaultChecked

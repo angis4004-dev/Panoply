@@ -35,7 +35,7 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
   // a day that closed down was red even where the portfolio was up.
   const positive = value >= 0;
   return (
-    <div className="bg-zinc-800 border border-zinc-700 rounded-xl p-3 shadow-2xl min-w-[150px]">
+    <div className="bg-ds-surface-inset border border-ds-border-strong rounded-xl p-3 shadow-2xl min-w-[150px]">
       <p className="text-ds-caption text-ds-text-secondary font-semibold mb-2">
         {point?.fullLabel ?? ''}
       </p>
@@ -370,7 +370,7 @@ export default function PnLAreaChart() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
         <div>
           <div className="flex items-center gap-2">
-            <h3 className="text-sm font-semibold text-zinc-200">Cumulative P&L</h3>
+            <h3 className="text-sm font-semibold text-ds-text">Cumulative P&L</h3>
             {hasMovement && (
               <span className="inline-flex items-center gap-1.5 text-ds-caption text-ds-text-muted">
                 <span
@@ -430,7 +430,7 @@ export default function PnLAreaChart() {
       </div>
 
       {error && (
-        <div className="mb-3 p-3 bg-red-900/50 border border-red-800 rounded-lg text-sm">
+        <div className="mb-3 p-3 bg-ds-value-negative/10 border border-ds-value-negative/30 rounded-lg text-sm">
           {error}
         </div>
       )}

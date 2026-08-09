@@ -82,6 +82,7 @@ module.exports = {
             raised: 'rgb(var(--ds-surface-raised-rgb) / <alpha-value>)',
             overlay: 'rgb(var(--ds-surface-overlay-rgb) / <alpha-value>)',
             inset: 'rgb(var(--ds-surface-inset-rgb) / <alpha-value>)',
+            chrome: 'rgb(var(--ds-surface-chrome-rgb) / <alpha-value>)',
           },
           border: {
             DEFAULT: 'rgb(var(--ds-border-subtle-rgb) / <alpha-value>)',

@@ -20,7 +20,7 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
       <div className="flex items-center gap-3">
         <button
           onClick={onMenuClick}
-          className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2 text-ds-text-muted hover:bg-ds-surface-inset hover:text-[#E7ECF2] lg:hidden transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
+          className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2 text-ds-text-muted hover:bg-ds-surface-inset hover:text-ds-text lg:hidden transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
           aria-label="Open menu"
         >
           <Menu className="h-5 w-5" />
@@ -30,14 +30,14 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
           className="flex min-h-[44px] items-center gap-2 rounded lg:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
         >
           <AegisMark size={20} />
-          <span className="font-wordmark font-extrabold uppercase tracking-[0.12em] text-white">
+          <span className="font-wordmark font-extrabold uppercase tracking-[0.12em] text-ds-text">
             AEGIS
           </span>
         </Link>
         <div className="hidden items-center gap-2 sm:flex">
           <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-40" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-green-400" />
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-ds-value-positive opacity-40" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-ds-value-positive" />
           </span>
           <span className="text-xs font-medium text-ds-text-muted">Markets live</span>
         </div>
@@ -51,7 +51,7 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/15 text-xs font-bold text-primary">
               {initial}
             </div>
-            <span className="hidden text-sm font-medium text-[#E7ECF2] sm:inline">
+            <span className="hidden text-sm font-medium text-ds-text sm:inline">
               {user.name || user.email?.split('@')[0] || 'User'}
             </span>
           </div>

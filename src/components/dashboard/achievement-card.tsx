@@ -1,5 +1,36 @@
-import { Award, Lock } from 'lucide-react';
+import {
+  Flame,
+  Lock,
+  PieChart,
+  Rocket,
+  ShieldCheck,
+  Trophy,
+  Waypoints,
+  type LucideIcon,
+} from 'lucide-react';
 import type { AchievementCategory } from '@/lib/achievements/catalog';
+
+/**
+ * One icon per category, rather than one icon for everything.
+ *
+ * Every earned card used to show the same Award glyph, so a wall of 25
+ * achievements was 25 identical tiles distinguished only by their text -
+ * nothing to scan by, and the six categories the page is already grouped
+ * into had no visual counterpart. The card was being handed `category` and
+ * ignoring it.
+ *
+ * Per-category rather than per-achievement: it is the grouping the page
+ * actually uses, and 25 bespoke icons would be 25 more chances for one to
+ * drift out of step with its achievement.
+ */
+const CATEGORY_ICONS: Record<AchievementCategory, LucideIcon> = {
+  'getting-started': Rocket,
+  'security-trust': ShieldCheck,
+  portfolio: PieChart,
+  'strategy-analytics': Waypoints,
+  engagement: Flame,
+  milestones: Trophy,
+};
 
 export interface AchievementViewModel {
   key: string;
@@ -19,7 +50,9 @@ interface AchievementCardProps {
 }
 
 export function AchievementCard({ achievement, onViewCertificate }: AchievementCardProps) {
-  const { name, description, xp, hasCertificate, earned, earnedAt, progress } = achievement;
+  const { name, description, category, xp, hasCertificate, earned, earnedAt, progress } =
+    achievement;
+  const CategoryIcon = CATEGORY_ICONS[category] ?? Trophy;
 
   return (
     <div
@@ -32,18 +65,18 @@ export function AchievementCard({ achievement, onViewCertificate }: AchievementC
       <div className="mb-3 flex items-start justify-between">
         <div
           className={`flex h-9 w-9 items-center justify-center rounded-lg ${
-            earned ? 'bg-primary/10' : 'bg-[#212A35]'
+            earned ? 'bg-primary/10' : 'bg-ds-border'
           }`}
         >
           {earned ? (
-            <Award className="h-4 w-4 text-primary" />
+            <CategoryIcon className="h-4 w-4 text-primary" aria-hidden />
           ) : (
-            <Lock className="h-4 w-4 text-ds-text-muted" />
+            <Lock className="h-4 w-4 text-ds-text-muted" aria-hidden />
           )}
         </div>
         <span className="font-mono text-xs font-semibold text-ds-text-muted">+{xp} XP</span>
       </div>
-      <h3 className="mb-1 text-sm font-semibold text-white">{name}</h3>
+      <h3 className="mb-1 text-sm font-semibold text-ds-text">{name}</h3>
       <p className="mb-3 text-xs text-ds-text-muted">{description}</p>
 
       {earned && earnedAt && (
@@ -54,7 +87,7 @@ export function AchievementCard({ achievement, onViewCertificate }: AchievementC
 
       {!earned && progress && (
         <div>
-          <div className="mb-1 h-1.5 w-full overflow-hidden rounded-full bg-[#212A35]">
+          <div className="mb-1 h-1.5 w-full overflow-hidden rounded-full bg-ds-border">
             <div
               className="h-full rounded-full bg-primary"
               style={{ width: `${Math.min(100, (progress.current / progress.target) * 100)}%` }}

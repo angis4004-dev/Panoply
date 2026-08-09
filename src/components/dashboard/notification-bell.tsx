@@ -37,8 +37,8 @@ const ICONS: Record<NotificationType, typeof Bell> = {
    muted default. */
 const ICON_TONE: Record<NotificationType, string> = {
   achievement: 'text-primary',
-  kyc: 'text-green-400',
-  security: 'text-[#E5555A]',
+  kyc: 'text-ds-value-positive',
+  security: 'text-ds-value-negative',
   system: 'text-ds-text-muted',
 };
 
@@ -176,7 +176,13 @@ export function NotificationBell() {
         <Bell className="h-4 w-4" />
         {unread > 0 && (
           <span
-            className="absolute right-1 top-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-[#E5555A] px-1 font-mono text-[0.625rem] font-semibold leading-none text-white"
+            /* Dark ink on the red, not light.
+               At 10px this counts as normal text and needs 4.5:1. Light ink
+               never reached it - the original white-on-#E5555A measured
+               3.63:1 - whereas the surface colour on the same red measures
+               5.69:1. It is also what inkFor() in the overview already does
+               for coloured chips, for the same reason. */
+            className="absolute right-1 top-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-ds-value-negative px-1 font-mono text-[0.625rem] font-semibold leading-none text-ds-surface"
             // The count is already in the button's own accessible name, so
             // reading it a second time would just be clutter.
             aria-hidden="true"

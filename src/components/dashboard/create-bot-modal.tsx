@@ -141,11 +141,11 @@ export function CreateBotModal({ onClose }: CreateBotModalProps) {
         className="relative z-10 w-full max-w-sm rounded-xl border border-ds-border bg-ds-surface-overlay p-6"
       >
         <div className="mb-5 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-white">New Signal Flow</h2>
+          <h2 className="text-lg font-bold text-ds-text">New Signal Flow</h2>
           <button
             type="button"
             onClick={handleClose}
-            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-ds-text-muted hover:text-white transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface-overlay"
+            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-ds-text-muted hover:text-ds-text transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface-overlay"
             aria-label="Close"
           >
             <X className="h-4 w-4" />
@@ -154,8 +154,8 @@ export function CreateBotModal({ onClose }: CreateBotModalProps) {
 
         {atSlotCap ? (
           <div className="space-y-4">
-            <p className="text-sm text-[#E7ECF2] leading-relaxed">
-              Your <span className="font-semibold text-white">{tierLabel}</span> tier allows up to{' '}
+            <p className="text-sm text-ds-text leading-relaxed">
+              Your <span className="font-semibold text-ds-text">{tierLabel}</span> tier allows up to{' '}
               {tierInfo!.slotLimit} active signal flow{tierInfo!.slotLimit === 1 ? '' : 's'}, and
               you&apos;re using all of them. Upgrade your tier by depositing more to unlock
               additional slots.
@@ -172,7 +172,7 @@ export function CreateBotModal({ onClose }: CreateBotModalProps) {
             {tierLabel && (
               <p className="text-xs text-ds-text-muted">
                 {bots.length} of {tierInfo?.slotLimit ?? '∞'} signal flows used ·{' '}
-                <span className="font-medium text-[#E7ECF2]">{tierLabel}</span> tier
+                <span className="font-medium text-ds-text">{tierLabel}</span> tier
               </p>
             )}
             <div>
@@ -182,7 +182,7 @@ export function CreateBotModal({ onClose }: CreateBotModalProps) {
               <select
                 value={type}
                 onChange={(e) => setType(e.target.value as (typeof BOT_TYPES)[number])}
-                className="w-full rounded-lg border border-ds-border bg-ds-surface-raised px-3 py-2.5 text-sm text-white transition-colors duration-fast ease-ds-out focus:outline-none focus:ring-2 focus:ring-primary/50"
+                className="w-full rounded-lg border border-ds-border bg-ds-surface-raised px-3 py-2.5 text-sm text-ds-text transition-colors duration-fast ease-ds-out focus:outline-none focus:ring-2 focus:ring-primary/50"
               >
                 {BOT_TYPES.map((t) => (
                   <option key={t} value={t}>
@@ -229,7 +229,7 @@ export function CreateBotModal({ onClose }: CreateBotModalProps) {
                 value={allocatedAmount}
                 onChange={(e) => setAllocatedAmount(e.target.value)}
                 placeholder="1000"
-                className="w-full rounded-lg border border-ds-border bg-ds-surface-raised px-3 py-2.5 text-sm text-white placeholder-[#8B95A5] transition-colors duration-fast ease-ds-out focus:outline-none focus:ring-2 focus:ring-primary/50"
+                className="w-full rounded-lg border border-ds-border bg-ds-surface-raised px-3 py-2.5 text-sm text-ds-text placeholder-ds-text-muted transition-colors duration-fast ease-ds-out focus:outline-none focus:ring-2 focus:ring-primary/50"
               />
             </div>
 
@@ -247,7 +247,7 @@ export function CreateBotModal({ onClose }: CreateBotModalProps) {
               />
             </div>
 
-            {error && <p className="text-xs text-red-400">{error}</p>}
+            {error && <p className="text-xs text-ds-value-negative">{error}</p>}
 
             <button
               type="submit"

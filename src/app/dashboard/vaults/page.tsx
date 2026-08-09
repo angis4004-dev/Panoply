@@ -109,7 +109,7 @@ export default function VaultsPage() {
                     <Shield className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-white">{vault.name}</h3>
+                    <h3 className="font-semibold text-ds-text">{vault.name}</h3>
                     <p className="text-xs text-ds-text-muted">
                       TVL {vault.tvl} · Risk {vault.risk}
                     </p>
@@ -126,7 +126,7 @@ export default function VaultsPage() {
                     <p className="text-[10px] uppercase tracking-wide text-ds-text-muted">
                       Your deposit
                     </p>
-                    <p className="font-mono font-semibold text-white">{deposited}</p>
+                    <p className="font-mono font-semibold text-ds-text">{deposited}</p>
                   </div>
                   <button
                     onClick={() => {

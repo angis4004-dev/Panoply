@@ -10,7 +10,7 @@ import { useAppStore, type Bot as BotData } from '@/store/app-store';
 import { useActivityPhase, type ActivityPhase } from '@/components/ui/RollingNumber';
 
 const STATUS_STYLES: Record<string, string> = {
-  paused: 'bg-[#8B95A5]/10 text-ds-text-muted',
+  paused: 'bg-ds-text-muted/10 text-ds-text-muted',
   fallback: 'bg-primary/10 text-primary',
 };
 
@@ -18,8 +18,8 @@ const STATUS_STYLES: Record<string, string> = {
 // now reserved for HOLD (and red for SELL) - see useActivityPhase.
 const ACTIVITY_STYLES: Record<ActivityPhase, string> = {
   RUNNING: 'bg-primary/10 text-primary',
-  SELL: 'bg-red-500/10 text-red-400',
-  HOLD: 'bg-green-400/10 text-green-400',
+  SELL: 'bg-ds-value-negative/10 text-ds-value-negative',
+  HOLD: 'bg-ds-value-positive/10 text-ds-value-positive',
 };
 
 function BotCard({
@@ -46,7 +46,7 @@ function BotCard({
             <Bot className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h3 className="font-semibold text-white">{bot.pair}</h3>
+            <h3 className="font-semibold text-ds-text">{bot.pair}</h3>
             <p className="text-xs text-ds-text-muted">{bot.type} strategy</p>
           </div>
         </div>
@@ -67,13 +67,13 @@ function BotCard({
         </div>
         <div>
           <p className="text-ds-text-muted">Allocated</p>
-          <p className="font-mono font-semibold text-white">
+          <p className="font-mono font-semibold text-ds-text">
             {bot.allocatedAmount != null ? `$${bot.allocatedAmount.toLocaleString()}` : '—'}
           </p>
         </div>
         <div className="text-right">
           <p className="text-ds-text-muted">Confidence</p>
-          <p className="font-mono font-semibold text-white">{bot.confidence}%</p>
+          <p className="font-mono font-semibold text-ds-text">{bot.confidence}%</p>
         </div>
       </div>
       <div className="mt-4 flex gap-2 border-t border-ds-border pt-3">
@@ -84,7 +84,7 @@ function BotCard({
             being a third size only these two buttons use. */}
         <button
           onClick={onToggle}
-          className="flex min-h-[44px] flex-1 items-center justify-center gap-1.5 rounded-lg border border-ds-border px-3 text-sm font-medium text-ds-text-muted hover:border-primary/40 hover:text-white transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
+          className="flex min-h-[44px] flex-1 items-center justify-center gap-1.5 rounded-lg border border-ds-border px-3 text-sm font-medium text-ds-text-muted hover:border-primary/40 hover:text-ds-text transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
         >
           {isRunning ? (
             <>

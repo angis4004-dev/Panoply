@@ -15,7 +15,7 @@ const ID_TYPES: { value: 'passport' | 'drivers_license' | 'national_id'; label: 
 ];
 
 const inputClass =
-  'w-full rounded-lg border border-ds-border bg-ds-surface-raised px-3 py-2.5 text-sm text-white placeholder-[#8B95A5] focus:outline-none focus:ring-2 focus:ring-primary/50';
+  'w-full rounded-lg border border-ds-border bg-ds-surface-raised px-3 py-2.5 text-sm text-ds-text placeholder-ds-text-muted focus:outline-none focus:ring-2 focus:ring-primary/50';
 const labelClass = 'block text-xs font-semibold text-ds-text-muted mb-1.5 uppercase tracking-wide';
 
 interface FormState {
@@ -131,10 +131,10 @@ export default function KycPage() {
 
       <div className="mx-auto max-w-2xl space-y-6">
         {status === 'verified' && (
-          <div className="flex items-start gap-3 rounded-xl border border-green-400/25 bg-green-400/5 p-5">
-            <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-green-400" />
+          <div className="flex items-start gap-3 rounded-xl border border-ds-value-positive/25 bg-ds-value-positive/5 p-5">
+            <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-ds-value-positive" />
             <div>
-              <h2 className="font-semibold text-white">You&apos;re verified</h2>
+              <h2 className="font-semibold text-ds-text">You&apos;re verified</h2>
               <p className="mt-1 text-sm text-ds-text-muted">
                 Identity verification is complete. Vault deposits and withdrawals are unlocked.
                 {info?.submittedAt && (
@@ -158,7 +158,7 @@ export default function KycPage() {
           <div className="flex items-start gap-3 rounded-xl border border-primary/25 bg-primary/5 p-5">
             <Clock className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
             <div>
-              <h2 className="font-semibold text-white">Under review</h2>
+              <h2 className="font-semibold text-ds-text">Under review</h2>
               <p className="mt-1 text-sm text-ds-text-muted">
                 Your application is being reviewed. This typically completes within 24-48 hours.
                 Vault deposits and withdrawals stay locked until verification is approved.
@@ -168,10 +168,10 @@ export default function KycPage() {
         )}
 
         {status === 'rejected' && (
-          <div className="flex items-start gap-3 rounded-xl border border-red-500/25 bg-red-500/5 p-5">
-            <ShieldX className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
+          <div className="flex items-start gap-3 rounded-xl border border-ds-value-negative/25 bg-ds-value-negative/5 p-5">
+            <ShieldX className="mt-0.5 h-5 w-5 shrink-0 text-ds-value-negative" />
             <div>
-              <h2 className="font-semibold text-white">Verification rejected</h2>
+              <h2 className="font-semibold text-ds-text">Verification rejected</h2>
               <p className="mt-1 text-sm text-ds-text-muted">
                 {info?.rejectionReason ||
                   'Your application could not be verified. Please review your details and resubmit.'}

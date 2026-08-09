@@ -83,11 +83,11 @@ export function DepositWalletModal({ onClose }: DepositWalletModalProps) {
       >
         <div className="pointer-events-none absolute -top-16 left-1/2 h-32 w-64 -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" />
         <div className="relative mb-5 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-white">Deposit funds</h2>
+          <h2 className="text-lg font-bold text-ds-text">Deposit funds</h2>
           <button
             type="button"
             onClick={handleClose}
-            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-ds-text-muted hover:text-white transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface-overlay"
+            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-ds-text-muted hover:text-ds-text transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface-overlay"
             aria-label="Close"
           >
             <X className="h-4 w-4" />
@@ -106,11 +106,11 @@ export function DepositWalletModal({ onClose }: DepositWalletModalProps) {
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="1000"
-              className="w-full rounded-lg border border-ds-border bg-ds-surface-raised px-3 py-2.5 text-sm text-white placeholder-[#8B95A5] focus:outline-none focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_16px_-2px_rgba(30,99,255,0.45)] transition duration-fast ease-ds-out"
+              className="w-full rounded-lg border border-ds-border bg-ds-surface-raised px-3 py-2.5 text-sm text-ds-text placeholder-ds-text-muted focus:outline-none focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_16px_-2px_rgba(30,99,255,0.45)] transition duration-fast ease-ds-out"
             />
           </div>
 
-          {error && <p className="text-xs text-red-400">{error}</p>}
+          {error && <p className="text-xs text-ds-value-negative">{error}</p>}
 
           <button
             type="submit"

@@ -13,11 +13,11 @@ const TIER_LABELS: Record<string, string> = {
 };
 
 const TIER_STYLES: Record<string, string> = {
-  unverified: 'bg-[#8B95A5]/10 text-ds-text-muted',
-  novice: 'bg-[#8B95A5]/10 text-ds-text-muted',
+  unverified: 'bg-ds-text-muted/10 text-ds-text-muted',
+  novice: 'bg-ds-text-muted/10 text-ds-text-muted',
   amateur: 'bg-primary/10 text-primary',
   strategist: 'bg-brand-purple/10 text-brand-purple',
-  vanguard: 'bg-green-400/10 text-green-400',
+  vanguard: 'bg-ds-value-positive/10 text-ds-value-positive',
 };
 
 // Higher tiers get an ambient glow halo to signal status at a glance.

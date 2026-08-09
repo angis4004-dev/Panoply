@@ -117,7 +117,7 @@ export function PinSection() {
         disabled={saving}
         aria-invalid={error ? 'true' : undefined}
         aria-describedby={error ? 'pin-section-error' : undefined}
-        className="w-full min-h-[44px] rounded-lg border border-ds-border-strong bg-ds-border/60 px-4 py-2.5 text-sm text-[#E7ECF2] outline-none focus:border-primary"
+        className="w-full min-h-[44px] rounded-lg border border-ds-border-strong bg-ds-border/60 px-4 py-2.5 text-sm text-ds-text outline-none focus:border-primary"
         placeholder={`${PIN_LENGTH} digits`}
       />
     </div>
@@ -131,7 +131,7 @@ export function PinSection() {
 
       {!open ? (
         <div>
-          <p className="mb-3 text-sm text-[#E7ECF2]">Sign-in PIN</p>
+          <p className="mb-3 text-sm text-ds-text">Sign-in PIN</p>
           <p className="mb-4 text-xs text-ds-text-muted">
             {hasPin
               ? 'The 6-digit PIN you enter after your password. Changing it signs out every other device.'
@@ -182,7 +182,7 @@ export function PinSection() {
               type="button"
               onClick={close}
               disabled={saving}
-              className="min-h-[44px] rounded-lg px-4 py-2 text-sm font-medium text-ds-text-muted transition-colors hover:text-[#E7ECF2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+              className="min-h-[44px] rounded-lg px-4 py-2 text-sm font-medium text-ds-text-muted transition-colors hover:text-ds-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
             >
               Cancel
             </button>

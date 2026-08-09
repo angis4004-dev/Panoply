@@ -87,7 +87,7 @@ export function OnboardingChecklist() {
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <h2
           id="onboarding-heading"
-          className="font-display text-xl font-semibold tracking-[-0.02em] text-white sm:text-2xl"
+          className="font-display text-xl font-semibold tracking-[-0.02em] text-ds-text sm:text-2xl"
         >
           Finish setting up
         </h2>
@@ -131,7 +131,7 @@ export function OnboardingChecklist() {
                 <div>
                   <p
                     className={`text-sm font-semibold ${
-                      step.done ? 'text-ds-text-muted line-through' : 'text-[#E7ECF2]'
+                      step.done ? 'text-ds-text-muted line-through' : 'text-ds-text'
                     }`}
                   >
                     {step.title}

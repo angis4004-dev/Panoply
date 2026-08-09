@@ -68,16 +68,24 @@ export function IdentityScore({ score, size = 'lg' }: IdentityScoreProps) {
             cy={dimension / 2}
             r={radius}
             fill="none"
-            stroke="#212A35"
+            className="stroke-ds-border"
             strokeWidth={strokeWidth}
           />
+          {/* Brand cream, not the blue that was here.
+
+              This is the second progress ring on the overview - the Aegis
+              risk score has one too - and that one already draws its arc in
+              the brand accent. Two rings measuring progress toward a goal,
+              side by side, in two unrelated accent colours read as two
+              different systems. The blue also contradicted this component's
+              own high-score glow, which is bg-primary/25. */}
           <circle
             ref={circleRef}
             cx={dimension / 2}
             cy={dimension / 2}
             r={radius}
             fill="none"
-            stroke="#1E63FF"
+            className="stroke-primary"
             strokeWidth={strokeWidth}
             strokeDasharray={circumference}
             strokeDashoffset={circumference}
@@ -88,7 +96,7 @@ export function IdentityScore({ score, size = 'lg' }: IdentityScoreProps) {
       <div>
         <p
           className={
-            size === 'lg' ? 'text-2xl font-bold text-white' : 'text-lg font-bold text-white'
+            size === 'lg' ? 'text-2xl font-bold text-ds-text' : 'text-lg font-bold text-ds-text'
           }
         >
           {displayScore}

@@ -113,7 +113,7 @@ export default function PortfolioBuilderTab() {
   return (
     <div className="max-w-3xl mx-auto">
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-white mb-2">Portfolio Builder</h2>
+        <h2 className="text-2xl font-bold text-ds-text mb-2">Portfolio Builder</h2>
         <p className="text-ds-text-muted text-sm">
           Input your holdings and goals. We will generate a comprehensive report and email it to
           you.
@@ -126,7 +126,7 @@ export default function PortfolioBuilderTab() {
               <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center text-primary font-bold text-sm">
                 1
               </div>
-              <h3 className="font-semibold text-white">Your Holdings</h3>
+              <h3 className="font-semibold text-ds-text">Your Holdings</h3>
             </div>
             {/* Two columns on phones, the full 12-column row only from `sm` up.
                 At 375px the twelve-column version gave each field a fraction of
@@ -154,7 +154,7 @@ export default function PortfolioBuilderTab() {
                       placeholder="e.g. BTC"
                       value={h.token}
                       onChange={(e) => updateHolding(i, 'token', e.target.value)}
-                      className="w-full min-h-[44px] px-4 py-2.5 rounded-lg text-sm bg-ds-surface-raised border border-ds-border text-white placeholder-[#8B95A5] focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      className="w-full min-h-[44px] px-4 py-2.5 rounded-lg text-sm bg-ds-surface-raised border border-ds-border text-ds-text placeholder-ds-text-muted focus:outline-none focus:ring-2 focus:ring-primary/50"
                       required
                     />
                   </div>
@@ -172,7 +172,7 @@ export default function PortfolioBuilderTab() {
                       placeholder="0.00"
                       value={h.amount}
                       onChange={(e) => updateHolding(i, 'amount', e.target.value)}
-                      className="w-full min-h-[44px] px-4 py-2.5 rounded-lg text-sm bg-ds-surface-raised border border-ds-border text-white placeholder-[#8B95A5] focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      className="w-full min-h-[44px] px-4 py-2.5 rounded-lg text-sm bg-ds-surface-raised border border-ds-border text-ds-text placeholder-ds-text-muted focus:outline-none focus:ring-2 focus:ring-primary/50"
                       required
                     />
                   </div>
@@ -190,7 +190,7 @@ export default function PortfolioBuilderTab() {
                       placeholder="0.00"
                       value={h.price}
                       onChange={(e) => updateHolding(i, 'price', e.target.value)}
-                      className="w-full min-h-[44px] px-4 py-2.5 rounded-lg text-sm bg-ds-surface-raised border border-ds-border text-white placeholder-[#8B95A5] focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      className="w-full min-h-[44px] px-4 py-2.5 rounded-lg text-sm bg-ds-surface-raised border border-ds-border text-ds-text placeholder-ds-text-muted focus:outline-none focus:ring-2 focus:ring-primary/50"
                       required
                     />
                   </div>
@@ -206,7 +206,7 @@ export default function PortfolioBuilderTab() {
                         id={`holding-chain-${i}`}
                         value={h.chain}
                         onChange={(e) => updateHolding(i, 'chain', e.target.value)}
-                        className="w-full min-h-[44px] px-4 py-2.5 rounded-lg text-sm bg-ds-surface-raised border border-ds-border text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                        className="w-full min-h-[44px] px-4 py-2.5 rounded-lg text-sm bg-ds-surface-raised border border-ds-border text-ds-text focus:outline-none focus:ring-2 focus:ring-primary/50"
                       >
                         <option>Bitcoin</option>
                         <option>Ethereum</option>
@@ -218,7 +218,7 @@ export default function PortfolioBuilderTab() {
                         <button
                           type="button"
                           onClick={() => removeRow(i)}
-                          className="inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded text-red-400 hover:text-red-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/50"
+                          className="inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded text-ds-value-negative hover:text-ds-value-negative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ds-value-negative/50"
                           aria-label={`Remove asset ${i + 1}`}
                         >
                           <X className="w-4 h-4" />
@@ -243,7 +243,7 @@ export default function PortfolioBuilderTab() {
               <div className="w-8 h-8 rounded-full bg-brand-purple/15 flex items-center justify-center text-brand-purple font-bold text-sm">
                 2
               </div>
-              <h3 className="font-semibold text-white">Risk Profile</h3>
+              <h3 className="font-semibold text-ds-text">Risk Profile</h3>
             </div>
             <div className="space-y-4">
               <div>
@@ -257,7 +257,8 @@ export default function PortfolioBuilderTab() {
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                   {(['conservative', 'moderate', 'aggressive'] as RiskProfile[]).map((r) => {
                     const colors: Record<string, string> = {
-                      conservative: 'peer-checked:border-green-400 peer-checked:bg-green-400/10',
+                      conservative:
+                        'peer-checked:border-ds-value-positive peer-checked:bg-ds-value-positive/10',
                       moderate: 'peer-checked:border-primary peer-checked:bg-primary/10',
                       aggressive:
                         'peer-checked:border-brand-purple peer-checked:bg-brand-purple/10',
@@ -275,7 +276,7 @@ export default function PortfolioBuilderTab() {
                         <div
                           className={`p-4 rounded-lg border border-ds-border text-center transition peer-focus-visible:ring-2 peer-focus-visible:ring-primary/50 ${colors[r]}`}
                         >
-                          <div className="font-semibold text-sm text-white capitalize">{r}</div>
+                          <div className="font-semibold text-sm text-ds-text capitalize">{r}</div>
                           <div className="text-xs text-ds-text-muted mt-1">
                             {r === 'conservative'
                               ? 'Preserve capital'
@@ -297,7 +298,7 @@ export default function PortfolioBuilderTab() {
                   id="pb-horizon"
                   value={horizon}
                   onChange={(e) => setHorizon(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-lg text-sm bg-ds-surface-raised border border-ds-border text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className="w-full px-4 py-2.5 rounded-lg text-sm bg-ds-surface-raised border border-ds-border text-ds-text focus:outline-none focus:ring-2 focus:ring-primary/50"
                 >
                   <option value="short">Short term (&lt; 1 year)</option>
                   <option value="medium">Medium term (1-3 years)</option>
@@ -309,10 +310,10 @@ export default function PortfolioBuilderTab() {
 
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-8 h-8 rounded-full bg-green-400/15 flex items-center justify-center text-green-400 font-bold text-sm">
+              <div className="w-8 h-8 rounded-full bg-ds-value-positive/15 flex items-center justify-center text-ds-value-positive font-bold text-sm">
                 3
               </div>
-              <h3 className="font-semibold text-white">Goals</h3>
+              <h3 className="font-semibold text-ds-text">Goals</h3>
             </div>
             <div className="grid md:grid-cols-2 gap-4">
               <div>
@@ -324,7 +325,7 @@ export default function PortfolioBuilderTab() {
                   type="number"
                   value={targetReturn}
                   onChange={(e) => setTargetReturn(Number(e.target.value))}
-                  className="w-full px-4 py-2.5 rounded-lg text-sm bg-ds-surface-raised border border-ds-border text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className="w-full px-4 py-2.5 rounded-lg text-sm bg-ds-surface-raised border border-ds-border text-ds-text focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
               </div>
               <div>
@@ -333,7 +334,7 @@ export default function PortfolioBuilderTab() {
                 </label>
                 <select
                   id="pb-objective"
-                  className="w-full px-4 py-2.5 rounded-lg text-sm bg-ds-surface-raised border border-ds-border text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className="w-full px-4 py-2.5 rounded-lg text-sm bg-ds-surface-raised border border-ds-border text-ds-text focus:outline-none focus:ring-2 focus:ring-primary/50"
                 >
                   <option value="growth">Capital Growth</option>
                   <option value="income">Passive Income</option>
@@ -345,10 +346,10 @@ export default function PortfolioBuilderTab() {
 
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-400 font-bold text-sm">
+              <div className="w-8 h-8 rounded-full bg-ds-value-warning/20 flex items-center justify-center text-ds-value-warning font-bold text-sm">
                 4
               </div>
-              <h3 className="font-semibold text-white">Constraints</h3>
+              <h3 className="font-semibold text-ds-text">Constraints</h3>
             </div>
             <div className="grid md:grid-cols-2 gap-4">
               <div>
@@ -363,7 +364,7 @@ export default function PortfolioBuilderTab() {
                   type="number"
                   value={maxAllocation}
                   onChange={(e) => setMaxAllocation(Number(e.target.value))}
-                  className="w-full px-4 py-2.5 rounded-lg text-sm bg-ds-surface-raised border border-ds-border text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className="w-full px-4 py-2.5 rounded-lg text-sm bg-ds-surface-raised border border-ds-border text-ds-text focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
               </div>
               <div>
@@ -376,7 +377,7 @@ export default function PortfolioBuilderTab() {
                   value={blacklist}
                   onChange={(e) => setBlacklist(e.target.value)}
                   placeholder="e.g. SHIB, DOGE"
-                  className="w-full px-4 py-2.5 rounded-lg text-sm bg-ds-surface-raised border border-ds-border text-white placeholder-[#8B95A5] focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className="w-full px-4 py-2.5 rounded-lg text-sm bg-ds-surface-raised border border-ds-border text-ds-text placeholder-ds-text-muted focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
               </div>
             </div>
@@ -391,7 +392,7 @@ export default function PortfolioBuilderTab() {
             </button>
             <span className="text-xs text-ds-text-muted">
               Report will be sent to{' '}
-              <span className="text-[#E7ECF2]">{user?.email || 'your email'}</span>
+              <span className="text-ds-text">{user?.email || 'your email'}</span>
             </span>
           </div>
         </form>

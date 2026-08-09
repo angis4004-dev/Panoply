@@ -95,7 +95,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   }, [loading, user?.email]);
 
   return (
-    <div className="flex min-h-screen bg-ds-surface text-[#E7ECF2]">
+    <div className="flex min-h-screen bg-ds-surface text-ds-text">
       {/* Desktop sidebar */}
       <div className="hidden lg:block shrink-0">
         <DashboardSidebar />

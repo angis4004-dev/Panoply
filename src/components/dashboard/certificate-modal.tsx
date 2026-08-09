@@ -54,14 +54,14 @@ export function CertificateModal({
         <button
           onClick={handleClose}
           aria-label="Close certificate"
-          className="absolute right-4 top-4 inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-ds-text-muted hover:bg-ds-surface-inset hover:text-white transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface-overlay"
+          className="absolute right-4 top-4 inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-ds-text-muted hover:bg-ds-surface-inset hover:text-ds-text transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface-overlay"
         >
           <X className="h-5 w-5" />
         </button>
 
         <div className="mb-6 flex items-center justify-center gap-2">
           <AegisMark size={28} />
-          <span className="font-wordmark text-lg font-extrabold uppercase tracking-[0.12em] text-white">
+          <span className="font-wordmark text-lg font-extrabold uppercase tracking-[0.12em] text-ds-text">
             AEGIS
           </span>
         </div>
@@ -70,7 +70,7 @@ export function CertificateModal({
           Certificate of Achievement
         </p>
         <p className="mb-6 text-sm text-ds-text-muted">This certifies that</p>
-        <h2 className="mb-6 text-2xl font-bold text-white">{name}</h2>
+        <h2 className="mb-6 text-2xl font-bold text-ds-text">{name}</h2>
         <p className="mb-2 text-sm text-ds-text-muted">has achieved</p>
         <h3 className="mb-6 text-xl font-semibold text-primary">{achievementName}</h3>
         <p className="text-xs text-ds-text-muted">

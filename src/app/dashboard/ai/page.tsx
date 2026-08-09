@@ -88,13 +88,13 @@ export default function AIPage() {
             <Skeleton className="h-11 w-40 rounded-lg" />
           </div>
         ) : isVanguard ? (
-          <div className="rounded-xl border border-green-400/30 bg-ds-surface-raised/50 p-8">
-            <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-green-400/10">
-              <Brain className="h-6 w-6 text-green-400" />
+          <div className="rounded-xl border border-ds-value-positive/30 bg-ds-surface-raised/50 p-8">
+            <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-ds-value-positive/10">
+              <Brain className="h-6 w-6 text-ds-value-positive" />
             </div>
 
             <div className="mb-3 flex flex-wrap items-center gap-2">
-              <h2 className="text-lg font-semibold text-white">Included in your tier</h2>
+              <h2 className="text-lg font-semibold text-ds-text">Included in your tier</h2>
               <TierBadge tier="vanguard" />
             </div>
 
@@ -125,7 +125,7 @@ export default function AIPage() {
             </div>
 
             <div className="mb-3 flex flex-wrap items-center gap-2">
-              <h2 className="text-lg font-semibold text-white">A Vanguard-tier feature</h2>
+              <h2 className="text-lg font-semibold text-ds-text">A Vanguard-tier feature</h2>
               {summary && <TierBadge tier={summary.tier} />}
             </div>
 
@@ -150,7 +150,7 @@ export default function AIPage() {
               summary && (
                 <div className="mt-6">
                   <div className="mb-2 flex items-baseline justify-between gap-3">
-                    <span className="font-mono text-sm tabular-nums text-[#E7ECF2]">
+                    <span className="font-mono text-sm tabular-nums text-ds-text">
                       ${deposited.toLocaleString('en-US')}
                     </span>
                     <span className="text-xs text-ds-text-muted">
@@ -180,7 +180,7 @@ export default function AIPage() {
 
             <Link
               href="/tiers"
-              className="mt-6 inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-ds-border px-4 py-2 text-sm font-medium text-[#E7ECF2] hover:border-primary/40 hover:bg-ds-surface-inset transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
+              className="mt-6 inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-ds-border px-4 py-2 text-sm font-medium text-ds-text hover:border-primary/40 hover:bg-ds-surface-inset transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
             >
               How tiers work
               <ArrowUpRight className="h-3.5 w-3.5" />

@@ -17,7 +17,7 @@ export function PageHeader({ title, description, action }: PageHeaderProps) {
           and unfinished, because the sidebearings were drawn for text sizes
           and do not scale down with the optical size. */}
       <div>
-        <h1 className="font-display text-[2rem] font-bold leading-[1.1] tracking-[-0.03em] text-white sm:text-[2.5rem]">
+        <h1 className="font-display text-[2rem] font-bold leading-[1.1] tracking-[-0.03em] text-ds-text sm:text-[2.5rem]">
           {title}
         </h1>
         {description && (

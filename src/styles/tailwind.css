@@ -298,12 +298,19 @@ body {
     --ds-surface-raised-rgb: 18 33 49; /* #122131 */
     --ds-surface-overlay-rgb: 13 19 28; /* #0d131c */
     --ds-surface-inset-rgb: 23 32 46; /* #17202e */
+    /* Persistent app chrome - the sidebar, and anything else that frames the
+       content rather than sitting in it. Slightly lifted off the base so the
+       nav reads as a separate plane without becoming a card. This value was
+       already in use, hardcoded in three places in sidebar.tsx with no token
+       behind it; naming it is what stops the fourth place guessing. */
+    --ds-surface-chrome-rgb: 16 21 28; /* #10151c */
     --ds-border-subtle-rgb: 33 42 53; /* #212a35 */
     --ds-border-strong-rgb: 42 53 66; /* #2a3542 */
     --ds-surface-base: rgb(var(--ds-surface-base-rgb));
     --ds-surface-raised: rgb(var(--ds-surface-raised-rgb));
     --ds-surface-overlay: rgb(var(--ds-surface-overlay-rgb));
     --ds-surface-inset: rgb(var(--ds-surface-inset-rgb));
+    --ds-surface-chrome: rgb(var(--ds-surface-chrome-rgb));
     --ds-border-subtle: rgb(var(--ds-border-subtle-rgb));
     --ds-border-strong: rgb(var(--ds-border-strong-rgb));
 

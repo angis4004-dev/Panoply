@@ -84,7 +84,7 @@ export default function AchievementsPage() {
               <div>
                 <div className="mb-1 flex items-center gap-2">
                   <TierBadge tier={data.tier} />
-                  <span className="font-mono text-sm font-semibold text-white">{data.xp} XP</span>
+                  <span className="font-mono text-sm font-semibold text-ds-text">{data.xp} XP</span>
                 </div>
                 {data.tierProgress.kycRequired ? (
                   <p className="text-xs text-ds-text-muted">
