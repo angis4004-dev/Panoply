@@ -217,6 +217,10 @@ async function main() {
     r = await post('/api/auth/pin/verify', { pendingToken: cookie, pin: GOOD_PIN });
     check('a real session is not a pending token', r.status, 401);
   } finally {
+    // Setting or changing a PIN now writes a notification, so removing only
+    // the user would leave orphans behind in a collection that has no owner
+    // to attribute them to.
+    await mongoose.connection.db.collection('notifications').deleteMany({ userId: insertedId });
     await users.deleteOne({ _id: insertedId });
     console.info(`\n  removed fixture ${EMAIL}`);
     await mongoose.disconnect();

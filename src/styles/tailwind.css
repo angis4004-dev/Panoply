@@ -37,18 +37,22 @@
   --font-display: var(--font-instrument), Georgia, serif;
 }
 
-/* The application runs a different pairing from the marketing pages:
-   Archivo for interface text and Abril Fatface for display. A dashboard is
-   read at a glance and in quantity, and Archivo's larger x-height and
-   narrower set width suit dense figures better than Tahoma; Abril's heavy
-   didone contrast gives page titles more presence at the smaller sizes an
-   app header allows than Instrument Serif's lighter strokes do.
+/* The application runs a different face from the marketing pages: Archivo
+   for everything. A dashboard is read at a glance and in quantity, and
+   Archivo's larger x-height and narrower set width suit dense figures
+   better than Tahoma does.
+
+   Both roles point at the same family on purpose. The marketing pages earn
+   a display serif because they are read once, slowly; a trading interface
+   is read continuously, and a second typeface competing for attention in
+   that context is decoration. Headings separate themselves by size, weight
+   and tracking instead - which is what the display role now carries.
 
    Applied by DashboardLayout, so it covers every /dashboard route and
    nothing else. */
 .type-dashboard {
   --font-sans: var(--font-archivo), system-ui, sans-serif;
-  --font-display: var(--font-abril), Georgia, serif;
+  --font-display: var(--font-archivo), system-ui, sans-serif;
 }
 
 :root {

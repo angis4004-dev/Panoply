@@ -87,7 +87,7 @@ export function OnboardingChecklist() {
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <h2
           id="onboarding-heading"
-          className="font-display text-xl font-normal text-white sm:text-2xl"
+          className="font-display text-xl font-semibold tracking-[-0.02em] text-white sm:text-2xl"
         >
           Finish setting up
         </h2>

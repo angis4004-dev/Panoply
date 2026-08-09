@@ -8,11 +8,16 @@ export function PageHeader({ title, description, action }: PageHeaderProps) {
   return (
     <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       {/* Every dashboard page titles itself through here, so this is the one
-          place the app picks up the display face the marketing site already
-          uses. Weight 400 rather than 700: Instrument Serif ships a single
-          weight, and asking for bold makes the browser fake it. */}
+          place the app's heading treatment is defined.
+
+          The display role resolves to the same family as body text, so the
+          separation has to come from weight and tracking instead. 700 is the
+          top of Archivo's loaded range, and the negative tracking is doing
+          real work: grotesques set at 2.5rem with default spacing read loose
+          and unfinished, because the sidebearings were drawn for text sizes
+          and do not scale down with the optical size. */}
       <div>
-        <h1 className="font-display text-[2rem] font-normal leading-[1.1] tracking-[-0.01em] text-white sm:text-[2.5rem]">
+        <h1 className="font-display text-[2rem] font-bold leading-[1.1] tracking-[-0.03em] text-white sm:text-[2.5rem]">
           {title}
         </h1>
         {description && (

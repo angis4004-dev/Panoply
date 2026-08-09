@@ -10,6 +10,7 @@ import {
   PIN_LOCKOUT_MS,
   verifyPin,
 } from '@/lib/pin';
+import { notifySecurityEvent } from '@/lib/notifications';
 import { parseBody, pinChangeSchema } from '@/lib/validation';
 
 /**
@@ -125,6 +126,12 @@ export async function POST(request: Request) {
     // devices are logged out, this one is not.
     user.tokenVersion = (user.tokenVersion ?? 0) + 1;
     await user.save();
+
+    await notifySecurityEvent(
+      user._id.toString(),
+      'Your PIN was changed',
+      'Your sign-in PIN was changed and other devices were signed out. If this was not you, reset your password immediately.'
+    );
 
     const response = NextResponse.json({ message: 'PIN updated.' });
 

@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { Bell, Menu } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import { useAppStore } from '@/store/app-store';
+import { NotificationBell } from '@/components/dashboard/notification-bell';
 import { AegisMark } from '@/components/ui/AegisLogo';
 
 interface DashboardHeaderProps {
@@ -43,13 +44,7 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
       </div>
 
       <div className="flex items-center gap-3">
-        <button
-          className="relative inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2 text-ds-text-muted hover:bg-ds-surface-inset hover:text-[#E7ECF2] transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
-          aria-label="Notifications"
-        >
-          <Bell className="h-4 w-4" />
-          <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-[#E5555A]" />
-        </button>
+        {user && <NotificationBell />}
 
         {user ? (
           <div className="flex items-center gap-2.5 rounded-lg border border-ds-border bg-ds-surface-raised/60 py-1 pl-1 pr-3">

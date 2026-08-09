@@ -10,7 +10,9 @@ export { PortfolioSnapshotModel } from './PortfolioSnapshot';
 export { LedgerEntryModel } from './LedgerEntry';
 export { AdminAuditLogModel } from './AdminAuditLog';
 export { RateLimitBucketModel } from './RateLimitBucket';
+export { NotificationModel } from './Notification';
 export type { ILedgerEntry, LedgerEntryType } from './LedgerEntry';
+export type { INotification, NotificationType } from './Notification';
 
 // Import User model from mongo.ts
 import { getUserModel } from '../mongo';

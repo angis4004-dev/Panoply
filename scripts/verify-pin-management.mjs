@@ -330,6 +330,9 @@ async function main() {
     });
     check('stale link cannot overwrite the new PIN', r.status, 400);
   } finally {
+    // Changing and resetting a PIN each write a notification, so removing
+    // only the user would leave orphans behind.
+    await mongoose.connection.db.collection('notifications').deleteMany({ userId: insertedId });
     await users.deleteOne({ _id: insertedId });
     console.info(`\n  removed fixture ${EMAIL}`);
     await mongoose.disconnect();

@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import type { AuthUser, RegisterPayload, LoginPayload } from '@/types/auth';
 import { getUserModel } from './mongo';
+import { notifySecurityEvent } from './notifications';
 
 const USERS_FILE_PATH = path.join(process.cwd(), 'data', 'users.json');
 
@@ -353,6 +354,15 @@ export async function resetPassword(token: string, newPassword: string): Promise
     // password.
     user.tokenVersion = (user.tokenVersion ?? 0) + 1;
     await user.save();
+
+    // Told to the account holder even though they are almost certainly the
+    // one who did it. The rare case where they are not is the only warning
+    // the product can give someone whose inbox has been taken.
+    await notifySecurityEvent(
+      user._id.toString(),
+      'Your password was changed',
+      'Your password was reset and every session was signed out. If this was not you, contact support immediately.'
+    );
     return;
   }
 

@@ -41,11 +41,22 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (loading || !user) return;
 
+    /*
+     * The toast stays. It is the immediate acknowledgement, and it is now
+     * backed by a durable notification written server-side in
+     * grantAchievement - so an unlock that lands while the user is on another
+     * tab is still there when they come back, instead of having been
+     * announced to nobody.
+     *
+     * The event tells the bell to re-read rather than waiting for its poll,
+     * so the badge and the toast appear together.
+     */
     const announceUnlocks = (keys: string[]) => {
       for (const key of keys) {
         const def = ACHIEVEMENT_CATALOG.find((a) => a.key === (key as AchievementKey));
         addToast(`Achievement unlocked: ${def?.name || key} (+${def?.xp || 0} XP)`, 'success');
       }
+      window.dispatchEvent(new Event('aegis:notifications-changed'));
     };
 
     const section = sectionFromPathname(pathname);
@@ -74,6 +85,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             const def = ACHIEVEMENT_CATALOG.find((a) => a.key === (key as AchievementKey));
             addToast(`Achievement unlocked: ${def?.name || key} (+${def?.xp || 0} XP)`, 'success');
           }
+          window.dispatchEvent(new Event('aegis:notifications-changed'));
         }
       })
       .catch(() => {});

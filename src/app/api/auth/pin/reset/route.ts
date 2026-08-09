@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getUserModel } from '@/lib/models';
 import { hashPin, isWeakPin } from '@/lib/pin';
+import { notifySecurityEvent } from '@/lib/notifications';
 import { parseBody, pinResetSchema } from '@/lib/validation';
 
 /**
@@ -64,6 +65,12 @@ export async function POST(request: Request) {
     // the account, so every session minted before now is dropped.
     user.tokenVersion = (user.tokenVersion ?? 0) + 1;
     await user.save();
+
+    await notifySecurityEvent(
+      user._id.toString(),
+      'Your PIN was reset',
+      'Your sign-in PIN was reset using an emailed recovery link, and all sessions were signed out. If this was not you, reset your password immediately.'
+    );
 
     return NextResponse.json({ message: 'PIN updated. You can now sign in.' });
   } catch (error) {

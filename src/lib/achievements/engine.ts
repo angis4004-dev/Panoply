@@ -1,5 +1,6 @@
 import { getUserModel } from '@/lib/models';
 import { UserAchievementModel } from '@/lib/models/UserAchievement';
+import { createNotification } from '@/lib/notifications';
 import { ACHIEVEMENT_CATALOG, getAchievementDefinition, type AchievementKey } from './catalog';
 
 export type Tier = 'unverified' | 'novice' | 'amateur' | 'strategist' | 'vanguard';
@@ -79,6 +80,7 @@ export function computeIdentityScore(input: IdentityScoreInput): number {
 export async function grantAchievement(userId: string, key: AchievementKey): Promise<boolean> {
   const definition = getAchievementDefinition(key);
 
+  let newlyGranted = true;
   try {
     await UserAchievementModel.create({
       userId,
@@ -91,22 +93,49 @@ export async function grantAchievement(userId: string, key: AchievementKey): Pro
       error !== null &&
       'code' in error &&
       (error as { code?: number }).code === 11000;
-    if (isDuplicateKeyError) return false;
-    throw error;
+    if (!isDuplicateKeyError) throw error;
+    newlyGranted = false;
   }
 
-  const userModel = await getUserModel();
-  if (userModel) {
-    await userModel.findByIdAndUpdate(userId, { $inc: { xp: definition.xp } });
+  if (newlyGranted) {
+    const userModel = await getUserModel();
+    if (userModel) {
+      await userModel.findByIdAndUpdate(userId, { $inc: { xp: definition.xp } });
+    }
   }
+
+  // Every unlock in the application passes through here, so announcing it
+  // here means no caller can add a new one and forget to.
+  //
+  // Attempted on every call, including ones that granted nothing, rather than
+  // only on a new grant. Granting and announcing are two writes: if the second
+  // fails, an early return on the duplicate would mean the user is never told
+  // about an unlock they hold, permanently, because the grant that would have
+  // announced it can never happen again. Retrying unconditionally repairs
+  // that, and the dedupe key - not this control flow - is what stops the
+  // repair from announcing the same unlock twice.
+  //
+  // The cost is one insert that the index rejects, on calls where the user
+  // already had the achievement.
+  await createNotification({
+    userId,
+    type: 'achievement',
+    title: definition.name,
+    body: `${definition.description} +${definition.xp} XP`,
+    href: '/dashboard/achievements',
+    dedupeKey: `achievement:${key}`,
+  });
 
   // Any achievement outside Getting Started also counts as the player's
   // "first feature unlock" milestone — guarded against re-triggering itself.
-  if (key !== 'first_feature_unlock' && definition.category !== 'getting-started') {
+  // Still gated on a new grant: the cascade is about earning the milestone,
+  // not about repairing it, and running it on every replay would double the
+  // write amplification above for no benefit.
+  if (newlyGranted && key !== 'first_feature_unlock' && definition.category !== 'getting-started') {
     await grantAchievement(userId, 'first_feature_unlock');
   }
 
-  return true;
+  return newlyGranted;
 }
 
 const TIER_MILESTONE_ACHIEVEMENT: Partial<Record<Tier, AchievementKey>> = {

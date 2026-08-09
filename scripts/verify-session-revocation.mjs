@@ -149,6 +149,10 @@ async function main() {
     // 4. Garbage cookie, for completeness.
     check('unsigned garbage cookie rejected', await walletStatus('not-a-real-session'), 401);
   } finally {
+    const fixture = await users.findOne({ email: EMAIL });
+    if (fixture) {
+      await mongoose.connection.db.collection('notifications').deleteMany({ userId: fixture._id });
+    }
     await users.deleteOne({ email: EMAIL });
     console.info(`\n  removed fixture ${EMAIL}`);
     await mongoose.disconnect();

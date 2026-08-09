@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getUserModel } from '@/lib/models';
 import { getSessionFromRequest } from '@/lib/session';
 import { hashPin, isValidPinFormat, isWeakPin, PIN_LENGTH } from '@/lib/pin';
+import { notifySecurityEvent } from '@/lib/notifications';
 import { parseBody, pinSetSchema } from '@/lib/validation';
 
 /**
@@ -68,6 +69,12 @@ export async function POST(request: Request) {
     user.pinFailedAttempts = 0;
     user.pinLockedUntil = null;
     await user.save();
+
+    await notifySecurityEvent(
+      user._id.toString(),
+      'Sign-in PIN enabled',
+      'A PIN is now required in addition to your password when you sign in.'
+    );
 
     // No cookie work here. The caller already holds a valid session and
     // tokenVersion is untouched, so nothing about their sign-in state changes:

@@ -4,6 +4,7 @@ import { verifyAdminAccess } from '@/lib/auth-middleware';
 import { grantAchievement, recalculateTier } from '@/lib/achievements/engine';
 import { decryptPii, isEncrypted, maskFromLastFour } from '@/lib/pii-crypto';
 import { recordAdminAction } from '@/lib/audit-log';
+import { createNotification } from '@/lib/notifications';
 import { kycDecisionSchema, parseBody } from '@/lib/validation';
 
 /**
@@ -129,6 +130,30 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       after: { kycStatus: updated.kycStatus },
       reason: rejectionReason ?? '',
     });
+
+    // The applicant has been waiting on this and there is no other way they
+    // would learn it. A rejection carries the reviewer's reason verbatim,
+    // because "rejected" on its own gives someone nothing to act on and they
+    // will simply resubmit the same thing.
+    if (action === 'approve') {
+      await createNotification({
+        userId: id,
+        type: 'kyc',
+        title: 'Identity verified',
+        body: 'Your identity has been verified. Vault deposits and withdrawals are now unlocked.',
+        href: '/dashboard/kyc',
+      });
+    } else {
+      await createNotification({
+        userId: id,
+        type: 'kyc',
+        title: 'Verification could not be completed',
+        body: rejectionReason
+          ? `${rejectionReason} You can correct your details and resubmit.`
+          : 'Your application could not be verified. You can correct your details and resubmit.',
+        href: '/dashboard/kyc',
+      });
+    }
 
     if (action === 'approve') {
       await grantAchievement(id, 'verified_identity');
