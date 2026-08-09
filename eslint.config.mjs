@@ -67,6 +67,14 @@ const eslintConfig = [
       'dist/**',
       '.claude/**',
       '.claude-flow/**',
+      // Tooling scratch directory, gitignored like the two above. Not merely
+      // noise to skip: it is not readable by this user, so walking it threw
+      // EPERM during file discovery and took down the whole run - `npm run
+      // lint` exited with a stack trace before linting a single file, which
+      // is how four prettier errors accumulated in src/ unnoticed. Flat
+      // config does not read .gitignore, so being ignored by git is not
+      // enough on its own.
+      '.gstack/**',
       'docs/**',
       'data/**',
       'next-env.d.ts',

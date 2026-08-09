@@ -24,7 +24,9 @@ export function AchievementCard({ achievement, onViewCertificate }: AchievementC
   return (
     <div
       className={`rounded-xl border p-4 transition-colors ${
-        earned ? 'border-primary/30 bg-ds-surface-raised/50' : 'border-ds-border bg-ds-surface-raised/20 opacity-70'
+        earned
+          ? 'border-primary/30 bg-ds-surface-raised/50'
+          : 'border-ds-border bg-ds-surface-raised/20 opacity-70'
       }`}
     >
       <div className="mb-3 flex items-start justify-between">

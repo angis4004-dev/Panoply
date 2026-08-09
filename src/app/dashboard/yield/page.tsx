@@ -122,8 +122,12 @@ export default function YieldPage() {
                       <span className="font-medium text-white">{row.protocol}</span>
                     </div>
                   </td>
-                  <td className="hidden px-4 py-3.5 text-ds-text-muted sm:table-cell">{row.chain}</td>
-                  <td className="hidden px-4 py-3.5 text-ds-text-muted md:table-cell">{row.risk}</td>
+                  <td className="hidden px-4 py-3.5 text-ds-text-muted sm:table-cell">
+                    {row.chain}
+                  </td>
+                  <td className="hidden px-4 py-3.5 text-ds-text-muted md:table-cell">
+                    {row.risk}
+                  </td>
                   <td className="px-4 py-3.5 font-mono font-semibold text-ds-value-positive">
                     {row.apy}%
                   </td>

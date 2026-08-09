@@ -117,7 +117,8 @@ async function signIn(email, pin = PIN) {
   return sessionCookie(v);
 }
 
-const listFor = async (cookie) => (await req('GET', '/api/notifications', undefined, cookie)).json();
+const listFor = async (cookie) =>
+  (await req('GET', '/api/notifications', undefined, cookie)).json();
 
 async function main() {
   loadEnv();
@@ -264,8 +265,7 @@ async function main() {
     check('PIN changed', r.status, 200);
     check(
       'the change was recorded as a security notification',
-      (await notifications.countDocuments({ userId: ownerId, type: 'security' })) -
-        beforePinChange,
+      (await notifications.countDocuments({ userId: ownerId, type: 'security' })) - beforePinChange,
       1
     );
 
@@ -296,11 +296,7 @@ async function main() {
 
     const ownerNotificationIds = (await listFor(ownerCookie)).notifications.map((n) => n.id);
     r = await req('PATCH', '/api/notifications', { ids: ownerNotificationIds }, otherCookie);
-    check(
-      "one account cannot mark another's as read",
-      (await r.json()).updated,
-      0
-    );
+    check("one account cannot mark another's as read", (await r.json()).updated, 0);
 
     // --- Unread accounting ------------------------------------------------
     console.info('\n=== UNREAD ACCOUNTING ===');

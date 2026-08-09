@@ -352,7 +352,10 @@ export default function PortfolioBuilderTab() {
             </div>
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="pb-max-allocation" className="text-sm text-ds-text-muted mb-2 block">
+                <label
+                  htmlFor="pb-max-allocation"
+                  className="text-sm text-ds-text-muted mb-2 block"
+                >
                   Max allocation per asset (%)
                 </label>
                 <input
