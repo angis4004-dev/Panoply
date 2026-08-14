@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { signInUser } from '@/lib/auth-store';
-import { setCookie, createPendingPinToken } from '@/lib/session';
+import { setCookie } from '@/lib/session';
 import { parseBody, signInSchema } from '@/lib/validation';
 import {
   checkLimit,
@@ -98,36 +98,19 @@ export async function POST(request: Request) {
       );
     }
 
-    // For an account that has a PIN, the password alone still produces no
-    // session - only a short-lived token whose sole use is the PIN endpoints,
-    // so a stolen password cannot reach the dashboard on its own.
+    // The password step now ends here for everyone, with an ordinary session.
     //
-    // For an account that has no PIN yet, sign-in completes normally. It used
-    // to divert into a "choose a PIN" step here, which meant the only way to
-    // reach the app was to invent a second secret on the spot; setting one now
-    // lives in the dashboard, where it can be explained and returned to. The
-    // dashboard prompts persistently until it is done.
-    const userModel = await getUserModel();
-    if (userModel) {
-      const record = await userModel.findById(result.user.id).select('pinHash').lean();
-
-      if (record?.pinHash) {
-        return NextResponse.json({
-          pinRequired: true,
-          pendingToken: createPendingPinToken(result.user.id),
-          user: { name: result.user.name },
-        });
-      }
-    }
-
-    // Reached by two kinds of caller now:
+    // It used to fork: an account with a PIN got a short-lived pending token
+    // instead of a session and had to clear the PIN before anything existed to
+    // hold. That put the second factor in front of the whole site, including
+    // pages that hold nothing worth protecting, and it meant a half-signed-in
+    // state with its own expiry to explain.
     //
-    //   - a Mongo account with no PIN set yet, which signs in on the password
-    //     alone and is prompted to choose a PIN once inside the dashboard;
-    //   - the JSON-file fallback store, which has no schema to hold a PIN at
-    //     all, so this is the only path it ever takes.
-    //
-    // Both end the same way: a normal session.
+    // The PIN now guards the thing actually worth guarding: the dashboard
+    // asks for it on arrival, and until it is answered no balance, position or
+    // deposit is fetched, never mind rendered. What a session alone buys you
+    // is your own name, the ability to set a first PIN, and the ability to
+    // sign out. See src/lib/dashboard-unlock.ts.
     const sessionData = {
       user: {
         id: result.user.id,

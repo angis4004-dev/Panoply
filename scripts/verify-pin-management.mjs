@@ -83,12 +83,20 @@ function hashPin(pin) {
   return `${salt}:${key}`;
 }
 
-/** Password step, then PIN, returning the session cookie. */
-async function signIn(users, id, pin) {
+/**
+ * Signs in and clears the dashboard gate, returning the session cookie.
+ *
+ * The password step issues the session on its own now; the PIN is answered
+ * afterwards against that session and yields an unlock token rather than a
+ * cookie. The cookie is what the endpoints under test here want, so the
+ * unlock is discarded - /pin/change is account settings, not dashboard data,
+ * and is deliberately reachable without clearing the gate.
+ */
+async function signIn(pin) {
   const r = await post('/api/auth/signin', { email: EMAIL, password: PASSWORD });
-  const { pendingToken } = await r.json();
-  const v = await post('/api/auth/pin/verify', { pendingToken, pin });
-  return sessionCookie(v);
+  const cookie = sessionCookie(r);
+  if (pin) await post('/api/auth/pin/verify', { pin }, cookie);
+  return cookie;
 }
 
 async function main() {
@@ -127,7 +135,7 @@ async function main() {
   });
 
   try {
-    let cookie = await signIn(users, insertedId, FIRST_PIN);
+    let cookie = await signIn(FIRST_PIN);
     check('signed in with the seeded PIN', Boolean(cookie), true);
 
     // --- Changing a PIN ---------------------------------------------------
@@ -195,21 +203,29 @@ async function main() {
 
     // The bump is what signs other devices out; the re-issued cookie is what
     // keeps this one alive. Both halves matter.
-    let res = await fetch(`${BASE}/api/wallet`, { headers: { cookie: `auth_session=${cookie}` } });
-    check('pre-change session is dead (other devices out)', res.status, 401);
-    res = await fetch(`${BASE}/api/wallet`, { headers: { cookie: `auth_session=${rotated}` } });
-    check('re-issued session still works (this device in)', res.status, 200);
+    //
+    // Probed on /api/auth/session, not /api/wallet: the wallet sits behind the
+    // dashboard PIN gate now and answers 423 to any session that has not
+    // cleared it, which would say nothing about whether the session itself
+    // survived the change.
+    const alive = (value) =>
+      fetch(`${BASE}/api/auth/session`, {
+        headers: { cookie: `auth_session=${value}` },
+      }).then((r) => r.status);
+
+    check('pre-change session is dead (other devices out)', await alive(cookie), 401);
+    check('re-issued session still works (this device in)', await alive(rotated), 200);
     cookie = rotated;
 
     // --- The new PIN is the one that works --------------------------------
     console.info('\n=== THE CHANGE TOOK EFFECT ===');
     r = await post('/api/auth/signin', { email: EMAIL, password: PASSWORD });
-    let pending = (await r.json()).pendingToken;
-    r = await post('/api/auth/pin/verify', { pendingToken: pending, pin: FIRST_PIN });
-    check('old PIN no longer works', r.status, 401);
-    r = await post('/api/auth/pin/verify', { pendingToken: pending, pin: SECOND_PIN });
-    check('new PIN works', r.status, 200);
-    cookie = sessionCookie(r);
+    let gateCookie = sessionCookie(r);
+    r = await post('/api/auth/pin/verify', { pin: FIRST_PIN }, gateCookie);
+    check('old PIN no longer opens the dashboard', r.status, 401);
+    r = await post('/api/auth/pin/verify', { pin: SECOND_PIN }, gateCookie);
+    check('new PIN opens the dashboard', r.status, 200);
+    cookie = gateCookie;
     await users.updateOne({ _id: insertedId }, { $set: { pinFailedAttempts: 0 } });
 
     // --- The lockout is shared with /pin/verify ---------------------------
@@ -230,18 +246,21 @@ async function main() {
     check('change locks after 5 wrong attempts', lastStatus, 429);
 
     r = await post('/api/auth/signin', { email: EMAIL, password: PASSWORD });
-    pending = (await r.json()).pendingToken;
-    r = await post('/api/auth/pin/verify', { pendingToken: pending, pin: SECOND_PIN });
-    check('guesses spent on change lock sign-in too', r.status, 429);
+    gateCookie = sessionCookie(r);
+    r = await post('/api/auth/pin/verify', { pin: SECOND_PIN }, gateCookie);
+    check('guesses spent on change lock the gate too', r.status, 429);
 
     // --- Forgotten PIN ----------------------------------------------------
     console.info('\n=== FORGOTTEN PIN ===');
-    r = await post('/api/auth/pin/forgot', { pendingToken: 'pinpending.forged.deadbeef' });
-    check('forged pending token refused', r.status, 401);
+    // Gated on the session now that the PIN has left sign-in: without one
+    // there is no account to send a link for, and an email-addressed version
+    // would let anyone spray reset mail at any inbox.
+    r = await post('/api/auth/pin/forgot', {});
+    check('reset with no session refused', r.status, 401);
 
     // Requested while locked out on purpose: being locked is the usual reason
     // someone needs this at all.
-    r = await post('/api/auth/pin/forgot', { pendingToken: pending });
+    r = await post('/api/auth/pin/forgot', {}, gateCookie);
     // The mail itself may fail in a dev environment (Resend rejects unroutable
     // recipient domains), which is a 502. What must hold either way is that the
     // token was persisted, so the flow is not blocked on delivery succeeding
@@ -298,16 +317,15 @@ async function main() {
     // The point of clearing the lock: the owner is not stranded for 15 minutes
     // with a PIN they have only just chosen.
     r = await post('/api/auth/signin', { email: EMAIL, password: PASSWORD });
-    pending = (await r.json()).pendingToken;
-    r = await post('/api/auth/pin/verify', { pendingToken: pending, pin: THIRD_PIN });
+    gateCookie = sessionCookie(r);
+    r = await post('/api/auth/pin/verify', { pin: THIRD_PIN }, gateCookie);
     check('reset PIN works immediately, not after the lock', r.status, 200);
-    cookie = sessionCookie(r);
+    cookie = gateCookie;
 
     // --- A change invalidates any outstanding reset link ------------------
     console.info('\n=== A CHANGE VOIDS A PENDING RESET LINK ===');
     r = await post('/api/auth/signin', { email: EMAIL, password: PASSWORD });
-    const pendingForLink = (await r.json()).pendingToken;
-    await post('/api/auth/pin/forgot', { pendingToken: pendingForLink });
+    await post('/api/auth/pin/forgot', {}, sessionCookie(r));
     const staleToken = (await users.findOne({ _id: insertedId })).pinResetToken;
     check('a reset link was issued', Boolean(staleToken), true);
 

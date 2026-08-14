@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionFromRequest } from '@/lib/session';
+import { requireUnlock } from '@/lib/dashboard-unlock';
 import { connectToDatabase } from '@/lib/mongo';
 import { ReportModel } from '@/lib/models/Report';
 import { createReportSchema, parseBody } from '@/lib/validation';
@@ -12,6 +13,8 @@ export async function GET(request: NextRequest) {
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const locked = requireUnlock(request, session);
+    if (locked) return locked;
 
     const userId = session.user.id;
 
@@ -51,6 +54,8 @@ export async function POST(request: NextRequest) {
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const locked = requireUnlock(request, session);
+    if (locked) return locked;
 
     // Parse request body
     const { data: body, error: invalid } = await parseBody(request, createReportSchema);

@@ -26,6 +26,18 @@ export default defineConfig({
   test: {
     include: ['src/lib/**/*.test.ts'],
     environment: 'node',
+    /*
+     * A throwaway signing key for the modules that refuse to load without one.
+     *
+     * session.ts and dashboard-unlock.ts both fail closed at import time if
+     * SESSION_SECRET is unset, which is correct in production - signing a
+     * session cookie with a default would let anyone forge one - and means
+     * their tests need a value. It is fixed and obviously fake so that nothing
+     * signed under it is ever mistaken for a real credential.
+     */
+    env: {
+      SESSION_SECRET: 'test-only-secret-not-used-outside-vitest',
+    },
   },
   resolve: {
     alias: {

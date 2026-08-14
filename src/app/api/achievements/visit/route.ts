@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionFromRequest } from '@/lib/session';
+import { requireUnlock } from '@/lib/dashboard-unlock';
 import { getUserModel } from '@/lib/models';
 import { grantAchievement } from '@/lib/achievements/engine';
 // Single definition, shared with the schema that validates the section name -
@@ -11,6 +12,8 @@ export async function POST(request: NextRequest) {
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+  const locked = requireUnlock(request, session);
+  if (locked) return locked;
 
   const { data: body, error: invalid } = await parseBody(request, visitSectionSchema);
   if (invalid) return invalid;

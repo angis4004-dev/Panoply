@@ -41,30 +41,31 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Database connection unavailable' }, { status: 503 });
     }
 
-    const user = await userModel.findOne({
-      pinResetToken: token,
-      pinResetExpires: { $gt: new Date() },
-    });
+    const user = await userModel.findOneAndUpdate(
+      {
+        pinResetToken: token,
+        pinResetExpires: { $gt: new Date() },
+      },
+      [
+        {
+          $set: {
+            pinHash: hashPin(pin),
+            pinSetAt: new Date(),
+            pinFailedAttempts: 0,
+            pinLockedUntil: null,
+            tokenVersion: { $add: [{ $ifNull: ['$tokenVersion', 0] }, 1] },
+          },
+        },
+        { $unset: ['pinResetToken', 'pinResetExpires'] },
+      ],
+      { new: true, updatePipeline: true }
+    );
     if (!user) {
       return NextResponse.json(
         { error: 'This link is invalid or has expired. Request a new one.' },
         { status: 400 }
       );
     }
-
-    user.pinHash = hashPin(pin);
-    user.pinSetAt = new Date();
-    // The whole reason someone reaches this page is usually that they burned
-    // through their attempts, so leaving the lock in place would send them
-    // straight back to a wall with a PIN they now know.
-    user.pinFailedAttempts = 0;
-    user.pinLockedUntil = null;
-    user.pinResetToken = undefined;
-    user.pinResetExpires = undefined;
-    // Recovering a second factor is a plausible response to losing control of
-    // the account, so every session minted before now is dropped.
-    user.tokenVersion = (user.tokenVersion ?? 0) + 1;
-    await user.save();
 
     await notifySecurityEvent(
       user._id.toString(),

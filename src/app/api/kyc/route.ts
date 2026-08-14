@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionFromRequest } from '@/lib/session';
+import { requireUnlock } from '@/lib/dashboard-unlock';
 import { getUserModel } from '@/lib/models';
 import { encryptPii, lastFour, maskFromLastFour, PiiCryptoError } from '@/lib/pii-crypto';
 import { kycSubmissionSchema, parseBody } from '@/lib/validation';
@@ -10,6 +11,8 @@ export async function GET(request: NextRequest) {
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+  const locked = requireUnlock(request, session);
+  if (locked) return locked;
 
   const userModel = await getUserModel();
   if (!userModel) {
@@ -52,14 +55,28 @@ export async function POST(request: NextRequest) {
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+  const locked = requireUnlock(request, session);
+  if (locked) return locked;
 
   const { data: body, error: invalid } = await parseBody(request, kycSubmissionSchema);
   if (invalid) return invalid;
-  const { fullName, dateOfBirth, country, idType, idNumber, documentProvided } = body;
+  const { fullName, dateOfBirth, country, idType, idNumber } = body;
 
   const userModel = await getUserModel();
   if (!userModel) {
     return NextResponse.json({ error: 'Database connection unavailable' }, { status: 503 });
+  }
+
+  const existing = await userModel.findById(session.user.id).select('+kycDocumentData kycStatus');
+  if (!existing) return NextResponse.json({ error: 'User not found' }, { status: 404 });
+  if (existing.kycStatus === 'verified') {
+    return NextResponse.json({ error: 'Your identity is already verified.' }, { status: 409 });
+  }
+  if (!existing.kycDocumentData) {
+    return NextResponse.json(
+      { error: 'Upload a valid identity document before submitting verification.' },
+      { status: 400 }
+    );
   }
 
   // Encrypted before it reaches the database, so the plaintext exists only for
@@ -93,7 +110,7 @@ export async function POST(request: NextRequest) {
           kycIdType: idType,
           kycIdNumber: encryptedIdNumber,
           kycIdNumberLast4: lastFour(trimmedIdNumber),
-          kycDocumentProvided: !!documentProvided,
+          kycDocumentProvided: true,
           kycRejectionReason: null,
         },
       },

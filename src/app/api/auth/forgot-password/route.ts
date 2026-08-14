@@ -21,11 +21,11 @@ export async function POST(request: Request) {
 
       await sendEmail({
         to: email,
-        subject: 'Reset your Aegis password',
+        subject: 'Reset your Panoply password',
         html: `
           <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
             <h2>Reset your password</h2>
-            <p>We received a request to reset the password for your Aegis account.</p>
+            <p>We received a request to reset the password for your Panoply account.</p>
             <p>
               <a href="${resetLink}" style="display:inline-block;padding:12px 20px;background:#243B8F;color:#FFF0C9;text-decoration:none;border-radius:8px;font-weight:600;">
                 Reset Password

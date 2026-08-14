@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionFromRequest } from '@/lib/session';
+import { requireUnlock } from '@/lib/dashboard-unlock';
 import { connectToDatabase } from '@/lib/mongo';
 import { VaultModel } from '@/lib/models/Vault';
 import { UserVaultInvestmentModel } from '@/lib/models/UserVaultInvestment';
@@ -24,6 +25,8 @@ export async function GET(request: NextRequest) {
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const locked = requireUnlock(request, session);
+    if (locked) return locked;
 
     const userId = session.user.id;
 
@@ -69,6 +72,8 @@ export async function POST(request: NextRequest) {
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const locked = requireUnlock(request, session);
+    if (locked) return locked;
 
     const userId = session.user.id;
 

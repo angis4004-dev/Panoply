@@ -1,12 +1,12 @@
 /**
- * The companies behind Aegis.
+ * The companies behind Panoply.
  *
  * Single source of truth for corporate disclosure. Terms, Privacy, the
  * Disclaimer and the site footer all render from here, so the operating
  * entities cannot drift between pages - and updating a registered address
  * means editing one file rather than hunting four.
  *
- * Aegis is operated by two entities split by function. That split is the
+ * Panoply is operated by two entities split by function. That split is the
  * disclosure: a reader needs to know which company holds their money, and it
  * is not the same one that provides the software.
  */

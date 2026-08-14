@@ -12,6 +12,7 @@ import {
 } from '@/lib/pin';
 import { notifySecurityEvent } from '@/lib/notifications';
 import { parseBody, pinChangeSchema } from '@/lib/validation';
+import { recordFailedPinAttempt } from '@/lib/pin-attempts';
 
 /**
  * POST /api/auth/pin/change - Replaces the PIN on a signed-in account.
@@ -86,13 +87,8 @@ export async function POST(request: Request) {
     }
 
     if (!verifyPin(currentPin, user.pinHash)) {
-      const attempts = (user.pinFailedAttempts ?? 0) + 1;
-      user.pinFailedAttempts = attempts;
-
-      if (attempts >= MAX_PIN_ATTEMPTS) {
-        user.pinLockedUntil = new Date(Date.now() + PIN_LOCKOUT_MS);
-        user.pinFailedAttempts = 0;
-        await user.save();
+      const updated = await recordFailedPinAttempt(userModel, session.user.id);
+      if (!updated || updated.pinLockedUntil) {
         return NextResponse.json(
           {
             error: `Too many incorrect attempts. Try again in ${formatLockDuration(PIN_LOCKOUT_MS)}.`,
@@ -101,8 +97,7 @@ export async function POST(request: Request) {
         );
       }
 
-      await user.save();
-      const left = MAX_PIN_ATTEMPTS - attempts;
+      const left = MAX_PIN_ATTEMPTS - (updated.pinFailedAttempts ?? 0);
       return NextResponse.json(
         {
           error: `That is not your current PIN. ${left} attempt${left === 1 ? '' : 's'} remaining.`,
@@ -112,23 +107,30 @@ export async function POST(request: Request) {
       );
     }
 
-    user.pinHash = hashPin(pin);
-    user.pinSetAt = new Date();
-    user.pinFailedAttempts = 0;
-    user.pinLockedUntil = null;
+    const nextTokenVersion = (user.tokenVersion ?? 0) + 1;
     // Any half-finished forgotten-PIN link is void the moment a PIN is chosen
     // by other means, otherwise an old email would still overwrite the new PIN.
-    user.pinResetToken = undefined;
-    user.pinResetExpires = undefined;
+    const updated = await userModel.findByIdAndUpdate(
+      session.user.id,
+      {
+        $set: {
+          pinHash: hashPin(pin),
+          pinSetAt: new Date(),
+          pinFailedAttempts: 0,
+          pinLockedUntil: null,
+          tokenVersion: nextTokenVersion,
+        },
+        $unset: { pinResetToken: '', pinResetExpires: '' },
+      },
+      { new: true, runValidators: true }
+    );
+    if (!updated) return NextResponse.json({ error: 'User not found' }, { status: 404 });
     // Changing a second factor should evict anyone else holding a session for
     // this account, which is what the bump does. It would sign this caller out
     // too, so the response re-issues their cookie at the new version - other
     // devices are logged out, this one is not.
-    user.tokenVersion = (user.tokenVersion ?? 0) + 1;
-    await user.save();
-
     await notifySecurityEvent(
-      user._id.toString(),
+      updated._id.toString(),
       'Your PIN was changed',
       'Your sign-in PIN was changed and other devices were signed out. If this was not you, reset your password immediately.'
     );
@@ -138,11 +140,11 @@ export async function POST(request: Request) {
     return setCookie(response, {
       user: {
         id: user._id.toString(),
-        email: user.email,
-        name: user.name,
-        role: user.role,
+        email: updated.email,
+        name: updated.name,
+        role: updated.role,
         createdAt: user.createdAt.toISOString(),
-        tokenVersion: user.tokenVersion,
+        tokenVersion: updated.tokenVersion,
       },
       createdAt: Date.now(),
     });

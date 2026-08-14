@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getUserModel } from '@/lib/models';
-import { setCookie, verifyPendingPinToken } from '@/lib/session';
+import { getSessionFromRequest } from '@/lib/session';
+import { createDashboardUnlockToken } from '@/lib/dashboard-unlock';
 import {
   formatLockDuration,
   isValidPinFormat,
@@ -11,9 +12,15 @@ import {
   verifyPin,
 } from '@/lib/pin';
 import { parseBody, pinVerifySchema } from '@/lib/validation';
+import { recordFailedPinAttempt } from '@/lib/pin-attempts';
 
 /**
- * POST /api/auth/pin/verify - Exchanges a correct PIN for a session.
+ * POST /api/auth/pin/verify - Clears the PIN gate in front of the dashboard.
+ *
+ * Authenticated by the session. This used to take a short-lived token from the
+ * password step and hand back a session; now the session already exists and
+ * what comes back is an unlock token, which the dashboard holds in memory and
+ * sends on every data request. See src/lib/dashboard-unlock.ts.
  *
  * The lockout is the security control here, not the PIN. Six digits is a
  * million combinations, which is nothing to an unthrottled attacker, so the
@@ -23,26 +30,27 @@ import { parseBody, pinVerifySchema } from '@/lib/validation';
  */
 export async function POST(request: Request) {
   try {
+    const session = await getSessionFromRequest(request);
+    if (!session) {
+      return NextResponse.json({ error: 'You must be signed in.' }, { status: 401 });
+    }
+
     const { data: body, error: invalid } = await parseBody(request, pinVerifySchema);
     if (invalid) return invalid;
-    const { pendingToken, pin } = body;
-
-    const userId = verifyPendingPinToken(pendingToken);
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'Your sign-in attempt expired. Please enter your password again.' },
-        { status: 401 }
-      );
-    }
+    const { pin } = body;
 
     const userModel = await getUserModel();
     if (!userModel) {
       return NextResponse.json({ error: 'Database connection unavailable' }, { status: 503 });
     }
 
+    const userId = session.user.id;
     const user = await userModel.findById(userId);
     if (!user || !user.pinHash) {
-      return NextResponse.json({ error: 'No PIN is set for this account.' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'No PIN is set for this account.', code: 'pin_not_set' },
+        { status: 400 }
+      );
     }
 
     // Checked before the PIN is even compared, so a locked account costs an
@@ -66,13 +74,8 @@ export async function POST(request: Request) {
     }
 
     if (!verifyPin(pin, user.pinHash)) {
-      const attempts = (user.pinFailedAttempts ?? 0) + 1;
-      user.pinFailedAttempts = attempts;
-
-      if (attempts >= MAX_PIN_ATTEMPTS) {
-        user.pinLockedUntil = new Date(Date.now() + PIN_LOCKOUT_MS);
-        user.pinFailedAttempts = 0;
-        await user.save();
+      const updated = await recordFailedPinAttempt(userModel, userId);
+      if (!updated || updated.pinLockedUntil) {
         return NextResponse.json(
           {
             error: `Too many incorrect attempts. Try again in ${formatLockDuration(PIN_LOCKOUT_MS)}.`,
@@ -81,8 +84,7 @@ export async function POST(request: Request) {
         );
       }
 
-      await user.save();
-      const left = MAX_PIN_ATTEMPTS - attempts;
+      const left = MAX_PIN_ATTEMPTS - (updated.pinFailedAttempts ?? 0);
       return NextResponse.json(
         {
           error: `Incorrect PIN. ${left} attempt${left === 1 ? '' : 's'} remaining.`,
@@ -92,30 +94,14 @@ export async function POST(request: Request) {
       );
     }
 
-    user.pinFailedAttempts = 0;
-    user.pinLockedUntil = null;
-    await user.save();
-
-    const response = NextResponse.json({
-      user: {
-        id: user._id.toString(),
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        kycStatus: user.kycStatus || 'unverified',
-      },
+    await userModel.findByIdAndUpdate(userId, {
+      $set: { pinFailedAttempts: 0, pinLockedUntil: null },
     });
 
-    return setCookie(response, {
-      user: {
-        id: user._id.toString(),
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        createdAt: user.createdAt.toISOString(),
-        tokenVersion: user.tokenVersion ?? 0,
-      },
-      createdAt: Date.now(),
+    // Bound to the tokenVersion the session carries, so signing out or
+    // resetting the password invalidates the unlock along with the session.
+    return NextResponse.json({
+      unlockToken: createDashboardUnlockToken(userId, session.user.tokenVersion),
     });
   } catch (error) {
     console.error('Error verifying PIN:', error);

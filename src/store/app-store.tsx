@@ -46,11 +46,13 @@ interface AppStoreState {
   botModalOpen: boolean;
   bots: Bot[];
   botsLoading: boolean;
+  botsError: boolean;
   reports: Report[];
   vaultInvestments: VaultInvestment[];
   vaultInvestmentsLoading: boolean;
   walletBalance: number;
   walletBalanceLoading: boolean;
+  walletBalanceError: boolean;
   tab: string;
   reportsLoading: boolean;
 }
@@ -76,7 +78,6 @@ interface AppStoreActions {
   fetchVaultInvestments: () => Promise<void>;
   addVaultInvestment: (vaultId: string, amount: number) => Promise<void>;
   fetchWalletBalance: () => Promise<void>;
-  depositToWallet: (amount: number) => Promise<void>;
 }
 
 type AppStoreContextType = AppStoreState & AppStoreActions;
@@ -89,11 +90,13 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     botModalOpen: false,
     bots: [],
     botsLoading: false,
+    botsError: false,
     reports: [],
     vaultInvestments: [],
     vaultInvestmentsLoading: false,
     walletBalance: 0,
     walletBalanceLoading: false,
+    walletBalanceError: false,
     tab: 'dashboard',
     reportsLoading: false,
   });
@@ -170,25 +173,29 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
   // otherwise fired this twice on mount and produced two skeleton flashes
   // back to back.
   const fetchBots = async () => {
-    setState((prev) => ({ ...prev, botsLoading: prev.bots.length === 0 }));
+    setState((prev) => ({
+      ...prev,
+      botsLoading: prev.bots.length === 0,
+      botsError: false,
+    }));
     try {
       const response = await fetch('/api/bots');
 
       if (!response.ok) {
         if (response.status === 401) {
-          setState((prev) => ({ ...prev, bots: [], botsLoading: false }));
+          setState((prev) => ({ ...prev, bots: [], botsLoading: false, botsError: true }));
           return;
         }
         throw new Error(`Failed to fetch bots: ${response.status}`);
       }
 
       const botsData: Bot[] = await response.json();
-      setState((prev) => ({ ...prev, bots: botsData, botsLoading: false }));
+      setState((prev) => ({ ...prev, bots: botsData, botsLoading: false, botsError: false }));
     } catch (err) {
       console.error('Error fetching bots:', err);
       // Keep whatever was already on screen rather than blanking the
       // dashboard on a transient network failure.
-      setState((prev) => ({ ...prev, botsLoading: false }));
+      setState((prev) => ({ ...prev, botsLoading: false, botsError: true }));
     }
   };
 
@@ -232,41 +239,45 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
   };
 
   const fetchWalletBalance = async () => {
-    setState((prev) => ({ ...prev, walletBalanceLoading: true }));
+    setState((prev) => ({ ...prev, walletBalanceLoading: true, walletBalanceError: false }));
     try {
       const response = await fetch('/api/wallet');
 
       if (!response.ok) {
         if (response.status === 401) {
-          setState((prev) => ({ ...prev, walletBalance: 0, walletBalanceLoading: false }));
+          setState((prev) => ({
+            ...prev,
+            walletBalance: 0,
+            walletBalanceLoading: false,
+            walletBalanceError: true,
+          }));
           return;
         }
         throw new Error(`Failed to fetch wallet balance: ${response.status}`);
       }
 
       const data: { balance: number } = await response.json();
-      setState((prev) => ({ ...prev, walletBalance: data.balance, walletBalanceLoading: false }));
+      setState((prev) => ({
+        ...prev,
+        walletBalance: data.balance,
+        walletBalanceLoading: false,
+        walletBalanceError: false,
+      }));
     } catch (err) {
       console.error('Error fetching wallet balance:', err);
-      setState((prev) => ({ ...prev, walletBalance: 0, walletBalanceLoading: false }));
+      setState((prev) => ({
+        ...prev,
+        walletBalance: 0,
+        walletBalanceLoading: false,
+        walletBalanceError: true,
+      }));
     }
   };
 
-  const depositToWallet = async (amount: number): Promise<void> => {
-    const response = await fetch('/api/wallet', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ amount }),
-    });
-
-    if (!response.ok) {
-      const payload = await response.json().catch(() => ({}));
-      throw new Error(payload.error || `Failed to deposit: ${response.status}`);
-    }
-
-    const data: { balance: number } = await response.json();
-    setState((prev) => ({ ...prev, walletBalance: data.balance }));
-  };
+  // There is no depositToWallet. A trader cannot move their own balance: they
+  // declare a transfer against a published address (POST /api/deposits) and an
+  // admin credits it after confirming the funds arrived. The balance shown here
+  // only ever changes because the ledger did.
 
   useEffect(() => {
     // Fetch reports, bots, vault investments, and wallet balance when user changes
@@ -366,7 +377,6 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     fetchVaultInvestments,
     addVaultInvestment,
     fetchWalletBalance,
-    depositToWallet,
   };
 
   return <AppStoreContext.Provider value={storeValue}>{children}</AppStoreContext.Provider>;

@@ -3,7 +3,7 @@ import { STRATEGY_CATEGORIES } from '@/lib/about-content';
 /**
  * Figures shown in the homepage stats band.
  *
- * TVL and USERS are supplied by the Aegis team and maintained by hand - there
+ * TVL and USERS are supplied by the Panoply team and maintained by hand - there
  * is no endpoint behind them yet. Two consequences worth knowing before
  * editing:
  *
@@ -21,10 +21,10 @@ import { STRATEGY_CATEGORIES } from '@/lib/about-content';
  * product offers.
  */
 
-/** Total value locked, in USD. Confirmed by the Aegis team. */
+/** Total value locked, in USD. Confirmed by the Panoply team. */
 export const TVL_USD = 35_500_000;
 
-/** Platform user count. Confirmed by the Aegis team. */
+/** Platform user count. Confirmed by the Panoply team. */
 export const USERS = 23_980;
 
 /** Derived, not hand-maintained - stays correct as the strategy list changes. */

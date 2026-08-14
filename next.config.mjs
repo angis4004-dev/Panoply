@@ -13,6 +13,33 @@ const nextConfig = {
     return [];
   },
 
+  /**
+   * Cache-Control for the admin console, set here rather than only in the
+   * proxy.
+   *
+   * src/proxy.ts sets no-store on every admin response, but Next replaces
+   * Cache-Control on its own page responses afterwards, so a page that is
+   * prerendered - or that becomes prerendered later - ends up cacheable
+   * despite it. A header declared in the config is applied to the final
+   * response and survives that.
+   *
+   * Every page under /admin is authenticated account data. A shared cache, a
+   * CDN, or a back/forward restore showing the previous operator's queue is
+   * not acceptable on this surface. These paths do not exist on the trader
+   * host at all - the proxy 404s them - so scoping by path is enough.
+   */
+  async headers() {
+    const noStore = [
+      { key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate, private' },
+      { key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive' },
+    ];
+    return [
+      { source: '/admin', headers: noStore },
+      { source: '/admin/:path*', headers: noStore },
+      { source: '/api/admin/:path*', headers: noStore },
+    ];
+  },
+
   // The webpack() block that used to live here has been removed, which is what
   // lets this project run on Turbopack (the Next 16 default) instead of being
   // pinned to webpack by the --webpack flag in package.json.

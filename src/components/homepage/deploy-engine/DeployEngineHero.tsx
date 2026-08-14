@@ -29,7 +29,7 @@ const TRACKER_ORDER: [string, string][] = [
 /**
  * Deploy Engine hero - a Three.js particle-globe hero replacing the
  * previous chart-mockup hero, built from a supplied design spec ("Deploy
- * Engine v2.9"). Recolored onto Aegis's existing dark/cream brand rather
+ * Engine v2.9"). Recolored onto Panoply's existing dark/cream brand rather
  * than the spec's literal indigo-on-white, since a white glass control
  * panel would clash with every other page in the app. See scene.ts and
  * shaders.ts for the Three.js/GLSL implementation.

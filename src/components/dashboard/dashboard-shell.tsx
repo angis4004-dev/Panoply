@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import DashboardSidebar from '@/components/dashboard/sidebar';
 import { DashboardHeader } from '@/components/dashboard/dashboard-header';
 import { useAuth } from '@/hooks/use-auth';
@@ -20,6 +20,13 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const { addToast } = useAppStore();
   const pathname = usePathname();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace('/sign-up-login-screen');
+    }
+  }, [loading, user, router]);
 
   /*
    * Unverified users are no longer bounced to /dashboard/kyc from every route.

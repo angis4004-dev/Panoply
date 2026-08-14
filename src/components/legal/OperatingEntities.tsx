@@ -18,8 +18,8 @@ export function OperatingEntities() {
     <section>
       <h2>Operating entities</h2>
       <p>
-        Aegis is operated by two companies, split by function. Their registered details are set out
-        below.
+        Panoply is operated by two companies, split by function. Their registered details are set
+        out below.
       </p>
 
       {/* <dl> rather than a table: this is four label/value pairs per entity,

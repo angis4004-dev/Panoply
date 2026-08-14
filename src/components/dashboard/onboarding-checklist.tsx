@@ -45,7 +45,7 @@ export function OnboardingChecklist() {
       key: 'account',
       icon: UserRoundCheck,
       title: 'Create your account',
-      body: 'Done — welcome to Aegis.',
+      body: 'Done. Welcome to Panoply.',
       done: true,
       href: null,
       cta: null,

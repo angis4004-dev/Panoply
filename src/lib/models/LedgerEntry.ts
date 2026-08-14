@@ -47,8 +47,15 @@ export interface ILedgerEntry extends Document {
   /** Caller-supplied de-duplication token. A replayed request carrying a key
    *  already present is a no-op rather than a second movement of money. */
   idempotencyKey?: string | null;
-  /** Who caused this, when that is not the account owner (admin actions). */
+  /** Who caused this, when that is not the account owner. Legacy: a User id. */
   actorUserId?: mongoose.Types.ObjectId | null;
+  /**
+   * The admin console operator who caused this, for entries posted from the
+   * console. Separate from actorUserId because an admin is no longer a row in
+   * the users collection - see src/lib/models/AdminUser.ts. Both fields are
+   * nullable and an entry the account owner caused has neither.
+   */
+  actorAdminId?: mongoose.Types.ObjectId | null;
   memo?: string;
   createdAt: Date;
 }
@@ -91,6 +98,7 @@ const LedgerEntrySchema = new Schema<ILedgerEntry>({
   // index - see the index definition below.
   idempotencyKey: { type: String },
   actorUserId: { type: Schema.Types.ObjectId, ref: 'User', default: null },
+  actorAdminId: { type: Schema.Types.ObjectId, ref: 'AdminUser', default: null },
   memo: { type: String, default: '' },
   createdAt: { type: Date, default: Date.now },
 });

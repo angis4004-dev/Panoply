@@ -46,7 +46,7 @@ export const ACHIEVEMENT_CATALOG: AchievementDefinition[] = [
   // Getting Started
   {
     key: 'welcome_to_aegis',
-    name: 'Welcome to AEGIS',
+    name: 'Welcome to Panoply',
     description: 'Create your account.',
     category: 'getting-started',
     xp: 25,
@@ -243,8 +243,8 @@ export const ACHIEVEMENT_CATALOG: AchievementDefinition[] = [
   },
   {
     key: 'vanguard_tier_achieved',
-    name: 'Aegis Vanguard Achieved',
-    description: 'Reach Aegis Vanguard tier.',
+    name: 'Panoply Vanguard Achieved',
+    description: 'Reach Panoply Vanguard tier.',
     category: 'milestones',
     xp: 500,
     hasCertificate: true,

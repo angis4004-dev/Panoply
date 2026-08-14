@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongo';
 import { TradingBotModel } from '@/lib/models';
 import { getSessionFromRequest } from '@/lib/session';
+import { requireUnlock } from '@/lib/dashboard-unlock';
 import { pnlPercentSeries, type ProjectableBot } from '@/lib/bot-pnl';
 
 /**
@@ -45,6 +46,8 @@ export async function GET(request: NextRequest) {
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const locked = requireUnlock(request, session);
+    if (locked) return locked;
 
     const { searchParams } = new URL(request.url);
     const daysParam = searchParams.get('days');

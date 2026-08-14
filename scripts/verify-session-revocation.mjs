@@ -12,13 +12,9 @@
  *   - cookie issued before revocation existed (no tokenVersion in payload)
  *
  * Runs against a throwaway account it creates and removes, rather than the
- * seeded dev trader it used to use. Two reasons. The seeded trader has a PIN,
- * so the password step returns a pending token instead of a cookie and there
- * is no way to complete sign-in without knowing that PIN. And this script
- * suspends whatever account it runs against: doing that to a real user and
- * relying on a `finally` block to undo it means a crash mid-run leaves them
- * locked out. The fixture is created with no PIN, so the password alone
- * produces the session these checks need.
+ * seeded dev trader it used to use: this script suspends whatever account it
+ * runs against, and doing that to a real user while relying on a `finally`
+ * block to undo it means a crash mid-run leaves them locked out.
  *
  *   npm run dev        # in another terminal
  *   node scripts/verify-session-revocation.mjs
@@ -79,8 +75,17 @@ async function signIn() {
   return match[1];
 }
 
-const walletStatus = (cookie) =>
-  fetch(`${BASE}/api/wallet`, { headers: { cookie: `auth_session=${cookie}` } }).then(
+/**
+ * Is this session still alive?
+ *
+ * /api/auth/session rather than /api/wallet. The wallet now sits behind the
+ * dashboard PIN gate and answers 423 to a session that has not cleared it,
+ * which says nothing about whether the session was revoked - the question this
+ * script exists to ask. /api/auth/session is deliberately outside the gate,
+ * because the gate itself has to call it before it can ask for a PIN.
+ */
+const sessionStatus = (cookie) =>
+  fetch(`${BASE}/api/auth/session`, { headers: { cookie: `auth_session=${cookie}` } }).then(
     (r) => r.status
   );
 
@@ -96,8 +101,8 @@ async function main() {
     email: EMAIL,
     role: 'Trader',
     passwordHash: hashPassword(PASSWORD),
-    // No pinHash on purpose: with one, the password step returns a pending
-    // token rather than the session cookie every check below depends on.
+    // No pinHash. It makes no difference to sign-in any more - the password
+    // always issues a session now - but it keeps the fixture minimal.
     walletBalanceMinor: 0,
     status: 'active',
     kycStatus: 'unverified',
@@ -123,17 +128,17 @@ async function main() {
     console.info('\n=== SESSION REVOCATION ===');
 
     const cookie = await signIn();
-    check('fresh session is accepted', await walletStatus(cookie), 200);
+    check('fresh session is accepted', await sessionStatus(cookie), 200);
 
     // 1. tokenVersion bump - what logout and password reset now do.
     await users.updateOne({ email: EMAIL }, { $inc: { tokenVersion: 1 } });
-    check('session rejected after tokenVersion bump', await walletStatus(cookie), 401);
+    check('session rejected after tokenVersion bump', await sessionStatus(cookie), 401);
 
     // 2. Suspension - previously settable but enforced nowhere.
     const fresh = await signIn();
-    check('re-issued session is accepted', await walletStatus(fresh), 200);
+    check('re-issued session is accepted', await sessionStatus(fresh), 200);
     await users.updateOne({ email: EMAIL }, { $set: { status: 'suspended' } });
-    check('session rejected while suspended', await walletStatus(fresh), 401);
+    check('session rejected while suspended', await sessionStatus(fresh), 401);
     await users.updateOne({ email: EMAIL }, { $set: { status: 'active' } });
 
     // 3. A cookie in the pre-revocation shape: correctly signed, but with no
@@ -144,10 +149,10 @@ async function main() {
     const legacy = JSON.parse(Buffer.from(payload, 'base64').toString('utf8'));
     delete legacy.user.tokenVersion;
     const forged = `${Buffer.from(JSON.stringify(legacy)).toString('base64')}.${signature}`;
-    check('tampered / legacy-shape cookie rejected', await walletStatus(forged), 401);
+    check('tampered / legacy-shape cookie rejected', await sessionStatus(forged), 401);
 
     // 4. Garbage cookie, for completeness.
-    check('unsigned garbage cookie rejected', await walletStatus('not-a-real-session'), 401);
+    check('unsigned garbage cookie rejected', await sessionStatus('not-a-real-session'), 401);
   } finally {
     const fixture = await users.findOne({ email: EMAIL });
     if (fixture) {

@@ -3,7 +3,7 @@ export const MOTTO = 'Quantitative Intelligence for Decentralized Finance';
 export const CORE_PRINCIPLES = [
   {
     title: 'Non-Custodial by Design',
-    desc: 'Aegis never takes custody of user assets. Every strategy executes directly against your own wallet and permissions.',
+    desc: 'Panoply never takes custody of user assets. Every strategy executes directly against your own wallet and permissions.',
   },
   {
     title: 'Risk Before Return',
@@ -213,19 +213,19 @@ export const ROADMAP = [
 
 export const FAQ_ITEMS = [
   {
-    question: 'Is Aegis custodial?',
+    question: 'Is Panoply custodial?',
     answer:
-      'No. Aegis is non-custodial - strategies execute against your own wallet, and Aegis never takes control of your assets or private keys.',
+      'No. Panoply is non-custodial - strategies execute against your own wallet, and Panoply never takes control of your assets or private keys.',
   },
   {
-    question: 'Does Aegis guarantee returns?',
+    question: 'Does Panoply guarantee returns?',
     answer:
-      'No. All strategies carry risk, including the risk of loss. Aegis provides disciplined, risk-aware automation and transparent analytics - not a promise of profit. Past performance does not indicate future results.',
+      'No. All strategies carry risk, including the risk of loss. Panoply provides disciplined, risk-aware automation and transparent analytics - not a promise of profit. Past performance does not indicate future results.',
   },
   {
-    question: 'Which chains does Aegis support?',
+    question: 'Which chains does Panoply support?',
     answer:
-      'Aegis is built for multi-chain DeFi automation. Supported chains expand over time as strategies and integrations are validated - see the Roadmap for current priorities.',
+      'Panoply is built for multi-chain DeFi automation. Supported chains expand over time as strategies and integrations are validated - see the Roadmap for current priorities.',
   },
   {
     question: 'How does risk management actually work?',
@@ -240,6 +240,6 @@ export const FAQ_ITEMS = [
   {
     question: 'Can I stop or withdraw at any time?',
     answer:
-      'Yes. Because Aegis is non-custodial, you retain full control of your assets and can pause strategies or withdraw at any time from your own wallet.',
+      'Yes. Because Panoply is non-custodial, you retain full control of your assets and can pause strategies or withdraw at any time from your own wallet.',
   },
 ] as const;

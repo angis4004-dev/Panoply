@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionFromRequest } from '@/lib/session';
+import { requireUnlock } from '@/lib/dashboard-unlock';
 import { connectToDatabase } from '@/lib/mongo';
 import { NotificationModel } from '@/lib/models/Notification';
 
@@ -21,6 +22,8 @@ export async function GET(request: NextRequest) {
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+  const locked = requireUnlock(request, session);
+  if (locked) return locked;
 
   const connection = await connectToDatabase();
   if (!connection) {
@@ -63,6 +66,8 @@ export async function PATCH(request: NextRequest) {
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+  const locked = requireUnlock(request, session);
+  if (locked) return locked;
 
   const connection = await connectToDatabase();
   if (!connection) {
@@ -71,16 +76,29 @@ export async function PATCH(request: NextRequest) {
 
   let ids: string[] | null = null;
   try {
-    const body = await request.json();
-    if (Array.isArray(body?.ids)) {
-      // A malformed id makes Mongoose throw on cast rather than return
-      // nothing, which would turn a stale client into a 500.
-      ids = body.ids.filter(
-        (id: unknown) => typeof id === 'string' && /^[0-9a-fA-F]{24}$/.test(id)
-      );
+    const raw = await request.text();
+    if (raw.trim()) {
+      const body = JSON.parse(raw);
+      if (body === null || typeof body !== 'object' || Array.isArray(body)) {
+        return NextResponse.json({ error: 'Request body must be an object.' }, { status: 400 });
+      }
+      if ('ids' in body && !Array.isArray(body.ids)) {
+        return NextResponse.json({ error: 'ids must be an array.' }, { status: 400 });
+      }
+      if (Array.isArray(body.ids)) {
+        if (
+          body.ids.some((id: unknown) => typeof id !== 'string' || !/^[0-9a-fA-F]{24}$/.test(id))
+        ) {
+          return NextResponse.json(
+            { error: 'ids must contain valid notification IDs.' },
+            { status: 400 }
+          );
+        }
+        ids = body.ids;
+      }
     }
   } catch {
-    // No body means "all of them", which is what the panel sends when it opens.
+    return NextResponse.json({ error: 'Request body must be valid JSON.' }, { status: 400 });
   }
 
   const filter: Record<string, unknown> = { userId: session.user.id, readAt: null };

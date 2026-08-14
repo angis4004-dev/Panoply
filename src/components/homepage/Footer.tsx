@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { AegisMark } from '@/components/ui/AegisLogo';
+import { PanoplyMark } from '@/components/ui/PanoplyLogo';
 import { describeEntity, PLATFORM_ENTITY, TECHNOLOGY_ENTITY } from '@/lib/legal-entities';
 
 /**
@@ -67,9 +67,9 @@ export function Footer() {
               brand column reads as deliberate, a filled one has to earn it. */}
           <div>
             <div className="flex items-center gap-2.5">
-              <AegisMark size={30} />
-              <span className="font-wordmark text-2xl font-extrabold uppercase tracking-[0.14em] text-white sm:text-3xl">
-                AEGIS
+              <PanoplyMark size={30} className="text-brand-cream" />
+              <span className="font-wordmark text-2xl font-normal tracking-normal text-brand-cream sm:text-3xl">
+                Panoply
               </span>
             </div>
           </div>
@@ -101,7 +101,7 @@ export function Footer() {
             registered addresses on the legal pages rather than repeated here. */}
         <div className="mt-10 pt-5 border-t border-ds-border space-y-2 text-xs text-ds-text-muted">
           <p>
-            Aegis is operated by {describeEntity(TECHNOLOGY_ENTITY)} and{' '}
+            Panoply is operated by {describeEntity(TECHNOLOGY_ENTITY)} and{' '}
             {describeEntity(PLATFORM_ENTITY)}. Client funds are held by the{' '}
             {PLATFORM_ENTITY.jurisdiction} entity. Full details in our{' '}
             <Link href="/terms" className="underline hover:text-[#C5CCD6]">
@@ -109,7 +109,7 @@ export function Footer() {
             </Link>
             .
           </p>
-          <p>© {new Date().getFullYear()} Aegis. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Panoply. All rights reserved.</p>
         </div>
       </div>
     </footer>

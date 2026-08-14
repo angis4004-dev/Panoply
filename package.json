@@ -13,13 +13,19 @@
     "type-check": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "verify:auth": "node scripts/verify-pin-login.mjs && node scripts/verify-pin-management.mjs && node scripts/verify-session-revocation.mjs",
-    "verify:pin-login": "node scripts/verify-pin-login.mjs",
+    "verify:auth": "node scripts/verify-dashboard-pin-gate.mjs && node scripts/verify-pin-management.mjs && node scripts/verify-session-revocation.mjs",
+    "verify:pin-gate": "node scripts/verify-dashboard-pin-gate.mjs",
     "verify:pin-management": "node scripts/verify-pin-management.mjs",
     "verify:session": "node scripts/verify-session-revocation.mjs",
     "verify:ledger": "node scripts/verify-ledger.mjs",
     "verify:email": "node scripts/verify-email.mjs",
-    "verify:notifications": "node scripts/verify-notifications.mjs"
+    "verify:notifications": "node scripts/verify-notifications.mjs",
+    "verify:admin": "node scripts/verify-admin-console.mjs",
+    "migrate:platform-addresses": "node scripts/migrate-platform-addresses.mjs",
+    "admin:bootstrap": "node scripts/bootstrap-admin.mjs",
+    "admin:bootstrap:dry-run": "node scripts/bootstrap-admin.mjs --dry-run",
+    "seed:test-user": "node scripts/seed-test-user.mjs",
+    "brand:assets": "node scripts/generate-brand-assets.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

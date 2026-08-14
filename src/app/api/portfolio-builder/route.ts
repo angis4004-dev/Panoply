@@ -13,7 +13,7 @@ import {
 } from '@/lib/achievements/engine';
 import { BRAND_COLORS } from '@/lib/brand-colors';
 import { parseBody, portfolioBuilderSchema } from '@/lib/validation';
-import { AEGIS_LOGO_BASE64 } from '@/lib/email-logo';
+import { PANOPLY_LOGO_BASE64 } from '@/lib/email-logo';
 
 // Text/background pairs per risk profile, drawn from the app's real brand
 // values (tailwind.config.js `primary`/`brand.purple` and the `teal.600`
@@ -26,13 +26,13 @@ const RISK_COLORS: Record<RiskProfile, { text: string; bg: string }> = {
   aggressive: { text: BRAND_COLORS.purple, bg: '#F1ECFF' },
 };
 
-// The real Aegis mark, sent as a CID inline attachment (see
+// The real Panoply mark, sent as a CID inline attachment (see
 // sendEmailReport) and referenced here via cid: rather than a data-URI
 // <img src>. Gmail strips data: URIs from HTML email bodies entirely
 // (renders as a broken-image icon) - a CID attachment is the one method
 // every major client, Gmail included, reliably renders inline.
 const LOGO_CID = 'aegis-logo';
-const LOGO_IMG = `<img src="cid:${LOGO_CID}" width="40" height="40" alt="Aegis" style="display:block;" />`;
+const LOGO_IMG = `<img src="cid:${LOGO_CID}" width="40" height="40" alt="Panoply" style="display:block;" />`;
 
 // Email service using Resend
 async function sendEmailReport(email: string, htmlContent: string): Promise<boolean> {
@@ -50,7 +50,7 @@ async function sendEmailReport(email: string, htmlContent: string): Promise<bool
       attachments: [
         {
           filename: 'aegis-logo.png',
-          content: AEGIS_LOGO_BASE64,
+          content: PANOPLY_LOGO_BASE64,
           contentType: 'image/png',
           contentId: LOGO_CID,
         },
@@ -262,7 +262,7 @@ function generateHtmlReport(report: PortfolioReport, tier: Tier): string {
         <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:0 auto 12px;">
           <tr>
             <td style="padding-right:10px;">${LOGO_IMG}</td>
-            <td valign="middle" style="font-weight:800;letter-spacing:0.12em;text-transform:uppercase;font-size:18px;color:#F2F5FA;font-family:Arial,sans-serif;">Aegis</td>
+            <td valign="middle" style="font-weight:800;letter-spacing:0.12em;text-transform:uppercase;font-size:18px;color:#F2F5FA;font-family:Arial,sans-serif;">Panoply</td>
           </tr>
         </table>
         <h1>Portfolio Analysis Report</h1>
@@ -354,7 +354,7 @@ function generateHtmlReport(report: PortfolioReport, tier: Tier): string {
       </div>
 
       <div class="footer">
-        <p>&copy; ${new Date().getFullYear()} Aegis Portfolio Builder. All rights reserved.</p>
+        <p>&copy; ${new Date().getFullYear()} Panoply Portfolio Builder. All rights reserved.</p>
         <p>Disclaimer: This report is for informational purposes only and does not constitute financial advice. Cryptocurrency investments are subject to market risk. Past performance does not guarantee future results.</p>
       </div>
     </body>

@@ -1,18 +1,19 @@
 import Link from 'next/link';
 import { Reveal } from '@/components/ui/Reveal';
+import { SignalField } from '@/components/ui/signal-field';
 import { CountUpOnView } from '@/components/ui/RollingNumber';
 
 /**
  * Alternating two-column feature rows (text + a small UI mockup card,
  * sides swapping each row) - the structural pattern requested from
- * chamberfi.com's homepage, adapted to Aegis's existing dark/cream
+ * chamberfi.com's homepage, adapted to Panoply's existing dark/cream
  * theme rather than their light palette (only layout/structure was
  * asked for, not a color or typography change).
  */
 
 function SignalFlowMockup() {
   return (
-    <div className="h-full rounded-2xl border border-ds-border bg-ds-surface-raised/60 p-6 transition-all duration-base ease-ds-out hover:border-primary/40 hover:shadow-[0_0_40px_rgba(255,240,201,0.12)]">
+    <SignalField className="h-full p-6" readout="CONF 0.87">
       <div className="rounded-lg bg-[#0D1219] border border-ds-border px-4 py-2.5 text-sm text-[#E7ECF2] mb-4 max-w-[85%] ml-auto">
         Open a grid signal flow on BTC/USDT
       </div>
@@ -28,13 +29,13 @@ function SignalFlowMockup() {
           </span>
         </div>
       </div>
-    </div>
+    </SignalField>
   );
 }
 
 function VaultStatMockup() {
   return (
-    <div className="h-full rounded-2xl border border-ds-border bg-ds-surface-raised/60 p-6 transition-all duration-base ease-ds-out hover:border-primary/40 hover:shadow-[0_0_40px_rgba(255,240,201,0.12)]">
+    <SignalField className="h-full p-6" readout="TVL 28.07M">
       <div className="flex items-center gap-4 mb-4 text-xs text-ds-text-muted">
         <span>
           <CountUpOnView value={28.07} format={(n) => `$${n.toFixed(2)}M TVL`} />
@@ -60,7 +61,7 @@ function VaultStatMockup() {
           <p className="text-xs text-ds-text-muted">Risk score 5/10</p>
         </div>
       </div>
-    </div>
+    </SignalField>
   );
 }
 
@@ -71,7 +72,7 @@ function YieldMockup() {
     { label: 'Polygon', sub: 'MATIC', on: false },
   ];
   return (
-    <div className="h-full rounded-2xl border border-ds-border bg-ds-surface-raised/60 p-6 transition-all duration-base ease-ds-out hover:border-primary/40 hover:shadow-[0_0_40px_rgba(255,240,201,0.12)]">
+    <SignalField className="h-full p-6" readout="3 CHAINS">
       <p className="text-ds-caption uppercase tracking-[0.2em] text-ds-text-muted mb-4">
         Chains enabled for yield routing
       </p>
@@ -93,13 +94,13 @@ function YieldMockup() {
           </div>
         ))}
       </div>
-    </div>
+    </SignalField>
   );
 }
 
 function ReportMockup() {
   return (
-    <div className="h-full rounded-2xl border border-ds-border bg-ds-surface-raised/60 p-6 transition-all duration-base ease-ds-out hover:border-primary/40 hover:shadow-[0_0_40px_rgba(255,240,201,0.12)]">
+    <SignalField className="h-full p-6" readout="RISK MED">
       <div className="rounded-lg bg-[#0D1219] border border-ds-border p-4 mb-4">
         <p className="text-sm font-semibold text-white mb-1">Your Portfolio Report is ready</p>
         <p className="text-xs text-ds-text-muted">Risk-adjusted allocation across 4 signal flows</p>
@@ -122,7 +123,7 @@ function ReportMockup() {
           <p className="text-[10px] uppercase tracking-wide text-ds-text-muted">Assets</p>
         </div>
       </div>
-    </div>
+    </SignalField>
   );
 }
 

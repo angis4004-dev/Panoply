@@ -110,7 +110,7 @@ export function CreateBotModal({ onClose }: CreateBotModalProps) {
     }
     if (amount > walletBalance) {
       setError(
-        `Insufficient wallet balance — available: $${walletBalance.toLocaleString()}. Deposit more funds first.`
+        `Insufficient wallet balance. Available: $${walletBalance.toLocaleString()}. Deposit more funds first.`
       );
       return;
     }
@@ -220,7 +220,7 @@ export function CreateBotModal({ onClose }: CreateBotModalProps) {
 
             <div>
               <label className="block text-xs font-semibold text-ds-text-muted mb-1.5 uppercase tracking-wide">
-                Allocated capital (USD) — available: ${walletBalance.toLocaleString()}
+                Allocated capital (USD). Available: ${walletBalance.toLocaleString()}
               </label>
               <input
                 type="number"
@@ -235,7 +235,7 @@ export function CreateBotModal({ onClose }: CreateBotModalProps) {
 
             <div>
               <label className="block text-xs font-semibold text-ds-text-muted mb-1.5 uppercase tracking-wide">
-                Confidence threshold — {confidence}%
+                Confidence threshold: {confidence}%
               </label>
               <input
                 type="range"

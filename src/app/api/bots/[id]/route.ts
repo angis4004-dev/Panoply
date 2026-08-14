@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongo';
 import { TradingBotModel } from '@/lib/models';
 import { getSessionFromRequest } from '@/lib/session';
+import { requireUnlock } from '@/lib/dashboard-unlock';
 import { withLedger } from '@/lib/ledger';
 import { toDollars, toMinor } from '@/lib/money';
 import { applyPendingTicks, formatPnl } from '@/lib/bot-pnl';
@@ -14,6 +15,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const locked = requireUnlock(request, session);
+    if (locked) return locked;
 
     const { id } = await params;
     if (!objectId.safeParse(id).success) {
@@ -80,6 +83,8 @@ export async function DELETE(
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const locked = requireUnlock(request, session);
+    if (locked) return locked;
 
     const { id } = await params;
 

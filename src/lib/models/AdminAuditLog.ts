@@ -11,44 +11,80 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
  *
  * Deliberately separate from LedgerEntry. The ledger answers "what happened to
  * this money"; this answers "who exercised authority over this account". A
- * balance adjustment produces one of each, and they are different questions
+ * deposit authorization produces one of each, and they are different questions
  * with different retention and access needs.
  */
 
+export type AuditTargetType =
+  'user' | 'bot' | 'kyc' | 'model' | 'admin' | 'deposit_address' | 'deposit' | 'session';
+
 export interface IAdminAuditLog extends Document {
-  actorUserId: mongoose.Types.ObjectId;
+  /**
+   * The acting admin account. Optional only because entries written before the
+   * console was split out name a User instead; every new entry sets it.
+   */
+  actorAdminId?: mongoose.Types.ObjectId | null;
+  /** Legacy actor reference, from when admins were rows in the users collection. */
+  actorUserId?: mongoose.Types.ObjectId | null;
   /** Denormalized so the trail stays readable if the admin account is later renamed or removed. */
   actorEmail: string;
-  /** Dot-notated verb, e.g. 'user.update', 'kyc.approve'. */
+  /** Denormalized for the same reason, and so a filter by authority level is one field away. */
+  actorRole?: string;
+  /** Dot-notated verb, e.g. 'user.update', 'kyc.approve', 'deposit.approve'. */
   action: string;
-  targetType: 'user' | 'bot' | 'kyc' | 'model';
+  targetType: AuditTargetType;
   targetId: string;
+  /**
+   * The trader an action ultimately affected, when the target is not the
+   * trader themselves. Deactivating a deposit address targets the address;
+   * the question later asked is "what was done to this trader's account", and
+   * without this that query cannot be written.
+   */
+  affectedUserId?: mongoose.Types.ObjectId | null;
   /** Only the fields that changed, previous values. */
   before: Record<string, unknown>;
   /** Only the fields that changed, new values. */
   after: Record<string, unknown>;
   reason?: string;
+  /** Transaction hash, deposit id, or whatever else identifies the evidence. */
+  reference?: string;
   ip?: string;
+  userAgent?: string;
+  /** The admin session the action was taken from, so a compromised session's full blast radius is one query. */
+  sessionId?: mongoose.Types.ObjectId | null;
   createdAt: Date;
 }
 
 const AdminAuditLogSchema = new Schema<IAdminAuditLog>({
-  actorUserId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  actorAdminId: { type: Schema.Types.ObjectId, ref: 'AdminUser', default: null, index: true },
+  actorUserId: { type: Schema.Types.ObjectId, ref: 'User', default: null },
   actorEmail: { type: String, required: true },
-  action: { type: String, required: true },
-  targetType: { type: String, required: true, enum: ['user', 'bot', 'kyc', 'model'] },
+  actorRole: { type: String, default: '' },
+  action: { type: String, required: true, index: true },
+  targetType: {
+    type: String,
+    required: true,
+    enum: ['user', 'bot', 'kyc', 'model', 'admin', 'deposit_address', 'deposit', 'session'],
+  },
   targetId: { type: String, required: true },
+  affectedUserId: { type: Schema.Types.ObjectId, ref: 'User', default: null, index: true },
   before: { type: Schema.Types.Mixed, default: {} },
   after: { type: Schema.Types.Mixed, default: {} },
   reason: { type: String, default: '' },
+  reference: { type: String, default: '' },
   ip: { type: String, default: '' },
-  createdAt: { type: Date, default: Date.now },
+  userAgent: { type: String, default: '' },
+  sessionId: { type: Schema.Types.ObjectId, ref: 'AdminSession', default: null },
+  createdAt: { type: Date, default: Date.now, index: true },
 });
 
 // "What was done to this account" and "what did this admin do" are the two
-// questions a review actually asks.
+// questions a review actually asks. The third is "who touched this reference",
+// which is how an investigation into one transaction starts.
 AdminAuditLogSchema.index({ targetType: 1, targetId: 1, createdAt: -1 });
-AdminAuditLogSchema.index({ actorUserId: 1, createdAt: -1 });
+AdminAuditLogSchema.index({ actorAdminId: 1, createdAt: -1 });
+AdminAuditLogSchema.index({ affectedUserId: 1, createdAt: -1 });
+AdminAuditLogSchema.index({ reference: 1 });
 
 // Append-only. As with the ledger, this stops accidental application code
 // rather than a determined actor with database credentials - the durable

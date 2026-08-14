@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongo';
 import { TradingBotModel, getUserModel } from '@/lib/models';
 import { getSessionFromRequest } from '@/lib/session';
+import { requireUnlock } from '@/lib/dashboard-unlock';
 import { getCoinPrices } from '@/lib/coingecko';
 import { resolveBaseCoinId } from '@/lib/coin-symbols';
 import { applyPendingTicks, formatPnl } from '@/lib/bot-pnl';
@@ -19,6 +20,8 @@ export async function GET(request: NextRequest) {
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const locked = requireUnlock(request, session);
+    if (locked) return locked;
 
     const userId = session.user.id;
 
@@ -90,6 +93,8 @@ export async function POST(request: NextRequest) {
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const locked = requireUnlock(request, session);
+    if (locked) return locked;
 
     // Shape, types, enums and ranges are all described once in
     // createBotSchema; only the cent conversion is left to do here.

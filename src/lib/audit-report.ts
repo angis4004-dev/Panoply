@@ -16,7 +16,7 @@
 export const AUDIT = {
   auditor: 'Obsidian Audits',
   reviewDate: 'March 18, 2026',
-  title: 'AEGIS Security Review',
+  title: 'Panoply Security Review',
   subtitle: 'Independent Smart Contract Security Assessment',
 } as const;
 
@@ -214,4 +214,4 @@ export const ONGOING_RECOMMENDATIONS = [
 ];
 
 export const DISCLAIMER =
-  'This assessment reflects the security posture of the reviewed codebase at the time of the audit. While extensive testing and manual review were performed, no audit can guarantee the complete absence of vulnerabilities. Security is an ongoing process, and continuous monitoring, testing, and periodic reassessment are recommended as the AEGIS protocol evolves.';
+  'This assessment reflects the security posture of the reviewed codebase at the time of the audit. While extensive testing and manual review were performed, no audit can guarantee the complete absence of vulnerabilities. Security is an ongoing process, and continuous monitoring, testing, and periodic reassessment are recommended as the Panoply protocol evolves.';

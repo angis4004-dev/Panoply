@@ -23,7 +23,7 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
  * createdAt is the change, not a purge job.
  */
 
-export type NotificationType = 'achievement' | 'kyc' | 'security' | 'system';
+export type NotificationType = 'achievement' | 'kyc' | 'security' | 'system' | 'wallet';
 
 export interface INotification extends Document {
   userId: mongoose.Types.ObjectId;
@@ -46,7 +46,10 @@ const NotificationSchema = new Schema<INotification>({
   type: {
     type: String,
     required: true,
-    enum: ['achievement', 'kyc', 'security', 'system'],
+    // 'wallet' covers deposit decisions: the trader is told their transfer was
+    // credited or refused. Distinct from 'system' so the bell can group money
+    // events, and from 'security' so a credit does not read as an alert.
+    enum: ['achievement', 'kyc', 'security', 'system', 'wallet'],
   },
   title: { type: String, required: true },
   body: { type: String, required: true, default: '' },

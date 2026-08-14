@@ -9,7 +9,7 @@ const TIER_LABELS: Record<string, string> = {
   novice: 'Novice',
   amateur: 'Amateur',
   strategist: 'Strategist',
-  vanguard: 'Aegis Vanguard',
+  vanguard: 'Panoply Vanguard',
 };
 
 const TIER_STYLES: Record<string, string> = {

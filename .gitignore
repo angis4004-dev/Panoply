@@ -70,3 +70,4 @@ out.txt
 # Isolated git worktrees for subagent-driven feature work
 .worktrees/
 .vercel
+.gstack/

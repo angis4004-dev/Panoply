@@ -181,6 +181,27 @@ export const adminUserUpdateSchema = z
     path: ['adjustmentReason'],
   });
 
+export const adminCreateUserSchema = z.object({
+  name: z.string().trim().min(1, 'is required'),
+  email,
+  password: z.string().min(12, 'must be at least 12 characters'),
+  role: z.enum(['Admin', 'Trader']).default('Trader'),
+});
+
+export const adminDepositAddressSchema = z.object({
+  userId: objectId,
+  coin: z
+    .string()
+    .trim()
+    .min(2, 'must be at least 2 characters')
+    .max(12, 'must be at most 12 characters')
+    .regex(/^[a-zA-Z0-9]+$/, 'must contain only letters and numbers')
+    .transform((value) => value.toUpperCase()),
+  network: z.string().trim().min(2, 'is required').max(40, 'is too long'),
+  address: z.string().trim().min(8, 'must be a valid wallet address').max(200, 'is too long'),
+  memoTag: z.string().trim().max(100, 'is too long').optional(),
+});
+
 /**
  * Choosing a first PIN. No pendingToken: this is done from the dashboard, so
  * the session is the credential.
@@ -190,8 +211,12 @@ export const pinSetSchema = z.object({
   confirmPin: pinCode,
 });
 
+/**
+ * Clearing the dashboard PIN gate. No pendingToken: the PIN is no longer part
+ * of sign-in, so the caller already holds a session and that session is the
+ * credential this is checked against.
+ */
 export const pinVerifySchema = z.object({
-  pendingToken: z.string().min(1, 'is required'),
   pin: pinCode,
 });
 
@@ -206,14 +231,11 @@ export const pinChangeSchema = z.object({
 });
 
 /**
- * Requesting a PIN reset link. Carries the pendingToken rather than an email,
- * so only someone who has just cleared the password step can ask for one -
- * an email-addressed version would let anyone trigger reset mail for any
- * account.
+ * Requesting a PIN reset link. Takes no body at all: the session identifies
+ * the account, so there is nothing for a caller to name. An email-addressed
+ * version would let anyone trigger reset mail for any account.
  */
-export const pinForgotSchema = z.object({
-  pendingToken: z.string().min(1, 'is required'),
-});
+export const pinForgotSchema = z.object({}).loose();
 
 export const pinResetSchema = z.object({
   token: z.string().min(1, 'is required'),

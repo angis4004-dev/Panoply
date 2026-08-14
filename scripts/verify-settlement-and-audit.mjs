@@ -91,43 +91,44 @@ async function signIn({ email, password }) {
   });
   if (!r.ok) throw new Error(`sign-in failed for ${email}: ${r.status} ${await r.text()}`);
 
-  const first = await r.json();
-  const direct = (r.headers.get('set-cookie') || '').match(/auth_session=([^;]+)/);
-  if (direct) return direct[1];
+  const match = (r.headers.get('set-cookie') || '').match(/auth_session=([^;]+)/);
+  if (!match) throw new Error(`sign-in for ${email} issued no session cookie`);
+  const cookie = match[1];
 
-  if (!first.pendingToken) {
-    throw new Error(`sign-in for ${email} returned neither a session nor a pending token`);
-  }
-
-  const endpoint = first.pinSetupRequired ? '/api/auth/pin/set' : '/api/auth/pin/verify';
-  const body = first.pinSetupRequired
-    ? { pendingToken: first.pendingToken, pin: DEV_PIN, confirmPin: DEV_PIN }
-    : { pendingToken: first.pendingToken, pin: DEV_PIN };
-
-  const second = await fetch(`${BASE}${endpoint}`, {
+  // The password issues the session; the PIN then clears the dashboard gate
+  // and returns the unlock token every data endpoint below needs. Stashed
+  // against the cookie so jsonReq can attach it without threading it through
+  // forty call sites.
+  const verify = await fetch(`${BASE}/api/auth/pin/verify`, {
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(body),
+    headers: { 'content-type': 'application/json', cookie: `auth_session=${cookie}` },
+    body: JSON.stringify({ pin: DEV_PIN }),
   });
-  if (!second.ok) {
-    throw new Error(`PIN step failed for ${email}: ${second.status} ${await second.text()}`);
+  if (!verify.ok) {
+    throw new Error(`PIN step failed for ${email}: ${verify.status} ${await verify.text()}`);
   }
+  const { unlockToken } = await verify.json();
+  if (unlockToken) unlockTokens.set(cookie, unlockToken);
 
-  const match = (second.headers.get('set-cookie') || '').match(/auth_session=([^;]+)/);
-  if (!match) throw new Error(`PIN step for ${email} issued no session cookie`);
-  return match[1];
+  return cookie;
 }
 
-const jsonReq = (cookie, path, method, body, extraHeaders = {}) =>
-  fetch(`${BASE}${path}`, {
+/** Unlock tokens by session cookie - this script drives two accounts. */
+const unlockTokens = new Map();
+
+const jsonReq = (cookie, path, method, body, extraHeaders = {}) => {
+  const unlock = unlockTokens.get(cookie);
+  return fetch(`${BASE}${path}`, {
     method,
     headers: {
       'content-type': 'application/json',
       cookie: `auth_session=${cookie}`,
+      ...(unlock ? { 'x-dashboard-unlock': unlock } : {}),
       ...extraHeaders,
     },
     body: body ? JSON.stringify(body) : undefined,
   });
+};
 
 const balance = (cookie) =>
   jsonReq(cookie, '/api/wallet', 'GET')
@@ -223,39 +224,33 @@ async function main() {
   if (replayBot) await jsonReq(cookie, `/api/bots/${replayBot.id}`, 'DELETE');
 
   // --- Admin audit ------------------------------------------------------
+  //
+  // Balance adjustment used to be driven from here, through
+  // PATCH /api/admin/users/:id. That endpoint is gone: adjusting a balance now
+  // lives on the admin subdomain, needs the ledger.adjust permission, and is
+  // covered end to end by scripts/verify-admin-console.mjs - which also
+  // asserts the before/after values this section used to check.
+  //
+  // What remains here is the one property that script cannot reach, because it
+  // needs the Mongoose model rather than HTTP: an audit row, once written,
+  // cannot be edited. A seeded row is enough to prove that, and it keeps this
+  // check from depending on whichever endpoint happens to write audits today.
   console.info('\n=== ADMIN AUDIT LOG ===');
-  const adminCookie = await signIn(ADMIN);
-  const targetId = trader._id.toString();
 
-  const noReason = await jsonReq(adminCookie, `/api/admin/users/${targetId}`, 'PATCH', {
-    walletBalance: 9999,
-  });
-  check('balance edit without a reason is refused', noReason.status, 400);
-
-  const currentBalance = await balance(cookie);
-  const target = Number((currentBalance + 25).toFixed(2));
-  const withReason = await jsonReq(adminCookie, `/api/admin/users/${targetId}`, 'PATCH', {
-    walletBalance: target,
-    adjustmentReason: 'verification script - goodwill credit',
-  });
-  check('balance edit with a reason succeeds', withReason.status, 200);
-  check('balance actually moved', Number((await balance(cookie)).toFixed(2)), target);
-
-  const audit = await audits.findOne(
-    { action: 'user.balance_adjust', targetId },
-    { sort: { createdAt: -1 } }
-  );
+  const seededAuditId = (
+    await audits.insertOne({
+      actorEmail: '__settlement_verify@invalid.test',
+      actorRole: 'MainAdmin',
+      action: 'verify.append_only_probe',
+      targetType: 'user',
+      targetId: trader._id.toString(),
+      affectedUserId: trader._id,
+      reason: 'settlement verification probe',
+      createdAt: new Date(),
+    })
+  ).insertedId;
+  const audit = await audits.findOne({ _id: seededAuditId });
   check('audit entry written', audit ? 'yes' : 'no', 'yes');
-  check('audit names the acting admin', audit?.actorEmail, ADMIN.email);
-  check('audit carries the reason', audit?.reason, 'verification script - goodwill credit');
-  check('audit records before value', audit?.before?.walletBalance, currentBalance);
-  check('audit records after value', audit?.after?.walletBalance, target);
-
-  const adminAdjust = await entries.findOne(
-    { type: 'admin_adjustment', userId: trader._id },
-    { sort: { createdAt: -1 } }
-  );
-  check('ledger adjustment names the actor', adminAdjust?.actorUserId ? 'yes' : 'no', 'yes');
 
   // --- Append-only ------------------------------------------------------
   console.info('\n=== APPEND-ONLY ENFORCEMENT ===');
@@ -292,6 +287,10 @@ async function main() {
     .toArray();
   const cached = (await users.findOne({ _id: trader._id })).walletBalanceMinor;
   check('ledger still reconciles for this user', cached, reconciled[0]?.total ?? 0);
+
+  // The probe row is a fixture, not history. Removed through the driver so the
+  // model's append-only hook - which blocks updates, not deletes - is bypassed.
+  await audits.deleteOne({ _id: seededAuditId });
 
   await mongoose.disconnect();
   const passed = results.filter(Boolean).length;

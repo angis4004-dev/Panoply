@@ -88,7 +88,7 @@ export default function PortfolioBuilderTab() {
         // passing the raw portfolio report straight through, which 400s
         // on missing required fields.
         await addReport({
-          title: `Portfolio Report — ${riskProfile} risk`,
+          title: `Portfolio Report: ${riskProfile} risk`,
           description: `${reportHoldings.length} holding${reportHoldings.length === 1 ? '' : 's'}, $${totalValue.toLocaleString()} analyzed`,
           type: 'portfolio',
           status: data.emailStatus === 'sent' ? 'success' : 'failed',
@@ -97,7 +97,7 @@ export default function PortfolioBuilderTab() {
           recommendations,
         });
         addToast(
-          `Report ready — ${reportHoldings.length} asset${reportHoldings.length === 1 ? '' : 's'}, $${totalValue.toLocaleString()} analyzed, sent to ${email}`,
+          `Report ready. ${reportHoldings.length} asset${reportHoldings.length === 1 ? '' : 's'}, $${totalValue.toLocaleString()} analyzed, sent to ${email}`,
           'success'
         );
         setTimeout(() => setTab('history'), 1000);

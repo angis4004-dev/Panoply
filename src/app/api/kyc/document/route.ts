@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionFromRequest } from '@/lib/session';
+import { requireUnlock } from '@/lib/dashboard-unlock';
 import { getUserModel } from '@/lib/models';
 import { encryptPiiBuffer, PiiCryptoError } from '@/lib/pii-crypto';
 
@@ -39,6 +40,8 @@ export async function POST(request: NextRequest) {
   if (!session) {
     return NextResponse.json({ error: 'You must be signed in.' }, { status: 401 });
   }
+  const locked = requireUnlock(request, session);
+  if (locked) return locked;
 
   let file: File | null = null;
   try {
@@ -97,6 +100,15 @@ export async function POST(request: NextRequest) {
   const userModel = await getUserModel();
   if (!userModel) {
     return NextResponse.json({ error: 'Database connection unavailable' }, { status: 503 });
+  }
+
+  const currentUser = await userModel.findById(session.user.id).select('kycStatus');
+  if (!currentUser) return NextResponse.json({ error: 'User not found' }, { status: 404 });
+  if (currentUser.kycStatus === 'verified') {
+    return NextResponse.json(
+      { error: 'Your identity is already verified; the document cannot be replaced here.' },
+      { status: 409 }
+    );
   }
 
   const updated = await userModel.findByIdAndUpdate(
@@ -186,6 +198,8 @@ export async function DELETE(request: NextRequest) {
   if (!session) {
     return NextResponse.json({ error: 'You must be signed in.' }, { status: 401 });
   }
+  const locked = requireUnlock(request, session);
+  if (locked) return locked;
 
   const userModel = await getUserModel();
   if (!userModel) {
@@ -204,15 +218,25 @@ export async function DELETE(request: NextRequest) {
     );
   }
 
-  await userModel.findByIdAndUpdate(session.user.id, {
-    $unset: {
-      kycDocumentData: '',
-      kycDocumentMimeType: '',
-      kycDocumentSize: '',
-      kycDocumentUploadedAt: '',
+  const updated = await userModel.findOneAndUpdate(
+    { _id: session.user.id, kycStatus: { $ne: 'verified' } },
+    {
+      $unset: {
+        kycDocumentData: '',
+        kycDocumentMimeType: '',
+        kycDocumentSize: '',
+        kycDocumentUploadedAt: '',
+      },
+      $set: { kycDocumentProvided: false },
     },
-    $set: { kycDocumentProvided: false },
-  });
+    { new: true }
+  );
+  if (!updated) {
+    return NextResponse.json(
+      { error: 'Your identity is already verified; the document cannot be removed here.' },
+      { status: 409 }
+    );
+  }
 
   return NextResponse.json({ removed: true });
 }

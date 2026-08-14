@@ -26,11 +26,11 @@ export async function POST(request: Request) {
       const verifyLink = `${appUrl}/verify-email?token=${verificationToken}`;
       await sendEmail({
         to: result.user.email,
-        subject: 'Verify your Aegis email address',
+        subject: 'Verify your Panoply email address',
         html: `
           <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
             <h2>Verify your email</h2>
-            <p>Welcome to Aegis. Confirm your email address to finish setting up your account.</p>
+            <p>Welcome to Panoply. Confirm your email address to finish setting up your account.</p>
             <p>
               <a href="${verifyLink}" style="display:inline-block;padding:12px 20px;background:#1E63FF;color:#F2F5FA;text-decoration:none;border-radius:8px;font-weight:600;">
                 Verify Email

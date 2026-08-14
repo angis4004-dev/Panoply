@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Menu } from 'lucide-react';
 import { useAppStore } from '@/store/app-store';
 import { NotificationBell } from '@/components/dashboard/notification-bell';
-import { AegisMark } from '@/components/ui/AegisLogo';
+import { PanoplyMark } from '@/components/ui/PanoplyLogo';
 
 interface DashboardHeaderProps {
   onMenuClick?: () => void;
@@ -29,9 +29,9 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
           href="/"
           className="flex min-h-[44px] items-center gap-2 rounded lg:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
         >
-          <AegisMark size={20} />
-          <span className="font-wordmark font-extrabold uppercase tracking-[0.12em] text-ds-text">
-            AEGIS
+          <PanoplyMark size={20} className="text-brand-cream" />
+          <span className="font-wordmark font-normal tracking-normal text-brand-cream">
+            Panoply
           </span>
         </Link>
         <div className="hidden items-center gap-2 sm:flex">

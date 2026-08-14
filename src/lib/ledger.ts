@@ -1,11 +1,13 @@
 import mongoose, { ClientSession } from 'mongoose';
 import { connectToDatabase } from '@/lib/mongo';
 import { UserModel } from '@/lib/models/user';
+import { AdminAuditLogModel } from '@/lib/models/AdminAuditLog';
 import {
   LedgerEntryModel,
   type LedgerEntryType,
   type LedgerRelatedEntityType,
 } from '@/lib/models/LedgerEntry';
+import { targetBalanceDelta } from '@/lib/admin-balance';
 
 /**
  * The only sanctioned way to move wallet capital.
@@ -44,6 +46,8 @@ export interface PostSpec {
   relatedEntityId?: string | mongoose.Types.ObjectId;
   idempotencyKey?: string;
   actorUserId?: string | mongoose.Types.ObjectId;
+  /** The admin console operator responsible, for entries posted from the console. */
+  actorAdminId?: string | mongoose.Types.ObjectId;
   memo?: string;
   /**
    * Additional counters to increment on the user document inside the same
@@ -63,6 +67,21 @@ export interface PostResult {
 export interface LedgerTx {
   session: ClientSession;
   post(spec: PostSpec): Promise<PostResult>;
+}
+
+export interface SetBalanceTargetSpec extends Omit<PostSpec, 'amountMinor'> {
+  targetMinor: number;
+  /** The balance shown to the admin before they submitted the change. */
+  expectedBalanceMinor: number;
+  audit: {
+    actorAdminId: string | mongoose.Types.ObjectId;
+    actorEmail: string;
+    actorRole: string;
+    sessionId?: string | mongoose.Types.ObjectId | null;
+    ip: string;
+    userAgent?: string;
+    reason: string;
+  };
 }
 
 async function postWithin(session: ClientSession, spec: PostSpec): Promise<PostResult> {
@@ -132,6 +151,7 @@ async function postWithin(session: ClientSession, spec: PostSpec): Promise<PostR
         // unique index on this field has nothing to collide on.
         ...(spec.idempotencyKey ? { idempotencyKey: spec.idempotencyKey } : {}),
         actorUserId: spec.actorUserId ?? null,
+        actorAdminId: spec.actorAdminId ?? null,
         memo: spec.memo ?? '',
       },
     ],
@@ -177,6 +197,58 @@ export async function withLedger<T>(fn: (tx: LedgerTx) => Promise<T>): Promise<T
 /** Posts a single entry in its own transaction. */
 export async function post(spec: PostSpec): Promise<PostResult> {
   return withLedger((tx) => tx.post(spec));
+}
+
+/**
+ * Sets a balance to a reviewed target without allowing a stale read to create
+ * a second adjustment. Both the comparison and ledger post happen in one
+ * transaction; a transaction retry therefore re-checks the observed balance.
+ */
+export async function setBalanceToTarget(spec: SetBalanceTargetSpec): Promise<PostResult> {
+  return withLedger(async (tx) => {
+    const user = await UserModel.findById(spec.userId)
+      .select('walletBalanceMinor')
+      .session(tx.session)
+      .lean();
+    if (!user) throw new UserNotFoundError();
+
+    const currentMinor = user.walletBalanceMinor ?? 0;
+    const amountMinor = targetBalanceDelta({
+      expectedMinor: spec.expectedBalanceMinor,
+      currentMinor,
+      targetMinor: spec.targetMinor,
+    });
+    if (amountMinor === 0) {
+      return { balanceMinor: currentMinor, entryId: '', deduplicated: false };
+    }
+
+    const posted = await tx.post({ ...spec, amountMinor });
+    // Written inside the transaction, not after it. An adjustment that
+    // committed with no audit entry is exactly the situation the audit log
+    // exists to make impossible, so a failure here rolls the money back too.
+    await AdminAuditLogModel.create(
+      [
+        {
+          actorAdminId: spec.audit.actorAdminId,
+          actorEmail: spec.audit.actorEmail,
+          actorRole: spec.audit.actorRole,
+          action: 'ledger.adjust',
+          targetType: 'user',
+          targetId: String(spec.userId),
+          affectedUserId: spec.userId,
+          before: { walletBalanceMinor: currentMinor },
+          after: { walletBalanceMinor: spec.targetMinor },
+          reason: spec.audit.reason,
+          reference: posted.entryId,
+          ip: spec.audit.ip,
+          userAgent: (spec.audit.userAgent ?? '').slice(0, 400),
+          sessionId: spec.audit.sessionId ?? null,
+        },
+      ],
+      { session: tx.session }
+    );
+    return posted;
+  });
 }
 
 /** Credits the wallet. `amountMinor` must be positive. */

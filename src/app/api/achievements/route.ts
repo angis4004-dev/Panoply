@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionFromRequest } from '@/lib/session';
+import { requireUnlock } from '@/lib/dashboard-unlock';
 import { getUserModel } from '@/lib/models';
 import { UserAchievementModel } from '@/lib/models/UserAchievement';
 import { ACHIEVEMENT_CATALOG } from '@/lib/achievements/catalog';
@@ -18,6 +19,8 @@ export async function GET(request: NextRequest) {
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+  const locked = requireUnlock(request, session);
+  if (locked) return locked;
 
   const userModel = await getUserModel();
   if (!userModel) {

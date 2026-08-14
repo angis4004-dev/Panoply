@@ -37,7 +37,7 @@ function writeUsers(users: PersistedUser[]) {
   fs.writeFileSync(USERS_FILE_PATH, JSON.stringify(users, null, 2));
 }
 
-function hashPassword(password: string) {
+export function hashPassword(password: string) {
   const salt = crypto.randomBytes(16).toString('hex');
   const derivedKey = crypto.pbkdf2Sync(password, salt, 100000, 64, 'sha512').toString('hex');
   return `${salt}:${derivedKey}`;

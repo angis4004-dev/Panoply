@@ -3,13 +3,14 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { LogOut, Menu, X } from 'lucide-react';
-import { useAppStore } from '@/store/app-store';
 import { useAuth } from '@/hooks/use-auth';
-import { AegisMark } from '@/components/ui/AegisLogo';
+import { PanoplyMark } from '@/components/ui/PanoplyLogo';
 
 export function Navbar() {
-  const { user } = useAppStore();
-  const { logout } = useAuth();
+  // Reads the session directly rather than through the app store. The store
+  // now lives inside the dashboard's PIN gate, so it does not exist out here -
+  // and it only ever mirrored the auth context's user anyway.
+  const { user, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navLinks = [
@@ -29,9 +30,9 @@ export function Navbar() {
               href="/"
               className="flex min-h-[44px] items-center gap-2.5 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
             >
-              <AegisMark size={28} />
-              <span className="font-wordmark text-xl font-extrabold uppercase tracking-[0.12em] text-white">
-                AEGIS
+              <PanoplyMark size={28} className="text-brand-cream" />
+              <span className="font-wordmark text-xl font-normal tracking-normal text-brand-cream">
+                Panoply
               </span>
             </Link>
 

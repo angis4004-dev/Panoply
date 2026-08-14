@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Camera, Check, FileText, RotateCcw, Trash2, Upload, X } from 'lucide-react';
+import { Loader } from '@/components/ui/loader';
 
 /** Kept in step with ALLOWED in /api/kyc/document. */
 const ACCEPT = 'image/jpeg,image/png,image/webp,application/pdf';
@@ -326,7 +327,7 @@ export function IdDocumentCapture({
             {pendingFile?.type === 'application/pdf' ? (
               <div className="flex items-center gap-3 p-6 text-sm text-ds-text-muted">
                 <FileText className="h-8 w-8 shrink-0 text-primary" />
-                <span>PDF selected — {formatSize(pendingFile.size)}</span>
+                <span>PDF selected: {formatSize(pendingFile.size)}</span>
               </div>
             ) : (
               // eslint-disable-next-line @next/next/no-img-element
@@ -338,12 +339,12 @@ export function IdDocumentCapture({
             )}
           </div>
           <p className="mt-2 text-xs text-ds-text-muted">
-            Readable? {pendingFile ? formatSize(pendingFile.size) : ''} — nothing is sent until you
+            Readable? {pendingFile ? formatSize(pendingFile.size) : ''}. Nothing is sent until you
             confirm.
           </p>
           <div className="mt-3 flex flex-wrap gap-3">
             <button type="button" onClick={upload} disabled={busy} className={solid}>
-              <Check className="h-4 w-4" />
+              {busy ? <Loader size={16} /> : <Check className="h-4 w-4" />}
               {busy ? 'Uploading…' : 'Use this photo'}
             </button>
             <button type="button" onClick={cancel} disabled={busy} className={outline}>

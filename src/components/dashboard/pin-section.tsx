@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { useAppStore } from '@/store/app-store';
 import { useAuth } from '@/hooks/use-auth';
-
-const PIN_LENGTH = 6;
+import { Loader } from '@/components/ui/loader';
+import { PinInput, PIN_LENGTH } from '@/components/auth/pin-input';
 
 /**
  * Sign-in PIN panel for the settings page. Handles both jobs:
@@ -33,10 +33,6 @@ export function PinSection() {
   const [confirmPin, setConfirmPin] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Matches PinStep and /reset-pin: filter at input time so the field can never
-  // hold something the server would reject.
-  const onlyDigits = (value: string) => value.replace(/\D/g, '').slice(0, PIN_LENGTH);
 
   const close = () => {
     setCurrentPin('');
@@ -94,31 +90,38 @@ export function PinSection() {
     }
   };
 
+  /*
+   * The same six boxes the dashboard gate uses.
+   *
+   * This panel used to collect the PIN through ordinary password fields, so
+   * the one secret in the product had two unrelated appearances depending on
+   * where you happened to be entering it. One control everywhere is most of
+   * what makes it look designed rather than assembled - and the six boxes also
+   * make the length self-evident, which is what the "6 digits" placeholder was
+   * there to say.
+   */
   const field = (
-    id: string,
+    idPrefix: string,
     label: string,
     value: string,
     onChange: (v: string) => void,
-    autoComplete: string
+    autoFocus: boolean
   ) => (
     <div>
-      <label htmlFor={id} className="mb-1.5 block text-xs font-medium text-ds-text-muted">
-        {label}
-      </label>
-      <input
-        id={id}
-        name={id}
-        type="password"
-        inputMode="numeric"
-        autoComplete={autoComplete}
-        maxLength={PIN_LENGTH}
+      <span className="mb-2 block text-xs font-medium text-ds-text-muted">{label}</span>
+      <PinInput
+        align="start"
+        idPrefix={idPrefix}
+        label={label}
         value={value}
-        onChange={(e) => onChange(onlyDigits(e.target.value))}
+        onChange={(next) => {
+          onChange(next);
+          if (error) setError(null);
+        }}
         disabled={saving}
-        aria-invalid={error ? 'true' : undefined}
-        aria-describedby={error ? 'pin-section-error' : undefined}
-        className="w-full min-h-[44px] rounded-lg border border-ds-border-strong bg-ds-border/60 px-4 py-2.5 text-sm text-ds-text outline-none focus:border-primary"
-        placeholder={`${PIN_LENGTH} digits`}
+        autoFocus={autoFocus}
+        invalid={Boolean(error)}
+        describedBy={error ? 'pin-section-error' : undefined}
       />
     </div>
   );
@@ -134,8 +137,8 @@ export function PinSection() {
           <p className="mb-3 text-sm text-ds-text">Sign-in PIN</p>
           <p className="mb-4 text-xs text-ds-text-muted">
             {hasPin
-              ? 'The 6-digit PIN you enter after your password. Changing it signs out every other device.'
-              : 'A 6-digit PIN adds a second step after your password, so a stolen password is not enough to reach your account on its own.'}
+              ? 'Entered after your password. Changing it signs out every other device.'
+              : 'Six digits, entered after your password. A stolen password alone will not open your dashboard.'}
           </p>
           <button
             type="button"
@@ -146,18 +149,16 @@ export function PinSection() {
           </button>
         </div>
       ) : (
-        <form onSubmit={submit} className="space-y-4">
-          {hasPin && field('currentPin', 'Current PIN', currentPin, setCurrentPin, 'off')}
-          {field('newPin', hasPin ? 'New PIN' : 'PIN', pin, setPin, 'new-password')}
+        <form onSubmit={submit} className="space-y-5">
+          {hasPin && field('current-pin', 'Current PIN', currentPin, setCurrentPin, true)}
+          {field('new-pin', hasPin ? 'New PIN' : 'PIN', pin, setPin, !hasPin)}
           {field(
-            'confirmNewPin',
+            'confirm-pin',
             hasPin ? 'Confirm new PIN' : 'Confirm PIN',
             confirmPin,
             setConfirmPin,
-            'new-password'
+            false
           )}
-
-          <p className="text-xs text-ds-text-muted">Avoid repeated digits and simple sequences.</p>
 
           {error && (
             <p
@@ -174,8 +175,9 @@ export function PinSection() {
             <button
               type="submit"
               disabled={saving}
-              className="min-h-[44px] rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface-raised disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex min-h-[44px] items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface-raised disabled:cursor-not-allowed disabled:opacity-50"
             >
+              {saving && <Loader size={16} />}
               {saving ? 'Saving…' : hasPin ? 'Update PIN' : 'Set PIN'}
             </button>
             <button

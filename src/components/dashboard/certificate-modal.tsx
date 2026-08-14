@@ -4,7 +4,7 @@ import { useRef } from 'react';
 import { X } from 'lucide-react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
-import { AegisMark } from '@/components/ui/AegisLogo';
+import { PanoplyMark } from '@/components/ui/PanoplyLogo';
 
 interface CertificateModalProps {
   name: string;
@@ -60,9 +60,9 @@ export function CertificateModal({
         </button>
 
         <div className="mb-6 flex items-center justify-center gap-2">
-          <AegisMark size={28} />
-          <span className="font-wordmark text-lg font-extrabold uppercase tracking-[0.12em] text-ds-text">
-            AEGIS
+          <PanoplyMark size={28} className="text-brand-cream" />
+          <span className="font-wordmark text-lg font-normal tracking-normal text-brand-cream">
+            Panoply
           </span>
         </div>
 

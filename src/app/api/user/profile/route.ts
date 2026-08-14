@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionFromRequest } from '@/lib/session';
+import { requireUnlock } from '@/lib/dashboard-unlock';
 import { getUserModel } from '@/lib/models';
 import { grantAchievement } from '@/lib/achievements/engine';
 import { parseBody, updateProfileSchema } from '@/lib/validation';
@@ -9,6 +10,8 @@ export async function PATCH(request: NextRequest) {
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+  const locked = requireUnlock(request, session);
+  if (locked) return locked;
 
   const { data: body, error: invalid } = await parseBody(request, updateProfileSchema);
   if (invalid) return invalid;

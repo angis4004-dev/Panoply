@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { Reveal } from '@/components/ui/Reveal';
+import { SignalField } from '@/components/ui/signal-field';
 import { useScrollParallax } from '@/hooks/use-scroll-parallax';
 
 export function Hero() {
@@ -62,14 +63,19 @@ export function Hero() {
               <span className="italic text-primary">portfolios.</span>
             </h1>
             <p className="text-ds-text-muted text-base sm:text-lg mb-8 max-w-xl leading-relaxed">
-              Aegis combines quantitative research, automated execution, and risk management in a
+              Panoply combines quantitative research, automated execution, and risk management in a
               single non-custodial platform. Set your risk parameters and let disciplined,
               continuously monitored automation handle the rest.
             </p>
-            <div className="flex flex-wrap gap-4">
+            {/* The field spans the CTA row and reads in the space around and
+                between the two buttons - the cream fill is opaque, so behind
+                them there would be nothing to see. -mx-3 keeps the buttons on
+                the same optical left edge as the paragraph above despite the
+                padding the field needs. */}
+            <SignalField variant="cta" className="-mx-3 flex flex-wrap gap-4 px-3 py-3">
               <Link
                 href="/sign-up-login-screen"
-                className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-primary-foreground bg-primary hover:bg-primary/90 rounded-lg transition duration-fast ease-ds-out active:scale-[0.97] hover:shadow-lg hover:shadow-primary/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
+                className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-primary-foreground bg-primary hover:bg-primary/90 rounded-lg transition duration-fast ease-ds-out active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
               >
                 Put Your Portfolio on Autopilot
                 <ArrowRight className="h-4 w-4" />
@@ -80,7 +86,7 @@ export function Hero() {
               >
                 See How It Works
               </a>
-            </div>
+            </SignalField>
           </Reveal>
 
           <Reveal delay={150} className="hidden lg:block">

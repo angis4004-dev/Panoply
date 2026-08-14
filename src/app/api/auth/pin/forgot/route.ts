@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import { NextResponse } from 'next/server';
 import { getUserModel } from '@/lib/models';
-import { verifyPendingPinToken } from '@/lib/session';
+import { getSessionFromRequest } from '@/lib/session';
 import { sendEmail } from '@/lib/email';
 import { parseBody, pinForgotSchema } from '@/lib/validation';
 
@@ -11,10 +11,10 @@ const PIN_RESET_TTL_MS = 60 * 60 * 1000;
 /**
  * POST /api/auth/pin/forgot - Emails a link for choosing a new PIN.
  *
- * Gated on the pending token, not on an email address. That single choice is
- * what keeps the PIN a real second factor: to get a reset link you must
- * already have cleared the password step, so the link is worth something only
- * to someone who holds the password AND the inbox. An email-addressed version
+ * Gated on the session, not on an email address. That single choice is what
+ * keeps the PIN a real second factor: to get a reset link you must already
+ * have cleared the password step, so the link is worth something only to
+ * someone who holds the password AND the inbox. An email-addressed version
  * would let anyone spray reset mail at any account, and would reduce recovery
  * of both secrets to "can you read this inbox".
  *
@@ -24,16 +24,15 @@ const PIN_RESET_TTL_MS = 60 * 60 * 1000;
  */
 export async function POST(request: Request) {
   try {
-    const { data: body, error: invalid } = await parseBody(request, pinForgotSchema);
+    const session = await getSessionFromRequest(request);
+    if (!session) {
+      return NextResponse.json({ error: 'You must be signed in.' }, { status: 401 });
+    }
+
+    const { error: invalid } = await parseBody(request, pinForgotSchema);
     if (invalid) return invalid;
 
-    const userId = verifyPendingPinToken(body.pendingToken);
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'Your sign-in attempt expired. Please enter your password again.' },
-        { status: 401 }
-      );
-    }
+    const userId = session.user.id;
 
     const userModel = await getUserModel();
     if (!userModel) {
@@ -55,11 +54,11 @@ export async function POST(request: Request) {
 
     const sent = await sendEmail({
       to: user.email,
-      subject: 'Choose a new Aegis PIN',
+      subject: 'Choose a new Panoply PIN',
       html: `
         <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
           <h2>Choose a new PIN</h2>
-          <p>Someone entered your password and asked to reset the 6-digit PIN on your Aegis account.</p>
+          <p>Someone entered your password and asked to reset the 6-digit PIN on your Panoply account.</p>
           <p>
             <a href="${resetLink}" style="display:inline-block;padding:12px 20px;background:#243B8F;color:#FFF0C9;text-decoration:none;border-radius:8px;font-weight:600;">
               Choose a New PIN

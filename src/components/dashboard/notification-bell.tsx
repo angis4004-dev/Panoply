@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Bell, Trophy, ShieldCheck, KeyRound, Info } from 'lucide-react';
+import { LoadingState } from '@/components/ui/loader';
 
 /**
  * The header bell, and the panel behind it.
@@ -222,9 +223,7 @@ export function NotificationBell() {
           </div>
 
           <div className="max-h-[min(26rem,60vh)] overflow-y-auto overscroll-contain">
-            {!loaded && (
-              <p className="px-4 py-8 text-center text-sm text-ds-text-muted">Loading...</p>
-            )}
+            {!loaded && <LoadingState message="Loading notifications" size={28} className="py-6" />}
 
             {loaded && items.length === 0 && (
               <div className="px-4 py-8 text-center">

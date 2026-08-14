@@ -73,7 +73,7 @@ export function IdentityScore({ score, size = 'lg' }: IdentityScoreProps) {
           />
           {/* Brand cream, not the blue that was here.
 
-              This is the second progress ring on the overview - the Aegis
+              This is the second progress ring on the overview - the Panoply
               risk score has one too - and that one already draws its arc in
               the brand accent. Two rings measuring progress toward a goal,
               side by side, in two unrelated accent colours read as two

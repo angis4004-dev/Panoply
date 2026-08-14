@@ -16,7 +16,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
-import { AegisMark } from '@/components/ui/AegisLogo';
+import { PanoplyMark } from '@/components/ui/PanoplyLogo';
 import { TierBadge } from '@/components/dashboard/tier-badge';
 
 const navItems = [
@@ -55,18 +55,15 @@ export default function DashboardSidebar({ onNavigate }: DashboardSidebarProps) 
   return (
     <aside className="flex h-full min-h-screen w-64 flex-col border-r border-ds-border bg-ds-surface-chrome">
       <div className="flex h-14 items-center gap-2.5 border-b border-ds-border px-5">
-        <AegisMark size={28} />
+        <PanoplyMark size={28} className="text-brand-cream" />
         <div>
           <Link
             href="/"
             onClick={onNavigate}
-            className="rounded font-wordmark text-base font-extrabold uppercase tracking-[0.12em] text-ds-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface-chrome"
+            className="rounded font-wordmark text-base font-normal tracking-normal text-brand-cream focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface-chrome"
           >
-            AEGIS
+            Panoply
           </Link>
-          <p className="text-ds-caption uppercase tracking-wider text-ds-text-muted">
-            Command Center
-          </p>
         </div>
       </div>
 

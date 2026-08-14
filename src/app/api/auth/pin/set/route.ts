@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getUserModel } from '@/lib/models';
 import { getSessionFromRequest } from '@/lib/session';
+import { createDashboardUnlockToken } from '@/lib/dashboard-unlock';
 import { hashPin, isValidPinFormat, isWeakPin, PIN_LENGTH } from '@/lib/pin';
 import { notifySecurityEvent } from '@/lib/notifications';
 import { parseBody, pinSetSchema } from '@/lib/validation';
@@ -79,7 +80,15 @@ export async function POST(request: Request) {
     // No cookie work here. The caller already holds a valid session and
     // tokenVersion is untouched, so nothing about their sign-in state changes:
     // they have simply added a factor they will be asked for next time.
-    return NextResponse.json({ message: 'PIN set.' });
+    //
+    // An unlock token comes back because this is reached from inside the
+    // dashboard gate: someone who has just chosen a PIN has demonstrably
+    // supplied it, and asking them to type it straight back would be a
+    // confirmation step they already completed on the previous field.
+    return NextResponse.json({
+      message: 'PIN set.',
+      unlockToken: createDashboardUnlockToken(session.user.id, session.user.tokenVersion),
+    });
   } catch (error) {
     console.error('Error setting PIN:', error);
     return NextResponse.json({ error: 'Unable to set your PIN right now.' }, { status: 500 });

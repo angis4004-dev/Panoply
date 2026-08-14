@@ -11,8 +11,15 @@ export { LedgerEntryModel } from './LedgerEntry';
 export { AdminAuditLogModel } from './AdminAuditLog';
 export { RateLimitBucketModel } from './RateLimitBucket';
 export { NotificationModel } from './Notification';
+export { DepositAddressModel } from './DepositAddress';
+export { AdminUserModel } from './AdminUser';
+export { AdminSessionModel } from './AdminSession';
+export { DepositModel } from './Deposit';
 export type { ILedgerEntry, LedgerEntryType } from './LedgerEntry';
 export type { INotification, NotificationType } from './Notification';
+export type { IAdminUser } from './AdminUser';
+export type { IDeposit, DepositStatus } from './Deposit';
+export type { AuditTargetType } from './AdminAuditLog';
 
 // Import User model from mongo.ts
 import { getUserModel } from '../mongo';

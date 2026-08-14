@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { CheckCircle, Lock, Monitor, Shield } from 'lucide-react';
 import { Reveal } from '@/components/ui/Reveal';
+import { SignalField, signalHeadline } from '@/components/ui/signal-field';
 
 // ssr:false for two reasons: Stack's randomRotation calls Math.random()
 // during render, which would desync the server pass from hydration, and it
@@ -19,7 +20,7 @@ const items = [
   {
     icon: Lock,
     title: 'Non-Custodial',
-    desc: 'You retain full control of your assets. Aegis never holds your private keys.',
+    desc: 'You retain full control of your assets. Panoply never holds your private keys.',
   },
   {
     icon: CheckCircle,
@@ -36,13 +37,17 @@ const items = [
 function SecurityCard({ item }: { item: (typeof items)[number] }) {
   const Icon = item.icon;
   return (
-    <div className="h-full w-full bg-ds-surface-raised/50 border border-ds-border rounded-xl p-6 text-center transition duration-base ease-ds-out hover:-translate-y-1 hover:border-primary/25">
-      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 transition-transform duration-base ease-ds-out group-hover:scale-110">
+    <SignalField className="h-full w-full p-6 text-center" variant="panel">
+      {/* The icon no longer scales on hover. A 110% pop is the generic move
+          this system replaces; the field around it now carries the response. */}
+      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
         <Icon className="h-6 w-6 text-primary" />
       </div>
-      <h3 className="font-display font-normal text-xl text-white mb-2">{item.title}</h3>
+      <h3 className={`font-display font-normal text-xl text-white mb-2 ${signalHeadline}`}>
+        {item.title}
+      </h3>
       <p className="text-sm text-ds-text-muted">{item.desc}</p>
-    </div>
+    </SignalField>
   );
 }
 
@@ -95,7 +100,7 @@ export function SecuritySection() {
             Your Keys. Your Crypto. Always.
           </h2>
           <p className="text-ds-text-muted max-w-2xl mx-auto">
-            Aegis never takes custody of your assets. Every strategy runs non-custodially, with
+            Panoply never takes custody of your assets. Every strategy runs non-custodially, with
             bank-level encryption and 24/7 automated monitoring on your account.
           </p>
         </div>
