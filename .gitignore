@@ -51,6 +51,9 @@ data/
 .claude/
 .claude-flow/
 
+# Scratch output from local tooling and audit runs, not part of the app
+outputs/
+
 # Debug logs, pid files, and one-off local artifacts
 *.log
 *.pid
