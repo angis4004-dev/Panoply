@@ -1,5 +1,5 @@
 'use client';
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 export type UserRole = 'Admin' | 'Trader' | null;
 
@@ -50,19 +50,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .finally(() => setLoading(false));
   }, []);
 
-  const setUser = (u: AuthUser | null) => {
+  /*
+   * Stable identity, deliberately.
+   *
+   * Consumers put setUser in effect dependency arrays - the dashboard PIN gate
+   * does, to write the server's session answer back here. Recreated on every
+   * render, it would re-trigger those effects endlessly; the gate's would
+   * refetch /api/auth/session in a loop.
+   *
+   * Auth is carried by an httpOnly cookie, so there is nothing to persist
+   * client-side here beyond React state.
+   */
+  const setUser = useCallback((u: AuthUser | null) => {
     setUserState(u);
-    // Note: We no longer use sessionStorage - auth is managed via cookies
-    // This function is kept for compatibility with existing code
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setUser(null);
     fetch('/api/auth/logout', { method: 'POST' }).catch(() => {
       // Client state is already cleared; a failed request just leaves the
       // cookie to expire naturally rather than blocking the UI logout.
     });
-  };
+  }, [setUser]);
 
   return (
     <AuthContext.Provider value={{ user, loading, setUser, logout }}>

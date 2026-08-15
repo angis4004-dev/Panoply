@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import LoadingBars from '@/components/ui/loading-bars';
+import { Loader } from '@/components/ui/loader';
 
 export default function Error({
   error,
@@ -16,7 +16,11 @@ export default function Error({
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-[#0A0E13] p-6 text-center">
-      <LoadingBars />
+      {/* The application's one loader, in the brand cream (#FFF0C9).
+          This screen used to run LoadingBars - seven bars in blue, teal,
+          green and purple, a palette that appears nowhere else in Panoply
+          and reads as a different product's error page. */}
+      <Loader size={48} className="text-brand-cream" />
       <div className="max-w-sm space-y-2">
         <h1 className="text-lg font-bold text-[#E7ECF2]">Panoply is temporarily unavailable</h1>
         <p className="text-sm text-[#8B95A5]">

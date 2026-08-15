@@ -7,6 +7,7 @@ import { PanoplyMark } from '@/components/ui/PanoplyLogo';
 import { Loader } from '@/components/ui/loader';
 import { PinInput, PIN_LENGTH } from '@/components/auth/pin-input';
 import { installUnlockToken } from '@/lib/dashboard-unlock-client';
+import { useAuth, type AuthUser } from '@/context/AuthContext';
 
 /**
  * The door in front of the dashboard.
@@ -26,11 +27,12 @@ import { installUnlockToken } from '@/lib/dashboard-unlock-client';
 type Mode = 'checking' | 'enter' | 'create' | 'unlocked' | 'signed-out';
 
 interface SessionResponse {
-  user?: { name?: string; hasPin?: boolean } | null;
+  user?: AuthUser | null;
 }
 
 export function PinGate({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const { setUser } = useAuth();
   const [mode, setMode] = useState<Mode>('checking');
   const [name, setName] = useState<string | null>(null);
 
@@ -61,6 +63,29 @@ export function PinGate({ children }: { children: React.ReactNode }) {
         const payload: SessionResponse = await response.json();
         setName(payload.user?.name ?? null);
         setMode(payload.user?.hasPin ? 'enter' : 'create');
+
+        /*
+         * Push the server's answer back into AuthContext.
+         *
+         * AuthProvider only reads /api/auth/session once, in a mount effect.
+         * Signing in does not remount it - completeSignIn calls setUser with
+         * the signin response and then router.push('/dashboard'), a
+         * client-side navigation - and the signin response carries only
+         * email, name and role. So everything the session route computes from
+         * the database arrived undefined: hasPin, tier, xp, emailVerified,
+         * walletAddress, walletOwnershipConfirmed.
+         *
+         * The visible symptom was the onboarding checklist telling someone to
+         * "Set a sign-in PIN" on the very screen they had just unlocked with
+         * that PIN, because it tests `user.hasPin === true` and undefined is
+         * not true. The gate had the correct answer all along and was
+         * throwing everything except the name away.
+         *
+         * This is the right place to reconcile: it runs before any dashboard
+         * component mounts, and it is the one fetch already guaranteed to
+         * happen on every dashboard entry.
+         */
+        if (payload.user) setUser(payload.user);
       } catch {
         if (!cancelled) setError('Could not reach the server. Check your connection and retry.');
       }
@@ -68,7 +93,7 @@ export function PinGate({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [router]);
+  }, [router, setUser]);
 
   // Drops the token when the gate leaves the tree, so navigating away from the
   // dashboard entirely re-locks rather than leaving a live token in memory.
