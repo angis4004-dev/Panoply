@@ -299,7 +299,7 @@ export function PinGate({ children }: { children: React.ReactNode }) {
                   ) : (
                     <ShieldCheck className="h-4 w-4" aria-hidden="true" />
                   )}
-                  {busy ? 'Checking…' : 'Unlock dashboard'}
+                  <span>{busy ? 'Checking…' : 'Unlock dashboard'}</span>
                 </button>
 
                 <button
@@ -375,7 +375,7 @@ export function PinGate({ children }: { children: React.ReactNode }) {
                   ) : (
                     <KeyRound className="h-4 w-4" aria-hidden="true" />
                   )}
-                  {busy ? 'Saving…' : 'Set PIN'}
+                  <span>{busy ? 'Saving…' : 'Set PIN'}</span>
                 </button>
               </form>
             )}

@@ -345,7 +345,7 @@ export function IdDocumentCapture({
           <div className="mt-3 flex flex-wrap gap-3">
             <button type="button" onClick={upload} disabled={busy} className={solid}>
               {busy ? <Loader size={16} /> : <Check className="h-4 w-4" />}
-              {busy ? 'Uploading…' : 'Use this photo'}
+              <span>{busy ? 'Uploading…' : 'Use this photo'}</span>
             </button>
             <button type="button" onClick={cancel} disabled={busy} className={outline}>
               <RotateCcw className="h-4 w-4" />
@@ -369,7 +369,7 @@ export function IdDocumentCapture({
           </div>
           <button type="button" onClick={remove} disabled={busy} className={outline}>
             <Trash2 className="h-4 w-4" />
-            {busy ? 'Removing…' : 'Replace'}
+            <span>{busy ? 'Removing…' : 'Replace'}</span>
           </button>
         </div>
       )}

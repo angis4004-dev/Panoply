@@ -37,6 +37,112 @@
   --font-display: var(--font-instrument), Georgia, serif;
 }
 
+/* ------------------------------------------------------------------
+ * Arabic.
+ *
+ * Appended to each role rather than replacing it, because a font-family
+ * list is resolved per character: Latin characters keep Tahoma or
+ * Archivo, and only the glyphs those faces do not contain fall through
+ * to Plex Arabic. A wholesale swap would have re-set the Latin brand
+ * names, prices and ticker symbols on an Arabic page in a face chosen
+ * for Arabic.
+ *
+ * Scoped to [dir='rtl'] rather than [lang='ar'] so any right-to-left
+ * language added later - Hebrew, Farsi, Urdu - inherits the same
+ * treatment without another rule.
+ * ------------------------------------------------------------------ */
+[dir='rtl'] {
+  --font-sans: Tahoma, var(--font-plex-sans), var(--font-arabic), Verdana, system-ui, sans-serif;
+  --font-display: var(--font-instrument), var(--font-arabic), Georgia, serif;
+}
+[dir='rtl'] .type-dashboard {
+  --font-sans: var(--font-archivo), var(--font-arabic), system-ui, sans-serif;
+  --font-display: var(--font-archivo), var(--font-arabic), system-ui, sans-serif;
+}
+
+/* ------------------------------------------------------------------
+ * Japanese, Simplified Chinese, Korean.
+ *
+ * These are system stacks, not webfonts, and that is a deliberate
+ * departure from how Arabic is handled.
+ *
+ * A Latin webfont carries a few hundred glyphs. A CJK one carries tens
+ * of thousands, and a full Noto Sans JP/SC/KR family runs to several
+ * megabytes per weight. Shipping three of them to a deposit dashboard
+ * would cost these exact markets more than the typography is worth,
+ * and it is measurably slower on the mid-range Android hardware most
+ * of that traffic arrives on.
+ *
+ * The stacks below name the faces Apple, Microsoft and Google actually
+ * ship, best-first per platform, falling through to Noto for Linux and
+ * Android. Every one of them is a professionally drawn UI face, which
+ * is why native CJK products overwhelmingly use this approach rather
+ * than a webfont.
+ *
+ * Note this is not a new principle here - the Latin body role already
+ * leads with Tahoma, a system font, for the same reason.
+ *
+ * As with Arabic, the CJK families are APPENDED behind the Latin ones
+ * rather than replacing them. Font stacks resolve per character, so
+ * "BTC/USDT", "Panoply" and every price on the page keep rendering in
+ * Tahoma/Plex, and only the Japanese, Chinese or Korean characters
+ * reach the CJK face. Swapping wholesale would re-set the tickers and
+ * numerals in a font chosen for Han glyphs.
+ *
+ * Scoped to [lang] rather than a direction: all three are left-to-right,
+ * so there is no [dir] hook to hang them on, and each needs a different
+ * face - Simplified Chinese rendered in a Japanese font produces subtly
+ * wrong glyph shapes for shared characters, which reads as sloppy to a
+ * native eye even though it is technically legible.
+ * ------------------------------------------------------------------ */
+/*
+ * No generic (sans-serif) terminator inside these variables. They are
+ * substituted into the middle of a longer stack, and a generic family
+ * always resolves - so one placed mid-list silently kills every entry
+ * behind it. Leaving it out keeps the Verdana / system-ui tail at the
+ * end of --font-sans reachable. The outer stacks supply the generic.
+ */
+[lang='ja'] {
+  --font-cjk: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Yu Gothic UI', 'Yu Gothic', Meiryo,
+    'Noto Sans JP';
+}
+[lang='zh'] {
+  --font-cjk: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei UI', 'Microsoft YaHei',
+    'Source Han Sans SC', 'Noto Sans SC';
+}
+[lang='ko'] {
+  --font-cjk: 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Nanum Gothic';
+}
+
+[lang='ja'],
+[lang='zh'],
+[lang='ko'] {
+  --font-sans: Tahoma, var(--font-plex-sans), var(--font-cjk), Verdana, system-ui, sans-serif;
+  --font-display: var(--font-instrument), var(--font-cjk), Georgia, serif;
+
+  /*
+   * CJK glyphs are dense, full-width squares with no ascenders or
+   * descenders to create visual gaps between lines. At the 1.5 leading
+   * that suits Latin they crowd into a grey block. Native guidance is
+   * 1.7-1.8, and the extra air is what makes a paragraph scannable.
+   */
+  line-height: 1.75;
+
+  /*
+   * Tracking added for Latin caps actively damages CJK - there is no
+   * inter-letter space in the writing system to open up, so it just
+   * detaches characters from the words they belong to.
+   */
+  letter-spacing: normal;
+}
+
+[lang='ja'] .type-dashboard,
+[lang='zh'] .type-dashboard,
+[lang='ko'] .type-dashboard {
+  --font-sans: var(--font-archivo), var(--font-cjk), system-ui, sans-serif;
+  --font-display: var(--font-archivo), var(--font-cjk), system-ui, sans-serif;
+}
+
 /* The application runs a different face from the marketing pages: Archivo
    for everything. A dashboard is read at a glance and in quantity, and
    Archivo's larger x-height and narrower set width suit dense figures

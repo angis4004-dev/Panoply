@@ -32,6 +32,30 @@ import './ColorBends.css';
 const MAX_COLORS = 8;
 
 const frag = `
+/*
+ * Ask for high precision explicitly, and say what to do when it is missing.
+ *
+ * GLSL ES only guarantees mediump in fragment shaders. Desktop GPUs hand out
+ * highp anyway, which is why this shader has always looked right on a laptop
+ * and can come out black or banded on a phone - the same source compiled at a
+ * different precision.
+ *
+ * Two things here do not survive mediump. The hash on the noise line
+ * multiplies by 43758.5453123, and mediump carries about three decimal digits,
+ * so the fractional part it exists to extract is already gone. And
+ * exp(uBandWidth * m) with uBandWidth at 7 passes the mediump ceiling of
+ * ~65504 once m goes over about 1.6, giving inf and then a flat band.
+ *
+ * Three.js prepends its own precision line; this one comes after it in the
+ * source and therefore wins. Redeclaration is legal - later statements
+ * override earlier ones.
+ */
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
+precision mediump float;
+#endif
+
 #define MAX_COLORS ${MAX_COLORS}
 uniform vec2 uCanvas;
 uniform float uTime;
@@ -200,11 +224,25 @@ export default function ColorBends({
     const mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);
 
-    const renderer = new THREE.WebGLRenderer({
-      antialias: false,
-      powerPreference: 'high-performance',
-      alpha: true,
-    });
+    /*
+     * Context creation is allowed to fail, and on mobile it does.
+     *
+     * A phone under memory pressure, an old GPU on a driver blocklist, or a
+     * browser that has hit its ceiling on live WebGL contexts will all throw
+     * here. Unhandled, the exception escapes the effect, React unmounts the
+     * tree and the whole page goes blank. Returning quietly instead leaves the
+     * static gradient underneath on show, which is the intended degraded look.
+     */
+    let renderer;
+    try {
+      renderer = new THREE.WebGLRenderer({
+        antialias: false,
+        powerPreference: 'high-performance',
+        alpha: true,
+      });
+    } catch {
+      return undefined;
+    }
     rendererRef.current = renderer;
     // r128 API - see the header note; outputColorSpace/SRGBColorSpace do not
     // exist until r152 and would assign undefined here.
@@ -215,6 +253,27 @@ export default function ColorBends({
     renderer.domElement.style.height = '100%';
     renderer.domElement.style.display = 'block';
     container.appendChild(renderer.domElement);
+
+    /*
+     * A lost context is a black canvas forever unless something handles it.
+     *
+     * Mobile GPUs reclaim contexts routinely - switching apps, a background
+     * tab, memory pressure - and the canvas keeps its last framebuffer, which
+     * for a transparent clear colour is nothing at all. Hiding the element
+     * uncovers the static gradient behind it, so the page degrades instead of
+     * going dark. preventDefault is what makes the browser willing to fire
+     * webglcontextrestored later; without it, the loss is final.
+     */
+    const canvas = renderer.domElement;
+    const onContextLost = (event) => {
+      event.preventDefault();
+      canvas.style.visibility = 'hidden';
+    };
+    const onContextRestored = () => {
+      canvas.style.visibility = '';
+    };
+    canvas.addEventListener('webglcontextlost', onContextLost);
+    canvas.addEventListener('webglcontextrestored', onContextRestored);
 
     const clock = new THREE.Clock();
 
@@ -260,6 +319,11 @@ export default function ColorBends({
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
       if (resizeObserverRef.current) resizeObserverRef.current.disconnect();
       else window.removeEventListener('resize', handleResize);
+      // forceContextLoss below deliberately triggers webglcontextlost, so
+      // these have to come off first or teardown runs the handler on a canvas
+      // that is about to be removed.
+      canvas.removeEventListener('webglcontextlost', onContextLost);
+      canvas.removeEventListener('webglcontextrestored', onContextRestored);
       geometry.dispose();
       material.dispose();
       renderer.dispose();

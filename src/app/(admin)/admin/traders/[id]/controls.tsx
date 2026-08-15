@@ -140,7 +140,7 @@ export function TraderControls({
           className="flex flex-1 items-center justify-center gap-1.5 rounded bg-primary px-2 py-1 text-ds-caption font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
         >
           {busy && <Loader size={14} />}
-          {busy ? 'Saving…' : 'Save'}
+          <span>{busy ? 'Saving…' : 'Save'}</span>
         </button>
         <button
           type="button"

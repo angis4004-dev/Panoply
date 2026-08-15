@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { X } from 'lucide-react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';

@@ -252,8 +252,16 @@ export function DepositModal({ onClose }: { onClose: () => void }) {
                             : 'border-ds-border text-ds-text hover:border-primary/30 hover:bg-ds-surface-inset'
                         }`}
                       >
-                        <span className="text-sm font-semibold">{entry.coin}</span>
-                        <span className="text-xs text-ds-text-muted">{entry.network}</span>
+                        {/* Ticker and chain are identifiers, not words. A
+                            translator that helpfully renders BTC or TRC20 into
+                            another language leaves the trader picking an asset
+                            they cannot match against their own wallet. */}
+                        <span translate="no" className="text-sm font-semibold">
+                          {entry.coin}
+                        </span>
+                        <span translate="no" className="text-xs text-ds-text-muted">
+                          {entry.network}
+                        </span>
                       </button>
                     );
                   })}
@@ -265,7 +273,30 @@ export function DepositModal({ onClose }: { onClose: () => void }) {
                   <span className={LABEL}>2 · Send to this address</span>
                   <div className="rounded-lg border border-ds-border bg-ds-surface-raised p-3">
                     <div className="flex items-start gap-2">
-                      <code className="min-w-0 flex-1 break-all font-mono text-xs text-ds-text">
+                      {/*
+                       * translate="no" is not cosmetic here.
+                       *
+                       * Chrome and Safari offer to machine-translate this page
+                       * for any language we do not ship (see the locale list in
+                       * i18n/routing.ts). A translator walks text nodes and
+                       * rewrites them, and it has no concept of "this run of
+                       * base58 is an address, not a word". Regrouped characters,
+                       * a stripped leading zero or a case change all produce a
+                       * string that still looks like an address and sends the
+                       * money nowhere recoverable.
+                       *
+                       * The attribute is the standard opt-out and every engine
+                       * that offers in-page translation honours it.
+                       *
+                       * The Copy button is already safe by construction - it
+                       * reads selected.address out of React state, never off the
+                       * DOM - so this protects the trader who reads the address
+                       * on screen and types or compares it by eye.
+                       */}
+                      <code
+                        translate="no"
+                        className="min-w-0 flex-1 break-all font-mono text-xs text-ds-text"
+                      >
                         {selected.address}
                       </code>
                       <button
@@ -278,14 +309,32 @@ export function DepositModal({ onClose }: { onClose: () => void }) {
                         ) : (
                           <Copy className="h-3 w-3" aria-hidden="true" />
                         )}
-                        {copied === 'address' ? 'Copied' : 'Copy'}
+                        {/*
+                         * Wrapped rather than bare.
+                         *
+                         * A translator replaces this text node with its own
+                         * <font> element. React kept a reference to the original
+                         * node, so the next flip of `copied` calls removeChild
+                         * on a node that is no longer a child - NotFoundError,
+                         * and the modal unmounts to a blank screen mid-deposit.
+                         * Giving React an element it still owns means it swaps
+                         * textContent inside the span and the translated node
+                         * is never the thing being removed.
+                         */}
+                        <span>{copied === 'address' ? 'Copied' : 'Copy'}</span>
                       </button>
                     </div>
 
                     {selected.memoTag && (
                       <div className="mt-2 flex items-start gap-2 border-t border-ds-border pt-2">
                         <span className="text-xs text-ds-text-muted">Memo / tag</span>
-                        <code className="min-w-0 flex-1 break-all font-mono text-xs text-ds-text">
+                        {/* Same reasoning as the address above: on the chains
+                            that use one, a wrong memo loses the deposit just as
+                            completely as a wrong address. */}
+                        <code
+                          translate="no"
+                          className="min-w-0 flex-1 break-all font-mono text-xs text-ds-text"
+                        >
                           {selected.memoTag}
                         </code>
                         <button
@@ -298,7 +347,7 @@ export function DepositModal({ onClose }: { onClose: () => void }) {
                           ) : (
                             <Copy className="h-3 w-3" aria-hidden="true" />
                           )}
-                          {copied === 'memo' ? 'Copied' : 'Copy'}
+                          <span>{copied === 'memo' ? 'Copied' : 'Copy'}</span>
                         </button>
                       </div>
                     )}
@@ -308,11 +357,15 @@ export function DepositModal({ onClose }: { onClose: () => void }) {
                       form rather than after it. */}
                   <p className="mt-2 flex items-start gap-1.5 text-xs leading-relaxed text-ds-value-warning">
                     <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" aria-hidden="true" />
+                    {/* The sentence around them should translate - this is the
+                        warning that stops someone sending USDT to a BTC address,
+                        so it has to be readable. Only the two identifiers inside
+                        it are held back. */}
                     <span>
-                      Send only <strong>{selected.coin}</strong> on the{' '}
-                      <strong>{selected.network}</strong> network
-                      {selected.memoTag ? ', and include the memo above' : ''}. Anything else is
-                      unrecoverable.
+                      Send only <strong translate="no">{selected.coin}</strong> on the{' '}
+                      <strong translate="no">{selected.network}</strong> network
+                      <span>{selected.memoTag ? ', and include the memo above' : ''}</span>.
+                      Anything else is unrecoverable.
                     </span>
                   </p>
                 </div>

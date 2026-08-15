@@ -34,7 +34,11 @@ export function SignOutButton() {
       className="inline-flex min-h-[36px] w-full items-center justify-center gap-1.5 rounded-lg border border-ds-border px-3 text-ds-caption font-medium text-ds-text-muted transition-colors duration-fast ease-ds-out hover:border-ds-border-strong hover:bg-ds-surface-inset hover:text-ds-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 disabled:opacity-50"
     >
       <LogOut className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-      {busy ? 'Signing out…' : 'Sign out'}
+      {/* Wrapped so a browser translator cannot strand React with a stale text
+          node reference when `busy` flips. The console is English-only, but an
+          operator running Chrome in another language still gets the translate
+          prompt, and the crash it causes is a blank console. */}
+      <span>{busy ? 'Signing out…' : 'Sign out'}</span>
     </button>
   );
 }

@@ -1,5 +1,6 @@
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { PanoplyMark } from '@/components/ui/PanoplyLogo';
+import { LanguageSwitcher, LanguageLinks } from '@/components/ui/language-switcher';
 import { describeEntity, PLATFORM_ENTITY, TECHNOLOGY_ENTITY } from '@/lib/legal-entities';
 
 /**
@@ -72,6 +73,12 @@ export function Footer() {
                 Panoply
               </span>
             </div>
+            {/* The footer is the one place present on every public page, which
+                is what makes it the right home for this: a reader who arrived
+                on a language they cannot read needs the way out to be findable
+                without understanding any of the words around it. The globe
+                icon carries that on its own. */}
+            <LanguageSwitcher className="mt-5 w-full max-w-[13rem]" />
           </div>
 
           {columns.map((col) => (
@@ -99,7 +106,14 @@ export function Footer() {
             reader looks for it. Kept to the two facts that identify each
             company - name, jurisdiction, register number - with the full
             registered addresses on the legal pages rather than repeated here. */}
-        <div className="mt-10 pt-5 border-t border-ds-border space-y-2 text-xs text-ds-text-muted">
+        {/* Real anchors, not just the <select> above. A crawler cannot operate
+            a dropdown, so without these the other eight languages would be
+            undiscoverable to search - and to anyone with JavaScript off. */}
+        <div className="mt-10 pt-5 border-t border-ds-border">
+          <LanguageLinks />
+        </div>
+
+        <div className="mt-5 pt-5 border-t border-ds-border space-y-2 text-xs text-ds-text-muted">
           <p>
             Panoply is operated by {describeEntity(TECHNOLOGY_ENTITY)} and{' '}
             {describeEntity(PLATFORM_ENTITY)}. Client funds are held by the{' '}

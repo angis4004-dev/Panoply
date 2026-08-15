@@ -1,4 +1,9 @@
+import createNextIntlPlugin from 'next-intl/plugin';
 import { imageHosts } from './image-hosts.config.mjs';
+
+// Points the plugin at src/i18n/request.ts, which is where the message
+// catalogue for a request is resolved.
+const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -57,4 +62,4 @@ const nextConfig = {
   //    excluding, do it through Turbopack's own config rather than reinstating
   //    a webpack block, which would force the whole project back off Turbopack.
 };
-export default nextConfig;
+export default withNextIntl(nextConfig);

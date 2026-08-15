@@ -124,7 +124,7 @@ export function DepositVaultModal({ vaultId, vaultName, apy, onClose }: DepositV
             className="relative w-full overflow-hidden rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface-overlay"
           >
             {!submitting && <ButtonShimmer />}
-            {submitting ? 'Depositing...' : 'Deposit'}
+            <span>{submitting ? 'Depositing...' : 'Deposit'}</span>
           </button>
         </form>
       </div>

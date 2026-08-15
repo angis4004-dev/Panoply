@@ -1,10 +1,11 @@
 'use client';
 
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { useState } from 'react';
 import { LogOut, Menu, X } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { PanoplyMark } from '@/components/ui/PanoplyLogo';
+import { LanguageSwitcher } from '@/components/ui/language-switcher';
 
 export function Navbar() {
   // Reads the session directly rather than through the app store. The store
@@ -49,6 +50,10 @@ export function Navbar() {
             </div>
 
             <div className="hidden md:flex items-center gap-3">
+              {/* Above the fold as well as in the footer. Someone who lands on
+                  the wrong language should not have to scroll the length of the
+                  page, in a script they cannot read, to find the way out. */}
+              <LanguageSwitcher className="w-[8.5rem]" />
               {user ? (
                 <>
                   <Link
@@ -119,6 +124,7 @@ export function Navbar() {
               ))}
             </nav>
             <div className="mt-auto flex flex-col gap-3">
+              <LanguageSwitcher className="w-full" />
               {user ? (
                 <>
                   <Link

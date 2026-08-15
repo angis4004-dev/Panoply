@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { Reveal } from '@/components/ui/Reveal';
 import { SignalField } from '@/components/ui/signal-field';
 import { CountUpOnView } from '@/components/ui/RollingNumber';
