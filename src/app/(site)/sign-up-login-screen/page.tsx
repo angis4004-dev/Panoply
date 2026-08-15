@@ -15,7 +15,6 @@ import {
   ChevronRight,
   Lock,
   Mail,
-  KeyRound,
   AlertCircle,
   Cpu,
 } from 'lucide-react';
@@ -35,10 +34,23 @@ function ButtonShimmer() {
   );
 }
 
+/*
+ * No `otp` field.
+ *
+ * A "Use MFA / OTP" checkbox used to reveal a six-digit input here. The
+ * submit handler below posts only email and password, and no route under
+ * /api/auth ever read an OTP - so any six digits, or none, signed you in
+ * exactly the same. It did not protect an account; it told the account
+ * holder they had a second factor when they had none, which is the more
+ * dangerous of the two failures.
+ *
+ * The real second factor on this platform is the dashboard PIN, which is
+ * verified server-side in /api/auth/pin/verify and gates every dashboard
+ * route. See components/dashboard/pin-gate.tsx.
+ */
 interface LoginFormValues {
   email: string;
   password: string;
-  otp?: string;
   rememberMe?: boolean;
 }
 
@@ -60,10 +72,8 @@ function LoginForm({
   const router = useRouter();
   const { setUser } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
-  const [showOTP, setShowOTP] = useState(false);
   const [loading, setLoading] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
-  const otpRef = useRef<HTMLDivElement>(null);
 
   const {
     register,
@@ -82,18 +92,6 @@ function LoginForm({
       );
     },
     { scope: formRef }
-  );
-
-  useGSAP(
-    () => {
-      if (!otpRef.current || !showOTP) return;
-      gsap.fromTo(
-        otpRef.current,
-        { opacity: 0, y: 8, height: 0 },
-        { opacity: 1, y: 0, height: 'auto', duration: 0.25, ease: 'power2.out' }
-      );
-    },
-    { dependencies: [showOTP], scope: formRef }
   );
 
   const completeSignIn = (payload: {
@@ -193,7 +191,7 @@ function LoginForm({
             id="signin-email"
             type="email"
             autoComplete="email"
-            placeholder="you@cryptotradeai.io"
+            placeholder="you@example.com"
             className={`w-full bg-[#212A35] border rounded-lg pl-9 pr-4 py-2.5 min-h-[44px] text-ds-body text-[#E7ECF2] placeholder-ds-text-muted focus:outline-none focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_16px_-2px_rgba(30,99,255,0.45)] transition duration-fast ease-ds-out ${
               errors.email ? 'border-red-500/60' : 'border-[#2A3542]'
             }`}
@@ -250,17 +248,10 @@ function LoginForm({
         )}
       </div>
 
-      {/* MFA toggle */}
-      <div className="auth-field flex items-center justify-between">
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={showOTP}
-            onChange={(e) => setShowOTP(e.target.checked)}
-            className="h-5 w-5 shrink-0 rounded border-ds-border-strong bg-[#212A35] accent-primary"
-          />
-          <span className="text-xs text-[#8B95A5]">Use MFA / OTP</span>
-        </label>
+      {/* "Use MFA / OTP" sat to the left of Remember me. It is gone rather
+          than disabled - see the note on LoginFormValues. Remember me now
+          sits alone, so the row no longer needs justify-between. */}
+      <div className="auth-field flex items-center">
         <label className="flex items-center gap-2 cursor-pointer">
           <input
             type="checkbox"
@@ -279,36 +270,6 @@ function LoginForm({
           Forgot your password?
         </Link>
       </div>
-
-      {/* OTP field (conditional) */}
-      {showOTP && (
-        <div ref={otpRef} style={{ overflow: 'hidden' }}>
-          <label
-            htmlFor="signin-otp"
-            className="block text-xs font-semibold text-[#8B95A5] mb-1.5 tracking-wide uppercase"
-          >
-            One-Time Password (OTP)
-          </label>
-          <p className="text-xs text-ds-text-muted mb-1.5">
-            Enter the 6-digit code from your authenticator app or email
-          </p>
-          <div className="relative">
-            <KeyRound
-              size={15}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8B95A5]"
-            />
-            <input
-              id="signin-otp"
-              type="text"
-              inputMode="numeric"
-              maxLength={6}
-              placeholder="000000"
-              className="w-full bg-[#212A35] border border-[#2A3542] rounded-lg pl-9 pr-4 py-2.5 min-h-[44px] text-ds-body text-[#E7ECF2] placeholder-ds-text-muted focus:outline-none focus:ring-2 focus:ring-primary/50 font-mono tracking-[0.3em] transition duration-fast ease-ds-out"
-              {...register('otp')}
-            />
-          </div>
-        </div>
-      )}
 
       {/* Submit */}
       <button
@@ -449,7 +410,7 @@ function SignupForm() {
         <input
           id="signup-email"
           type="email"
-          placeholder="you@cryptotradeai.io"
+          placeholder="you@example.com"
           className={`w-full bg-[#212A35] border rounded-lg px-4 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_16px_-2px_rgba(30,99,255,0.45)] transition duration-fast ease-ds-out ${
             errors.email ? 'border-red-500/60' : 'border-[#2A3542]'
           }`}
