@@ -1,9 +1,4 @@
-import createNextIntlPlugin from 'next-intl/plugin';
 import { imageHosts } from './image-hosts.config.mjs';
-
-// Points the plugin at src/i18n/request.ts, which is where the message
-// catalogue for a request is resolved.
-const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -15,7 +10,34 @@ const nextConfig = {
     minimumCacheTTL: 60,
   },
   async redirects() {
-    return [];
+    return [
+      /*
+       * Retirement of the locale-prefixed URLs.
+       *
+       * /es, /ja, /ar and the rest were live on the deployed site for a short
+       * window before the translated routes were withdrawn in favour of
+       * letting the browser translate. Anything that crawled or bookmarked
+       * them in that window would otherwise hit a 404 now.
+       *
+       * 308 rather than 302: these paths are never coming back under this
+       * design, so the permanent form is the honest one and lets search
+       * engines fold the ranking into the canonical URL.
+       *
+       * The two-rule split covers /ja and /ja/charts separately - a single
+       * pattern cannot express "prefix alone, or prefix plus a path" while
+       * keeping the tail for the second case.
+       */
+      {
+        source: '/:locale(es|fr|de|it|ar|ja|zh|ko|en)',
+        destination: '/',
+        permanent: true,
+      },
+      {
+        source: '/:locale(es|fr|de|it|ar|ja|zh|ko|en)/:path*',
+        destination: '/:path*',
+        permanent: true,
+      },
+    ];
   },
 
   /**
@@ -62,4 +84,4 @@ const nextConfig = {
   //    excluding, do it through Turbopack's own config rather than reinstating
   //    a webpack block, which would force the whole project back off Turbopack.
 };
-export default withNextIntl(nextConfig);
+export default nextConfig;

@@ -1,6 +1,6 @@
 'use client';
 
-import { Link } from '@/i18n/navigation';
+import Link from 'next/link';
 import { Check, Fingerprint, ShieldCheck, UserRoundCheck } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 

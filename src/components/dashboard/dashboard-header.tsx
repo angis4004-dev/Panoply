@@ -1,6 +1,6 @@
 'use client';
 
-import { Link } from '@/i18n/navigation';
+import Link from 'next/link';
 import { Menu } from 'lucide-react';
 import { useAppStore } from '@/store/app-store';
 import { NotificationBell } from '@/components/dashboard/notification-bell';

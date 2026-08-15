@@ -1,7 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import createIntlMiddleware from 'next-intl/middleware';
 import { getSessionFromRequest } from './lib/session';
-import { routing, locales } from './i18n/routing';
 import {
   classifyHost,
   hostConfigFromEnv,
@@ -97,22 +95,6 @@ function notFound(): NextResponse {
   return new NextResponse(null, { status: 404 });
 }
 
-/**
- * Locale negotiation for the trader application, and only for it.
- *
- * Created once at module scope rather than per request - it compiles a matcher
- * from the locale list, and rebuilding that on every request would be work
- * repeated for no reason.
- */
-const intlMiddleware = createIntlMiddleware(routing);
-
-/** `/es/dashboard` and `/dashboard` are the same route to the rules below. */
-const LOCALE_PREFIX = new RegExp(`^/(${locales.join('|')})(?=/|$)`);
-
-function withoutLocale(pathname: string): string {
-  return pathname.replace(LOCALE_PREFIX, '') || '/';
-}
-
 export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   const config = hostConfigFromEnv();
@@ -171,76 +153,22 @@ export async function proxy(request: NextRequest) {
   // The console does not exist on this host. Not a redirect to the admin
   // origin: that would advertise where it lives and would carry the requested
   // path across origins.
-  //
-  // Checked against the un-prefixed path, so /es/admin is refused exactly like
-  // /admin. A locale prefix must never become a way around a host rule.
-  const route = withoutLocale(pathname);
+  const route = pathname;
   if (isAdminPath(route)) {
     return notFound();
   }
 
-  /*
-   * The session check runs before locale negotiation, and redirects back into
-   * the locale the user was already in.
-   *
-   * Doing it the other way round would send a French visitor to the English
-   * sign-in page, because next-intl would have rewritten the URL by then and
-   * the language they chose would be lost at exactly the moment they are being
-   * asked to prove who they are.
-   */
   if (route.startsWith('/dashboard')) {
     const session = await getSessionFromRequest(request);
     if (!session) {
-      const prefix = pathname.match(LOCALE_PREFIX)?.[0] ?? '';
       const url = request.nextUrl.clone();
-      url.pathname = `${prefix}/sign-up-login-screen`;
+      url.pathname = '/sign-up-login-screen';
       url.search = '';
       return NextResponse.redirect(url);
     }
   }
 
-  /*
-   * API routes carry no locale. They return data and machine-readable error
-   * codes, not prose, and rewriting /api/prices to /en/api/prices would break
-   * every fetch in the application.
-   */
-  if (route.startsWith('/api/') || isInfrastructurePath(route)) {
-    return NextResponse.next();
-  }
-
-  // Everything else is a page: negotiate the locale, set the cookie, and
-  // rewrite to the [locale] segment.
-  const response = intlMiddleware(request);
-
-  /*
-   * Tell every cache that this response is language-dependent.
-   *
-   * What comes back for "/" depends on the visitor's Accept-Language and their
-   * NEXT_LOCALE cookie: a US reader gets English, a Japanese reader gets a
-   * redirect to /ja. Without Vary, any shared cache is entitled to store the
-   * first of those and hand it to the next person - which is how a reader in
-   * Kansas ends up looking at Japanese.
-   *
-   * next-intl issues its redirects as 307, which is not cacheable unless a
-   * response explicitly says otherwise, so nothing is broken today. This is
-   * the guard for the day someone puts a CDN rule or s-maxage in front of the
-   * site and quietly removes that protection.
-   */
-  const vary = response.headers.get('Vary');
-  const needed = ['Accept-Language', 'Cookie'];
-  const present = new Set(
-    (vary ?? '')
-      .split(',')
-      .map((part) => part.trim().toLowerCase())
-      .filter(Boolean)
-  );
-  const merged = [
-    ...(vary ? [vary] : []),
-    ...needed.filter((header) => !present.has(header.toLowerCase())),
-  ].join(', ');
-  if (merged) response.headers.set('Vary', merged);
-
-  return response;
+  return NextResponse.next();
 }
 
 /*

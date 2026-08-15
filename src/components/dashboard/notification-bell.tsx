@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Link } from '@/i18n/navigation';
+import Link from 'next/link';
 import { Bell, Trophy, ShieldCheck, KeyRound, Info } from 'lucide-react';
 import { LoadingState } from '@/components/ui/loader';
 
