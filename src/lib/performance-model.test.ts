@@ -65,4 +65,11 @@ describe('deterministic performance model', () => {
     });
     expect(series).toEqual([0, 0, 0]);
   });
+
+  it('matches the chart final sample at the summary sampling instant', () => {
+    const at = START + 30 * HOUR;
+    const flow = { flowId: 'flow-a', allocatedCapital: 1000, createdAt: START };
+    const chart = modelledPnlSeries({ ...flow, sampleTimes: [START, at] });
+    expect(modelledPnlAt({ ...flow, at })).toBe(chart.at(-1));
+  });
 });

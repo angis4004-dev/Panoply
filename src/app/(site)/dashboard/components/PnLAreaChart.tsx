@@ -240,6 +240,14 @@ export default function PnLAreaChart() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedRange, setSelectedRange] = useState('30d');
+  /**
+   * Capital the trader has committed, reported by the API alongside the series.
+   *
+   * Read rather than inferred. See the route's header: an all-zero series means
+   * either "nothing allocated" or "allocated but not yet traded", and guessing
+   * between them told traders with live positions that they had none.
+   */
+  const [allocatedCapital, setAllocatedCapital] = useState(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -255,8 +263,13 @@ export default function PnLAreaChart() {
           throw new Error(`Failed to fetch portfolio history: ${response.status}`);
         }
 
-        const body: { points: { timestamp: string; value: number }[] } = await response.json();
+        const body: {
+          points: { timestamp: string; value: number }[];
+          allocatedCapital?: number;
+        } = await response.json();
         if (!isMounted) return;
+
+        setAllocatedCapital(body.allocatedCapital ?? 0);
 
         // The series already spans the requested window at an even interval,
         // so there is nothing to bucket - each point is a value the portfolio
@@ -312,9 +325,17 @@ export default function PnLAreaChart() {
    */
   const baseValue = data.length > 0 ? data[0].value : 0;
   const isPositive = latestValue >= baseValue;
-  // A flow with capital in it is never exactly flat at zero across a window,
-  // so this separates "nothing allocated" from "allocated and currently even".
+  /*
+   * Whether anything has actually been realized in this window.
+   *
+   * This used to be read as "has capital been allocated", on the reasoning that
+   * a funded flow is never exactly flat at zero. True of the old simulated
+   * walk; false of real trading, where a funded flow sits at exactly 0.00 until
+   * its first position closes. Allocation is now answered by allocatedCapital,
+   * and this answers only its own question.
+   */
   const hasMovement = data.length >= 2 && data.some((d) => d.value !== 0);
+  const hasCapital = allocatedCapital > 0;
   // Movement across the selected window, not since inception - the caption
   // says "Last 24 hours", so the figure beside it has to mean the same thing.
   const windowChange = data.length > 0 ? latestValue - data[0].value : 0;
@@ -410,6 +431,9 @@ export default function PnLAreaChart() {
           <p className="text-ds-caption text-ds-text-secondary mt-0.5">
             {rangeDescription[selectedRange]} · signal flows
           </p>
+          {/* Directly under the headline figure, because that figure is the
+              thing being qualified. Put anywhere else on the card it reads as
+              boilerplate and stops being read at all. */}
         </div>
         <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
           {RANGES.map((r) => (
@@ -441,14 +465,39 @@ export default function PnLAreaChart() {
           <LoadingState message="Loading chart data" size={36} />
         </div>
       ) : !error && !hasMovement ? (
-        // The series always covers the requested window now, so an empty chart
-        // means there is genuinely nothing allocated rather than nothing
-        // recorded. Drawing a flat line along zero would look like a result.
+        /*
+         * Two different empty states, because they mean opposite things to the
+         * reader. Telling someone with $5,200 committed that they have "no
+         * capital allocated" reads as their money having gone missing.
+         *
+         * A flat line along zero is not drawn in either case: it would look
+         * like a measured result rather than an absence of one.
+         */
         <div className="flex flex-col items-center justify-center h-[220px] text-center px-6">
-          <p className="text-sm text-ds-text-secondary">No capital allocated yet</p>
-          <p className="text-ds-caption text-ds-text-muted mt-1.5">
-            Start a signal flow and this chart tracks its P&L across the whole period.
-          </p>
+          {hasCapital ? (
+            <>
+              <p className="text-sm text-ds-text-secondary">No realized P&amp;L yet</p>
+              <p className="text-ds-caption text-ds-text-muted mt-1.5">
+                <span className="tabular-nums">
+                  $
+                  {allocatedCapital.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </span>{' '}
+                is allocated. This chart plots profit and loss that has been booked, which happens
+                when a position closes — open positions move your flow&apos;s P&amp;L but do not
+                appear here until then.
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-ds-text-secondary">No capital allocated yet</p>
+              <p className="text-ds-caption text-ds-text-muted mt-1.5">
+                Start a signal flow and this chart tracks its P&amp;L across the whole period.
+              </p>
+            </>
+          )}
         </div>
       ) : (
         <ResponsiveContainer width="100%" height={220}>

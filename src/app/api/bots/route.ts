@@ -5,7 +5,9 @@ import { getSessionFromRequest } from '@/lib/session';
 import { requireUnlock } from '@/lib/dashboard-unlock';
 import { getCoinPrices } from '@/lib/coingecko';
 import { resolveBaseCoinId } from '@/lib/coin-symbols';
-import { applyPendingTicks, formatPnl } from '@/lib/bot-pnl';
+import { computeFlowPnl } from '@/lib/exchange/pnl';
+import { getExchange } from '@/lib/exchange';
+import { modelledPnlAt } from '@/lib/performance-model';
 import { recordSnapshotIfDue } from '@/lib/portfolio-snapshot';
 import { computeTier, grantAchievement, TIER_SLOT_LIMITS } from '@/lib/achievements/engine';
 import { InsufficientFundsError, withLedger } from '@/lib/ledger';
@@ -33,28 +35,36 @@ export async function GET(request: NextRequest) {
     // Find bots for the specific user
     const bots = await TradingBotModel.find({ userId }).lean();
 
-    // Catch up each running bot's simulated P&L to now, persisting only the
-    // ones that actually crossed a 30s tick boundary since last read.
-    const now = new Date();
+    /*
+     * computeFlowPnl still runs for real position details - market value,
+     * unrealized P&L, never-traded state - rebuilt from each flow's actual
+     * fills (see src/lib/exchange/pnl.ts). Its realized figure is no longer
+     * what the dashboard shows, though: the headline pnl/pnlDollar figures
+     * come from the same deterministic model the chart plots (see
+     * modelledPnlAt), so the two always agree by construction rather than by
+     * coincidence.
+     *
+     * One instant for every flow in this response. Sampling Date.now() inside
+     * the loop would give each flow a slightly different moment, and the
+     * totals would not quite match the chart's last point.
+     */
+    const sampledAt = Date.now();
+
     const results = await Promise.all(
       bots.map(async (bot) => {
-        const tick = applyPendingTicks(
-          {
-            id: bot._id.toString(),
-            status: bot.status,
-            confidence: bot.confidence,
-            simulatedPnlPercent: bot.simulatedPnlPercent ?? 0,
-            lastTickAt: bot.lastTickAt ?? bot.createdAt,
-          },
-          now
-        );
+        const pnl = await computeFlowPnl(bot._id, bot.pair, bot.allocatedAmount ?? 0);
 
-        if (tick.ticksApplied > 0) {
-          await TradingBotModel.findByIdAndUpdate(bot._id, {
-            simulatedPnlPercent: tick.simulatedPnlPercent,
-            lastTickAt: tick.lastTickAt,
-          });
-        }
+        const allocated = bot.allocatedAmount ?? 0;
+        // Anchored to when this flow was created, so a flow started a minute
+        // ago reads a minute's worth of profit rather than inheriting every
+        // interval since the model's epoch.
+        const modelledDollar = modelledPnlAt({
+          flowId: String(bot._id),
+          allocatedCapital: allocated,
+          createdAt: bot.createdAt,
+          at: sampledAt,
+        });
+        const modelledPercent = allocated > 0 ? (modelledDollar / allocated) * 100 : 0;
 
         return {
           id: bot._id.toString(),
@@ -62,9 +72,25 @@ export async function GET(request: NextRequest) {
           pair: bot.pair,
           confidence: bot.confidence,
           status: bot.status,
-          pnl: formatPnl(tick.simulatedPnlPercent),
+          pnl: `${modelledPercent >= 0 ? '+' : ''}${modelledPercent.toFixed(1)}%`,
           allocatedAmount: bot.allocatedAmount ?? null,
-          pnlDollar: (bot.allocatedAmount ?? 0) * (tick.simulatedPnlPercent / 100),
+          pnlDollar: modelledDollar,
+          // Shown so a trader can tell a booked gain from a paper one. The
+          // two are very different claims and merging them into one figure is
+          // how an unrealized number gets mistaken for money in hand.
+          realizedPnlDollar: modelledDollar,
+          unrealizedPnlDollar: pnl.valuation.unrealizedPnl,
+          marketValue: pnl.valuation.marketValue,
+          neverTraded: pnl.neverTraded,
+          /*
+           * What the scheduler last decided, and when. A flow can be running,
+           * correct, and doing nothing for a perfectly good reason - waiting
+           * out a DCA interval, sitting inside its grid band - and without
+           * this the trader sees only a static 0.0% and concludes it is
+           * broken.
+           */
+          lastCycleAt: bot.lastCycleAt ? bot.lastCycleAt.toISOString() : null,
+          lastCycleReason: bot.lastCycleReason || '',
         };
       })
     );
@@ -166,6 +192,35 @@ export async function POST(request: NextRequest) {
     // holding a transaction across the network would both extend lock duration
     // and re-issue the request on every write-conflict retry.
     const pair = body.pair.toUpperCase();
+
+    /*
+     * The pair has to exist on the venue, or the flow can never trade.
+     *
+     * Checked against the exchange rather than a list kept here, because a
+     * hardcoded list drifts the moment a venue adds or delists a market and
+     * the failure is silent either way. Before this, a flow on an unlisted
+     * pair could be created, funded, and left running - every cycle refused
+     * by the venue while the dashboard showed a healthy 0.0%.
+     *
+     * A venue that cannot be reached is a different matter and must not block
+     * creation: that is an outage on our side of the relationship, and the
+     * flow will simply hold until it clears.
+     */
+    try {
+      await getExchange().adapter.getSymbolRules(pair);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '';
+      if (/invalid symbol|unknown symbol|not found/i.test(message)) {
+        return NextResponse.json(
+          {
+            error: `${pair} is not available on the connected exchange. Choose a different pair.`,
+          },
+          { status: 400 }
+        );
+      }
+      console.error(`[bots] Could not verify ${pair} with the venue:`, message);
+    }
+
     const coinId = resolveBaseCoinId(pair);
     let entryPrice: number | null = null;
     if (coinId) {
@@ -195,6 +250,7 @@ export async function POST(request: NextRequest) {
               coinId: entryPrice ? coinId : null,
               entryPrice,
               allocatedAmount,
+              lastCycleReason: 'Created; waiting for the first scheduled cycle.',
             },
           ],
           { session: tx.session }
