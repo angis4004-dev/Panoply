@@ -3,13 +3,13 @@ import { connectToDatabase } from '@/lib/mongo';
 import { TradingBotModel } from '@/lib/models';
 import { getSessionFromRequest } from '@/lib/session';
 import { requireUnlock } from '@/lib/dashboard-unlock';
-import { pnlPercentSeries, type ProjectableBot } from '@/lib/bot-pnl';
+import { modelledPnlSeries } from '@/lib/performance-model';
 
 /**
  * GET /api/portfolio/history?days=N&points=M
  *
- * Returns this user's dry-run P&L across the full requested window, sampled at
- * an even interval, for the dashboard's "Cumulative P&L" chart.
+ * This user's modelled P&L across the requested window, sampled at an even
+ * interval, for the dashboard's "Cumulative P&L" chart.
  *
  * Previously this read PortfolioSnapshot rows, which are written only when
  * someone loads the dashboard. The x-axis was therefore a record of when the
@@ -17,10 +17,19 @@ import { pnlPercentSeries, type ProjectableBot } from '@/lib/bot-pnl';
  * getting four hours of it - and there was no value to report between two
  * snapshots hours apart.
  *
- * The tick engine is deterministic, so each flow's value at any past moment is
- * recomputed instead (see pnlPercentSeries). Every point on the axis is a real
- * value the portfolio actually held, and the series always ends on the same
- * figure the rest of the dashboard shows.
+ * The series is computed from the deterministic performance model instead
+ * (see modelledPnlSeries), a pure function of flow id, allocated capital, and
+ * creation time - so the same flows always produce the same series, and an
+ * aggregate computed elsewhere from those flows never disagrees with this
+ * chart.
+ *
+ * ## Why allocatedCapital is returned alongside the series
+ *
+ * An all-zero series has two completely different causes: no capital
+ * committed, or capital committed to a flow whose first interval has not
+ * completed yet - the model holds a flow at zero until then. The numbers
+ * alone cannot tell those apart, so the chart is given allocatedCapital
+ * rather than left to guess from the shape of the series.
  */
 
 const MAX_POINTS = 400;
@@ -79,32 +88,45 @@ export async function GET(request: NextRequest) {
       i === points - 1 ? now : Math.round(from + i * step)
     );
 
-    // Dollar P&L per flow, summed. A flow with no allocated capital
-    // contributes nothing, which is why an admin-created flow does not move
-    // this line.
+    /*
+     * Built from the deterministic performance model - see modelledPnlSeries.
+     * Each flow's curve is a pure function of its id, allocated capital, and
+     * creation time, so replaying the same flows at the same sample times
+     * always folds into the same total.
+     */
     const totals = new Array<number>(points).fill(0);
+    let allocatedCapital = 0;
+    let fundedFlows = 0;
+
     for (const bot of bots) {
       const allocated = bot.allocatedAmount ?? 0;
+      // A flow with no capital contributes nothing to either figure, which is
+      // why an admin-created flow does not move this line.
       if (allocated <= 0) continue;
 
-      const projectable: ProjectableBot = {
-        id: bot._id.toString(),
-        status: bot.status,
-        confidence: bot.confidence,
-        simulatedPnlPercent: bot.simulatedPnlPercent ?? 0,
-        lastTickAt: bot.lastTickAt ?? bot.createdAt,
-        createdAt: bot.createdAt,
-      };
+      allocatedCapital += allocated;
+      fundedFlows += 1;
 
-      const series = pnlPercentSeries(projectable, sampleTimes);
+      const series = modelledPnlSeries({
+        flowId: String(bot._id),
+        allocatedCapital: allocated,
+        createdAt: bot.createdAt,
+        sampleTimes,
+      });
+
       for (let i = 0; i < points; i++) {
-        totals[i] += (allocated * series[i]) / 100;
+        totals[i] += series[i];
       }
     }
 
     return NextResponse.json({
       from: new Date(from).toISOString(),
       to: new Date(now).toISOString(),
+      // What the trader has committed. Lets the client distinguish "nothing
+      // allocated" from "allocated but nothing realized yet" without inferring
+      // it from the shape of the series.
+      allocatedCapital: Number(allocatedCapital.toFixed(2)),
+      fundedFlows,
       points: sampleTimes.map((t, i) => ({
         timestamp: new Date(t).toISOString(),
         value: Number(totals[i].toFixed(2)),

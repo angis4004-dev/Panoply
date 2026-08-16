@@ -54,4 +54,15 @@ describe('deterministic performance model', () => {
     );
     expect(fromSeries).toBe(total);
   });
+
+  it('keeps samples before a later-created flow at zero', () => {
+    const sampleTimes = [START, START + 6 * HOUR, START + 12 * HOUR];
+    const series = modelledPnlSeries({
+      flowId: 'late-flow',
+      allocatedCapital: 500,
+      createdAt: START + 9 * HOUR,
+      sampleTimes,
+    });
+    expect(series).toEqual([0, 0, 0]);
+  });
 });
