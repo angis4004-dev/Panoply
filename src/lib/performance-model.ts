@@ -1,13 +1,17 @@
 /**
  * Deterministic performance model: capital-aware P&L, no randomness.
  *
- * This replaces a demo generator seeded from `Math.random()` with a pure
- * function of (flow id, allocated capital, creation time, sample time).
- * Given the same inputs it always returns the same figures, so a reload, a
- * server restart, or a second caller computing the portfolio total from the
- * same flows never disagrees with itself - the property `demo-mode.ts`
- * could not offer once anything depended on both a chart and an aggregate
- * derived from the same underlying flows.
+ * A pure function of (flow id, allocated capital, creation time, sample
+ * time). Given the same inputs it always returns the same figures, so a
+ * reload, a server restart, or a second caller computing the portfolio total
+ * from the same flows never disagrees with itself.
+ *
+ * That last property is the reason this module exists. The generator it
+ * replaces was seeded and therefore repeatable on its own terms, but the
+ * chart and the per-flow figures reached it by different routes and drifted
+ * apart. Here both callers enter through the same two functions, and
+ * `modelledPnlAt` is `modelledPnlSeries` sampled once - so the aggregate and
+ * the line agree by construction rather than by coincidence.
  *
  * The shape is a sequence of discrete outcomes, one per completed interval
  * since a flow was created, each a gain or a loss sized as a share of that
