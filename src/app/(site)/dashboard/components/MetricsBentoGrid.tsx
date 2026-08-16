@@ -95,14 +95,21 @@ export default function MetricsBentoGrid({
   // reframed around what's actually trackable per flow: current P&L,
   // confidence, allocation, and status.
   const totalAllocated = bots.reduce((sum, b) => sum + (b.allocatedAmount || 0), 0);
+  // Sums the unrounded modelled dollar figure, not the rounded percent
+  // string, so this total agrees with the portfolio history chart exactly.
+  // realizedPnlDollar is only absent if an older API response shape slips
+  // through, in which case the percent-derived value is a safe fallback.
   const totalPnlDollar = bots.reduce(
-    (sum, b) => sum + (b.allocatedAmount || 0) * (parsePnlPercent(b.pnl) / 100),
+    (sum, b) =>
+      sum + (b.realizedPnlDollar ?? (b.allocatedAmount || 0) * (parsePnlPercent(b.pnl) / 100)),
     0
   );
   const portfolioPnlPercent = totalAllocated > 0 ? (totalPnlDollar / totalAllocated) * 100 : 0;
   const pnlDir: DeltaDir = totalPnlDollar > 0 ? 'up' : totalPnlDollar < 0 ? 'down' : 'neutral';
 
-  const profitableCount = bots.filter((b) => parsePnlPercent(b.pnl) > 0).length;
+  const profitableCount = bots.filter(
+    (b) => (b.realizedPnlDollar ?? parsePnlPercent(b.pnl)) > 0
+  ).length;
   const profitableRate = bots.length > 0 ? (profitableCount / bots.length) * 100 : 0;
 
   const avgConfidence =
@@ -115,6 +122,15 @@ export default function MetricsBentoGrid({
   const topBotValue = topBot
     ? (topBot.allocatedAmount || 0) * (1 + parsePnlPercent(topBot.pnl) / 100)
     : 0;
+  /*
+   * Whether the largest flow actually holds anything right now.
+   *
+   * Allocating capital to a flow does not open a position - the flow has to
+   * decide to buy, and the order has to fill. This card presented the two as
+   * the same thing, so a flow that had never traded still reported an "active
+   * position" with a LONG direction it had never taken.
+   */
+  const topBotHasPosition = (topBot?.marketValue ?? 0) > 0;
 
   const runningCount = bots.filter((b) => b.status === 'running').length;
   const pausedCount = bots.filter((b) => b.status === 'paused').length;
@@ -226,25 +242,30 @@ export default function MetricsBentoGrid({
             <Activity size={16} className="text-ds-text-secondary" />
           </div>
           <span className="text-ds-caption font-bold uppercase tracking-widest text-ds-text-secondary">
-            Active Position
+            {topBotHasPosition ? 'Active Position' : 'Largest Allocation'}
           </span>
         </div>
         <p className="text-2xl font-bold text-ds-text font-mono tabular-nums">
           $
-          {topBotValue.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}
+          {(topBotHasPosition ? topBotValue : (topBot?.allocatedAmount ?? 0)).toLocaleString(
+            undefined,
+            { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+          )}
         </p>
         <div className="flex items-center gap-1.5 mt-1">
           <span className="text-xs bg-ds-border text-ds-text-secondary px-2 py-0.5 rounded font-mono">
             {topBot?.pair || 'No flows yet'}
           </span>
-          {topBot && <span className="text-xs text-primary font-mono">LONG</span>}
+          {/* Only claimed when something is actually held. Spot trading has no
+              short side, so a held position is always long - but a flow that
+              has not bought anything has no side at all. */}
+          {topBotHasPosition && <span className="text-xs text-primary font-mono">LONG</span>}
         </div>
         <p className="text-ds-caption text-ds-text-secondary mt-2">
           {topBot
-            ? `Allocated: $${(topBot.allocatedAmount || 0).toLocaleString()} · Confidence: ${topBot.confidence}%`
+            ? topBotHasPosition
+              ? `Allocated: $${(topBot.allocatedAmount || 0).toLocaleString()} · Confidence: ${topBot.confidence}%`
+              : `Committed, not yet invested · Confidence: ${topBot.confidence}%`
             : 'Deploy a signal flow to see it here'}
         </p>
       </div>

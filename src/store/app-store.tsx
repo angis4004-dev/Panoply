@@ -13,6 +13,24 @@ export interface Bot {
   pnl: string;
   allocatedAmount?: number | null;
   active?: boolean;
+  /**
+   * Market value of the position this flow currently holds, in quote currency.
+   * Zero when it holds nothing — which is not the same as having no capital.
+   */
+  marketValue?: number;
+  /**
+   * Unrounded modelled P&L in dollars, straight from the deterministic model.
+   * Use this for totals instead of parsing `pnl` — that string is rounded to
+   * one decimal, so summing it across many flows compounds a rounding error
+   * that grows with capital.
+   */
+  realizedPnlDollar?: number;
+  /** True when the flow has never filled an order, so no position exists. */
+  neverTraded?: boolean;
+  /** When the scheduler last evaluated this flow. Null before its first cycle. */
+  lastCycleAt?: string | null;
+  /** What it decided, in words. The answer to "why is my flow doing nothing". */
+  lastCycleReason?: string;
 }
 
 export interface Report {
@@ -281,12 +299,30 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Fetch reports, bots, vault investments, and wallet balance when user changes
-    if (user) {
-      fetchReports();
-      fetchBots();
-      fetchVaultInvestments();
-      fetchWalletBalance();
-    }
+    if (!user) return;
+
+    fetchReports();
+    fetchBots();
+    fetchVaultInvestments();
+    fetchWalletBalance();
+
+    /*
+     * Keep the flows refreshing while the dashboard is open.
+     *
+     * Every P&L figure on the page is derived from this list - Realized P&L,
+     * Profitable Flows, Largest Allocation, Drawdown, and each flow card. The
+     * list was fetched once per sign-in, so those figures were a snapshot of
+     * the moment the page loaded and never moved again, while the chart beside
+     * them polled every 30 seconds and did. A running flow looked frozen, and
+     * the two halves of the dashboard drifted further apart the longer it
+     * stayed open.
+     *
+     * Thirty seconds, matching PnLAreaChart, so the tiles and the line move
+     * together. fetchBots only raises botsLoading when there is nothing on
+     * screen yet, so a refetch updates in place rather than flashing skeletons.
+     */
+    const interval = setInterval(fetchBots, 30 * 1000);
+    return () => clearInterval(interval);
   }, [user]);
 
   const setBotModalOpen = (open: boolean) => {
@@ -350,7 +386,26 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     const response = await fetch(`/api/bots/${botId}`, { method: 'DELETE' });
 
     if (!response.ok) {
-      console.error('Failed to delete bot');
+      /*
+       * Reported, not swallowed. This used to log to the console and return,
+       * so a refusal - an open position that could not be liquidated, or a
+       * duplicate close the server declined to pay twice - left the flow on
+       * screen with no explanation and looked like a dead button.
+       */
+      const payload = await response.json().catch(() => ({}));
+      const message = payload.error || 'Could not close that signal flow.';
+      console.error('Failed to delete bot:', message);
+
+      // A 409 means the flow is already gone, settled by a request that got
+      // there first. Drop it from the list rather than leaving a card the
+      // server no longer knows about.
+      if (response.status === 409) {
+        setState((prev) => ({ ...prev, bots: prev.bots.filter((bot) => bot.id !== botId) }));
+        await fetchWalletBalance();
+        return;
+      }
+
+      addToast(message, 'error');
       return;
     }
 

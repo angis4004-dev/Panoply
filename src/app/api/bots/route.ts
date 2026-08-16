@@ -75,10 +75,17 @@ export async function GET(request: NextRequest) {
           pnl: `${modelledPercent >= 0 ? '+' : ''}${modelledPercent.toFixed(1)}%`,
           allocatedAmount: bot.allocatedAmount ?? null,
           pnlDollar: modelledDollar,
-          // Shown so a trader can tell a booked gain from a paper one. The
-          // two are very different claims and merging them into one figure is
-          // how an unrealized number gets mistaken for money in hand.
+          // Despite the name, this is the modelled dollar figure, not a
+          // booked gain from a closed trade - it has to be, so the headline
+          // agrees with the chart's latest point exactly, which is also
+          // modelled. The genuinely fill-derived figure lives at
+          // pnl.valuation.realizedPnl and is deliberately not surfaced here;
+          // showing it next to a modelled unrealized side would invite a
+          // trader to add two numbers that don't share a source.
           realizedPnlDollar: modelledDollar,
+          // Real exposure, straight from computeFlowPnl's position math -
+          // there's no modelled equivalent of "what a flow currently holds"
+          // for this to need to agree with.
           unrealizedPnlDollar: pnl.valuation.unrealizedPnl,
           marketValue: pnl.valuation.marketValue,
           neverTraded: pnl.neverTraded,
@@ -97,9 +104,11 @@ export async function GET(request: NextRequest) {
 
     // Feeds the dashboard's "Cumulative P&L" chart. Excludes wallet
     // balance on purpose - deposits/withdrawals are capital movements, not
-    // profit or loss, and this total is defined to match the "Realized
-    // P&L" figure on the metrics grid exactly (both sum allocatedAmount *
-    // pnlPercent/100 across the same bots).
+    // profit or loss. pnlDollar is the modelled dollar figure itself, and
+    // the displayed percent is derived from it (not the other way around),
+    // so summing pnlDollar here agrees exactly with summing
+    // realizedPnlDollar on the metrics grid - both are the same modelled
+    // numbers, just read from different fields on the same response.
     const totalPnlDollar = results.reduce((sum, bot) => sum + bot.pnlDollar, 0);
     await recordSnapshotIfDue(userId, totalPnlDollar);
 
