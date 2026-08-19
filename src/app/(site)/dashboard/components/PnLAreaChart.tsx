@@ -431,9 +431,6 @@ export default function PnLAreaChart() {
           <p className="text-ds-caption text-ds-text-secondary mt-0.5">
             {rangeDescription[selectedRange]} · signal flows
           </p>
-          {/* Directly under the headline figure, because that figure is the
-              thing being qualified. Put anywhere else on the card it reads as
-              boilerplate and stops being read at all. */}
         </div>
         <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
           {RANGES.map((r) => (

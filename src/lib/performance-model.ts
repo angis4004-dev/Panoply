@@ -41,11 +41,12 @@ const UINT32_MAX = 0xffffffff;
 /**
  * Unsigned 32-bit FNV-1a hash.
  *
- * Chosen over a seeded PRNG (as `demo-mode.ts` uses) because there is no
- * stream to advance and replay here - every outcome is addressed directly by
- * index, so a hash that maps a key straight to a number is the simpler fit
- * and lets `modelledPnlAt` reproduce a single outcome without recomputing
- * everything before it.
+ * Chosen over a seeded PRNG because there is no stream to advance and replay
+ * here - every outcome is addressed directly by index, so a hash that maps a
+ * key straight to a number is the simpler fit. The cumulative total still has
+ * to be folded from index 0 forward (each step depends on the running sum
+ * before it), but the gain/loss and magnitude of any individual outcome can
+ * be computed on its own, in any order, without touching the others.
  */
 function fnv1a(value: string): number {
   let hash = 0x811c9dc5;
