@@ -1,11 +1,13 @@
 import { describe, it, expect } from 'vitest';
 import {
+  adminSurfaceDenial,
   classifyHost,
   hostConfigFromEnv,
   isAdminHostConfigured,
   isAdminPath,
   isInfrastructurePath,
   normalizeHostname,
+  resolveSurface,
 } from './host';
 import {
   adminChallengeCookieName,
@@ -193,5 +195,137 @@ describe('reading the admin token from a Cookie header', () => {
     expect(readCookie('k=', 'k')).toBeNull();
     expect(readCookie(null, 'k')).toBeNull();
     expect(readCookie('malformed', 'k')).toBeNull();
+  });
+});
+
+/*
+ * Path routing: the console served at /admin on the ordinary host.
+ *
+ * Exists for deployments that cannot have the subdomain at all - a Vercel
+ * project on its default *.vercel.app URL being the case that forced it. It
+ * removes an isolation boundary, so the tests that matter most here are the
+ * ones asserting it stays off unless switched on deliberately.
+ */
+describe('resolveSurface with path routing off (the default)', () => {
+  const config = { adminHost: 'admin.example.com', appHost: 'app.example.com' };
+
+  it('routes by host, ignoring the path', () => {
+    expect(resolveSurface('admin.example.com', '/admin', config)).toBe('admin');
+    expect(resolveSurface('admin.example.com', '/dashboard', config)).toBe('admin');
+    expect(resolveSurface('app.example.com', '/admin', config)).toBe('app');
+    expect(resolveSurface('app.example.com', '/dashboard', config)).toBe('app');
+  });
+
+  it('is not enabled by an absent flag', () => {
+    expect(resolveSurface('app.example.com', '/admin', config)).toBe('app');
+  });
+});
+
+describe('resolveSurface with path routing on', () => {
+  const config = { pathRouting: true };
+
+  it('routes by path on any host', () => {
+    expect(resolveSurface('aegis-crypto-ai.vercel.app', '/admin', config)).toBe('admin');
+    expect(resolveSurface('aegis-crypto-ai.vercel.app', '/admin/networks', config)).toBe('admin');
+    expect(resolveSurface('aegis-crypto-ai.vercel.app', '/api/admin/networks', config)).toBe(
+      'admin'
+    );
+  });
+
+  it('leaves every other path on the trader application', () => {
+    expect(resolveSurface('aegis-crypto-ai.vercel.app', '/', config)).toBe('app');
+    expect(resolveSurface('aegis-crypto-ai.vercel.app', '/dashboard', config)).toBe('app');
+    expect(resolveSurface('aegis-crypto-ai.vercel.app', '/api/bots', config)).toBe('app');
+  });
+
+  /*
+   * The near-miss that would otherwise reach the console: a trader route whose
+   * name merely begins with the same letters.
+   */
+  it('does not treat a path that merely starts with the same letters as admin', () => {
+    expect(resolveSurface('example.com', '/administration', config)).toBe('app');
+    expect(resolveSurface('example.com', '/api/administrators', config)).toBe('app');
+  });
+});
+
+describe('adminSurfaceDenial', () => {
+  const configured = { adminHost: 'admin.example.com' };
+
+  it('permits an admin path on the configured admin host', () => {
+    expect(adminSurfaceDenial('admin.example.com', '/admin', configured, true)).toBeNull();
+  });
+
+  it('refuses a request addressed to the trader host', () => {
+    expect(adminSurfaceDenial('app.example.com', '/admin', configured, true)).toMatch(
+      /not addressed to the admin surface/
+    );
+  });
+
+  /*
+   * The exact production failure this was written after: everything correct
+   * except ADMIN_HOST, and a 404 that said nothing about why. The message has
+   * to name both ways out.
+   */
+  it('refuses in production when nothing is configured, and names the fix', () => {
+    const denial = adminSurfaceDenial('admin.example.com', '/admin', {}, true);
+    expect(denial).toMatch(/ADMIN_HOST is not configured/);
+    expect(denial).toMatch(/ADMIN_PATH_ROUTING=true/);
+  });
+
+  it('allows the development fallback outside production', () => {
+    expect(adminSurfaceDenial('admin.localhost', '/admin', {}, false)).toBeNull();
+  });
+
+  /*
+   * Path routing is itself an explicit statement of where the console lives,
+   * so it satisfies the fail-closed requirement the same way ADMIN_HOST does.
+   * Without this the flag would be inert in production - the only place it is
+   * for.
+   */
+  it('accepts path routing as configuration in production, with no ADMIN_HOST', () => {
+    expect(
+      adminSurfaceDenial('aegis-crypto-ai.vercel.app', '/admin', { pathRouting: true }, true)
+    ).toBeNull();
+    expect(
+      adminSurfaceDenial(
+        'aegis-crypto-ai.vercel.app',
+        '/api/admin/networks',
+        { pathRouting: true },
+        true
+      )
+    ).toBeNull();
+  });
+
+  it('still refuses a non-admin path under path routing', () => {
+    expect(
+      adminSurfaceDenial('aegis-crypto-ai.vercel.app', '/dashboard', { pathRouting: true }, true)
+    ).toMatch(/not addressed to the admin surface/);
+  });
+});
+
+describe('ADMIN_PATH_ROUTING is read strictly', () => {
+  /*
+   * An environment variable set to false contains the string "false", which is
+   * truthy in JavaScript. For a flag that removes an isolation boundary the
+   * failure mode has to be "stayed off".
+   */
+  it('is off for the string "false" and other non-affirmatives', () => {
+    for (const value of ['false', 'no', '0', 'off', '', 'maybe']) {
+      expect(
+        hostConfigFromEnv({ ADMIN_PATH_ROUTING: value } as unknown as NodeJS.ProcessEnv).pathRouting
+      ).toBe(false);
+    }
+  });
+
+  it('is off when the variable is absent entirely', () => {
+    expect(hostConfigFromEnv({} as unknown as NodeJS.ProcessEnv).pathRouting).toBe(false);
+  });
+
+  it('is on only for an explicit affirmative, in any case', () => {
+    for (const value of ['true', 'TRUE', ' True ', '1', 'yes']) {
+      expect(
+        hostConfigFromEnv({ ADMIN_PATH_ROUTING: value } as unknown as NodeJS.ProcessEnv).pathRouting
+      ).toBe(true);
+    }
   });
 });

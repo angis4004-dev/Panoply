@@ -1,11 +1,11 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { getSessionFromRequest } from './lib/session';
 import {
-  classifyHost,
+  adminSurfaceDenial,
   hostConfigFromEnv,
-  isAdminHostConfigured,
   isAdminPath,
   isInfrastructurePath,
+  resolveSurface,
 } from './lib/admin/host';
 import { readAdminToken } from './lib/admin/cookie';
 
@@ -98,15 +98,18 @@ function notFound(): NextResponse {
 export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   const config = hostConfigFromEnv();
-  const surface = classifyHost(request.headers.get('host'), config);
+  const surface = resolveSurface(request.headers.get('host'), pathname, config);
   const isProduction = process.env.NODE_ENV === 'production';
 
   if (surface === 'admin') {
     // Fail closed. Without ADMIN_HOST the classifier falls back to matching
     // any hostname starting with "admin.", which in production would let a
-    // wildcard DNS record serve the console.
-    if (isProduction && !isAdminHostConfigured(config)) {
-      console.error('ADMIN_HOST is not configured; refusing to serve the admin console.');
+    // wildcard DNS record serve the console. adminSurfaceDenial owns the rule;
+    // the message it returns names the variable to set, because a console that
+    // 404s while saying nothing is how a correct deployment looks broken.
+    const denial = adminSurfaceDenial(request.headers.get('host'), pathname, config, isProduction);
+    if (denial) {
+      console.error(denial);
       return notFound();
     }
 
@@ -114,8 +117,12 @@ export async function proxy(request: NextRequest) {
       return NextResponse.next();
     }
 
-    // The console's front door. Landing on the bare host should not 404.
-    if (pathname === '/') {
+    /*
+     * The console's front door, on a dedicated hostname. Under path routing
+     * this host also serves the trader application, so "/" is the landing page
+     * and redirecting it to /admin would take the app away from its own users.
+     */
+    if (pathname === '/' && !config.pathRouting) {
       return applyAdminSecurityHeaders(
         NextResponse.redirect(new URL('/admin', request.url)),
         isProduction
@@ -126,6 +133,9 @@ export async function proxy(request: NextRequest) {
     // reachable on this hostname at all, so a stolen admin cookie has no
     // trader endpoints to reach and an operator cannot wander into the app
     // while holding admin authority.
+    //
+    // Unreachable under path routing - resolveSurface only returns 'admin' for
+    // an admin path in that mode - but kept as the invariant it states.
     if (!isAdminPath(pathname)) {
       return applyAdminSecurityHeaders(notFound(), isProduction);
     }
@@ -153,6 +163,10 @@ export async function proxy(request: NextRequest) {
   // The console does not exist on this host. Not a redirect to the admin
   // origin: that would advertise where it lives and would carry the requested
   // path across origins.
+  //
+  // Under path routing an admin path never reaches here - resolveSurface sent
+  // it to the branch above - so this stays the correct rule in both modes
+  // without needing to know which one is active.
   const route = pathname;
   if (isAdminPath(route)) {
     return notFound();

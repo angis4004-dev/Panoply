@@ -176,6 +176,45 @@ describe('canSetPermissions', () => {
   });
 });
 
+/*
+ * The kill switch is deliberately lopsided: stopping the platform is meant to
+ * be easy and starting it is not. That asymmetry is a decision someone could
+ * "tidy up" into symmetry without realising it is the whole point, so it is
+ * pinned here.
+ */
+describe('the trading kill switch asymmetry', () => {
+  it('lets a MainAdmin delegate the power to stop trading', () => {
+    expect(isGrantable('trading.halt')).toBe(true);
+    const onCall = admin({ grantedPermissions: ['trading.halt'] });
+    expect(hasPermission(onCall, 'trading.halt')).toBe(true);
+  });
+
+  it('never delegates the power to resume trading or raise a limit', () => {
+    expect(isGrantable('trading.manage')).toBe(false);
+    expect(MAIN_ADMIN_ONLY).toContain('trading.manage');
+
+    // Even when explicitly granted - grants are intersected with the grantable
+    // set on read, not only on write.
+    const overreaching = admin({ grantedPermissions: ['trading.manage'] });
+    expect(hasPermission(overreaching, 'trading.manage')).toBe(false);
+    expect(grantablePermissions()).not.toContain('trading.manage');
+  });
+
+  it('lets every admin see whether trading is halted', () => {
+    expect(ADMIN_DEFAULT_PERMISSIONS).toContain('trading.read');
+    expect(hasPermission(admin(), 'trading.read')).toBe(true);
+  });
+
+  it('gives a suspended admin no way to touch the switch', () => {
+    const suspended = admin({
+      status: 'suspended',
+      grantedPermissions: ['trading.halt'],
+    });
+    expect(hasPermission(suspended, 'trading.halt')).toBe(false);
+    expect(hasPermission(suspended, 'trading.read')).toBe(false);
+  });
+});
+
 describe('isAdminRole', () => {
   it('never treats a trader as an admin principal', () => {
     expect(isAdminRole('Trader')).toBe(false);

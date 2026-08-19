@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { ArrowUpRight, Bot as BotIcon, Vault } from 'lucide-react';
+import { ArrowUpRight, Vault, Waypoints } from 'lucide-react';
 import { OnboardingChecklist } from '@/components/dashboard/onboarding-checklist';
 import MetricsBentoGrid from '@/app/(site)/dashboard/components/MetricsBentoGrid';
 import { PageHeader } from '@/components/dashboard/page-header';
@@ -194,7 +194,7 @@ export default function DashboardPage() {
               href="/dashboard/bots"
               className="inline-flex min-h-[44px] items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
             >
-              <BotIcon className="h-4 w-4" />
+              <Waypoints className="h-4 w-4" />
               Create Signal Flow
             </Link>
             <Link
@@ -210,6 +210,10 @@ export default function DashboardPage() {
             step in OnboardingChecklist above, so it is not asked for twice on
             one screen. Pressing Deposit while unverified still explains itself
             through a toast, which is the contextual half of the same message. */}
+
+        {/* Beside the wallet balance, because this is the panel where the two
+            numbers meet: the balance is real money from the ledger, the P&L
+            below is simulated, and only the first can leave the platform. */}
       </section>
 
       {depositOpen && <DepositModal onClose={() => setDepositOpen(false)} />}
@@ -352,7 +356,7 @@ export default function DashboardPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">
                       <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-                        <BotIcon className="h-4 w-4 text-primary" />
+                        <Waypoints className="h-4 w-4 text-primary" />
                       </div>
                       <div>
                         <h3 className="font-semibold text-ds-text">{bot.pair}</h3>

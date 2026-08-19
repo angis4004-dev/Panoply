@@ -6,6 +6,11 @@ import { recordAdminAction } from '@/lib/admin/audit';
 import { depositAddressCreateSchema } from '@/lib/admin/validation';
 import { parseBody } from '@/lib/validation';
 import { broadcastToTraders } from '@/lib/notifications';
+import {
+  checkAddressForNetwork,
+  checkMemoForNetwork,
+  findActiveNetwork,
+} from '@/lib/admin/networks';
 
 /**
  * The platform's published deposit addresses.
@@ -80,6 +85,42 @@ export async function POST(request: NextRequest) {
 
   const connection = await connectToDatabase();
   if (!connection) return adminJson({ error: 'Database connection unavailable' }, { status: 503 });
+
+  /*
+   * The network must exist in the catalog, and the address must satisfy its
+   * rule. This is the check that stops the platform publishing an Ethereum
+   * address as its Tron deposit target - traders would send TRC-20 USDT to it
+   * and the funds would be unrecoverable, with the platform on the hook for
+   * every one of them.
+   */
+  const network = await findActiveNetwork(body.network);
+  if (!network) {
+    return adminJson(
+      { error: `${body.network} is not an active network. Add it to the catalog first.` },
+      { status: 400 }
+    );
+  }
+  if (!network.depositEnabled) {
+    return adminJson(
+      {
+        error: `Deposits are switched off for ${network.name}. Enable them before publishing an address.`,
+      },
+      { status: 409 }
+    );
+  }
+  if (network.coins.length > 0 && !network.coins.includes(body.coin)) {
+    return adminJson(
+      {
+        error: `${network.name} is not configured to carry ${body.coin}. Add the coin to the network first.`,
+      },
+      { status: 400 }
+    );
+  }
+  const addressComplaint = checkAddressForNetwork(network, body.address);
+  if (addressComplaint) return adminJson({ error: addressComplaint }, { status: 400 });
+
+  const memoComplaint = checkMemoForNetwork(network, body.memoTag);
+  if (memoComplaint) return adminJson({ error: memoComplaint }, { status: 400 });
 
   try {
     const entry = await DepositAddressModel.create({

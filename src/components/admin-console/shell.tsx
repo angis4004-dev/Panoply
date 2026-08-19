@@ -2,7 +2,10 @@ import React from 'react';
 import Link from 'next/link';
 import {
   ArrowDownToLine,
+  ArrowUpFromLine,
+  Gauge,
   LayoutDashboard,
+  Network,
   ScrollText,
   ShieldCheck,
   UserCog,
@@ -45,14 +48,22 @@ const NAV: NavItem[] = [
     icon: ArrowDownToLine,
     permission: 'deposit.read',
   },
+  {
+    href: '/admin/withdrawals',
+    label: 'Withdrawals',
+    icon: ArrowUpFromLine,
+    permission: 'withdrawal.read',
+  },
   { href: '/admin/kyc', label: 'KYC queue', icon: ShieldCheck, permission: 'kyc.read' },
   { href: '/admin/traders', label: 'Traders', icon: Users, permission: 'trader.read' },
+  { href: '/admin/networks', label: 'Networks', icon: Network, permission: 'network.read' },
   {
     href: '/admin/deposit-addresses',
     label: 'Addresses',
     icon: Wallet,
     permission: 'deposit_address.read',
   },
+  { href: '/admin/trading', label: 'Trading', icon: Gauge, permission: 'trading.read' },
   { href: '/admin/admins', label: 'Admins', icon: UserCog, permission: 'admin.read' },
   { href: '/admin/audit', label: 'Audit log', icon: ScrollText, permission: 'audit.read' },
 ];

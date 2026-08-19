@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Shield, TrendingUp } from 'lucide-react';
+import { TrendingUp, Vault } from 'lucide-react';
 import { PageHeader } from '@/components/dashboard/page-header';
 import { DepositVaultModal } from '@/components/dashboard/deposit-vault-modal';
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -90,7 +90,7 @@ export default function VaultsPage() {
         </div>
       ) : vaults.length === 0 ? (
         <div className="rounded-xl border border-ds-border bg-ds-surface-raised/50 p-10 text-center">
-          <Shield className="mx-auto mb-3 h-8 w-8 text-ds-text-muted" />
+          <Vault className="mx-auto mb-3 h-8 w-8 text-ds-text-muted" />
           <p className="text-sm text-ds-text-muted">No vaults are available yet.</p>
         </div>
       ) : (
@@ -106,7 +106,7 @@ export default function VaultsPage() {
               >
                 <div className="flex items-center gap-4">
                   <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10">
-                    <Shield className="h-5 w-5 text-primary" />
+                    <Vault className="h-5 w-5 text-primary" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-ds-text">{vault.name}</h3>

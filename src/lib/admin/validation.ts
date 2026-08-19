@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { email, objectId, pinCode } from '@/lib/validation';
+import { validateAddressRule, type AddressCharset, type AddressFamily } from '@/lib/crypto-address';
 import { MIN_ADMIN_PASSWORD_LENGTH, passwordComplaint } from './credentials';
 import { grantablePermissions } from './permissions';
 
@@ -129,12 +130,130 @@ const coin = z
   .transform((value) => value.toUpperCase());
 
 /**
+ * A network's stable identifier, e.g. ERC20. Uppercased on the way in so that
+ * "trc20" and "TRC20" cannot become two chains for the same Tron.
+ */
+export const networkKey = z
+  .string()
+  .trim()
+  .min(2, 'must be at least 2 characters')
+  .max(20, 'must be at most 20 characters')
+  .regex(/^[a-zA-Z0-9]+$/, 'must contain only letters and numbers')
+  .transform((value) => value.toUpperCase());
+
+/**
+ * The address-format columns, shared by create and update.
+ *
+ * Validated as a group by `refineAddressRule` rather than field by field: the
+ * fields are only meaningful together, and whether any of them is required at
+ * all depends on the family.
+ */
+const addressRuleFields = {
+  addressFamily: z.enum(['evm', 'tron', 'solana', 'custom', 'none']),
+  addressPrefix: z.string().trim().max(8, 'is too long').optional(),
+  addressCharset: z.enum(['hex', 'base58', 'base32', 'alphanumeric']).optional(),
+  addressMinLength: z.number().int('must be a whole number').min(1).max(200).optional(),
+  addressMaxLength: z.number().int('must be a whole number').min(1).max(200).optional(),
+};
+
+type AddressRuleShape = {
+  addressFamily?: AddressFamily;
+  addressPrefix?: string;
+  addressCharset?: AddressCharset;
+  addressMinLength?: number;
+  addressMaxLength?: number;
+  memoSupported?: boolean;
+  memoRequired?: boolean;
+};
+
+/**
+ * Cross-field checks a per-field schema cannot express.
+ *
+ * The address rule goes through the same validateAddressRule the runtime
+ * check uses, so a network cannot be saved with a rule that would reject every
+ * address on it. The memo pair is a plain contradiction: requiring something
+ * the chain is marked as not supporting means no deposit on it can ever be
+ * completed.
+ */
+function refineAddressRule(value: AddressRuleShape, ctx: z.RefinementCtx) {
+  if (value.addressFamily) {
+    const complaint = validateAddressRule({
+      family: value.addressFamily,
+      prefix: value.addressPrefix,
+      charset: value.addressCharset,
+      minLength: value.addressMinLength,
+      maxLength: value.addressMaxLength,
+    });
+    if (complaint) {
+      ctx.addIssue({ code: 'custom', message: complaint, path: ['addressFamily'] });
+    }
+  }
+  if (value.memoRequired && value.memoSupported === false) {
+    ctx.addIssue({
+      code: 'custom',
+      message: 'A network cannot require a memo it does not support.',
+      path: ['memoRequired'],
+    });
+  }
+}
+
+export const networkCreateSchema = z
+  .object({
+    key: networkKey,
+    name: z.string().trim().min(2, 'is required').max(80, 'is too long'),
+    description: z.string().trim().max(300, 'is too long').optional(),
+    ...addressRuleFields,
+    memoSupported: z.boolean().default(false),
+    memoRequired: z.boolean().default(false),
+    coins: z.array(coin).max(40, 'is too many coins').default([]),
+    depositEnabled: z.boolean().default(true),
+    withdrawalEnabled: z.boolean().default(true),
+    minWithdrawalMinor: z.number().int('must be a whole number of minor units').min(0).nullable(),
+    sortOrder: z.number().int().min(0).max(9999).default(100),
+  })
+  .superRefine(refineAddressRule);
+
+/**
+ * An edit. `key` is absent on purpose - it is written into every deposit,
+ * payout address and withdrawal that names this network, and changing it would
+ * detach all of that history from the row that explains it.
+ */
+export const networkUpdateSchema = z
+  .object({
+    name: z.string().trim().min(2, 'is required').max(80, 'is too long').optional(),
+    description: z.string().trim().max(300, 'is too long').optional(),
+    addressFamily: addressRuleFields.addressFamily.optional(),
+    addressPrefix: addressRuleFields.addressPrefix,
+    addressCharset: addressRuleFields.addressCharset,
+    addressMinLength: addressRuleFields.addressMinLength,
+    addressMaxLength: addressRuleFields.addressMaxLength,
+    memoSupported: z.boolean().optional(),
+    memoRequired: z.boolean().optional(),
+    coins: z.array(coin).max(40, 'is too many coins').optional(),
+    depositEnabled: z.boolean().optional(),
+    withdrawalEnabled: z.boolean().optional(),
+    minWithdrawalMinor: z
+      .number()
+      .int('must be a whole number of minor units')
+      .min(0)
+      .nullable()
+      .optional(),
+    sortOrder: z.number().int().min(0).max(9999).optional(),
+    status: z.enum(['active', 'inactive']).optional(),
+  })
+  .superRefine(refineAddressRule);
+
+/**
  * A new platform deposit address. No trader id: one address per coin and
  * network serves everybody, so there is nobody to name.
+ *
+ * `network` is a key from the catalog, not free text. The address itself is
+ * only length-checked here - the format check needs the network's rule, which
+ * means a database read, so it happens in the route.
  */
 export const depositAddressCreateSchema = z.object({
   coin,
-  network: z.string().trim().min(2, 'is required').max(40, 'is too long'),
+  network: networkKey,
   address: z.string().trim().min(8, 'must be a valid wallet address').max(200, 'is too long'),
   memoTag: z.string().trim().max(100, 'is too long').optional(),
   label: z.string().trim().max(80, 'is too long').optional(),
@@ -195,13 +314,99 @@ export const depositDecisionSchema = z.discriminatedUnion('action', [
   }),
 ]);
 
+/**
+ * A risk ceiling, in minor units.
+ *
+ * Zero is meaningful and must stay reachable: checkRisk reads it as "no
+ * ceiling". The upper bound is a typo guard - a hundred million dollars is not
+ * a limit anyone means to set, and it is one keystroke away from a plausible
+ * one.
+ */
+const riskCeilingMinor = z
+  .number()
+  .int('must be a whole number of minor units')
+  .min(0, 'cannot be negative')
+  .max(10_000_000_000, 'is implausibly large; check the figure');
+
+/**
+ * A change to the trading controls.
+ *
+ * Split by action rather than made one patch object, because the two halves
+ * carry different authority. `halt` is grantable to an Admin and `resume` and
+ * `limits` are not, and a single shape would make that distinction something
+ * the route has to remember to enforce per-field.
+ */
+export const tradingControlSchema = z.discriminatedUnion('action', [
+  z.object({
+    action: z.literal('halt'),
+    // Required. Whoever finds the platform stopped needs to know why without
+    // having to locate the person who stopped it.
+    reason: z.string().trim().min(4, 'must say why trading is being stopped').max(300),
+  }),
+  z.object({
+    action: z.literal('resume'),
+    reason: z.string().trim().min(4, 'must say why trading is being resumed').max(300),
+  }),
+  z.object({
+    action: z.literal('limits'),
+    maxOrderNotionalMinor: riskCeilingMinor,
+    maxBotPositionMinor: riskCeilingMinor,
+    maxUserExposureMinor: riskCeilingMinor,
+    maxDailyLossMinor: riskCeilingMinor,
+    minSecondsBetweenOrders: z
+      .number()
+      .int('must be a whole number of seconds')
+      .min(0, 'cannot be negative')
+      .max(86_400, 'cannot exceed a day'),
+  }),
+]);
+
+/**
+ * An operator's decision on a withdrawal.
+ *
+ * `approve` takes no amount. The trader asked for a specific figure and an
+ * operator who disagrees rejects the request rather than quietly paying out a
+ * different number - see src/lib/models/Withdrawal.ts.
+ *
+ * `mark_paid` requires the transaction hash, because that reference is the
+ * only durable evidence the payment was actually made.
+ */
+export const withdrawalDecisionSchema = z.discriminatedUnion('action', [
+  z.object({
+    action: z.literal('approve'),
+    reviewNote: z.string().trim().max(1000).optional().default(''),
+  }),
+  z.object({
+    action: z.literal('reject'),
+    reason: z.string().trim().min(4, 'A rejection reason is required').max(1000),
+  }),
+  z.object({
+    action: z.literal('mark_paid'),
+    txReference: z.string().trim().min(6, 'The transaction reference is required').max(200),
+  }),
+]);
+
 export const auditQuerySchema = z.object({
   actorAdminId: objectId.optional(),
   affectedUserId: objectId.optional(),
   action: z.string().trim().max(80).optional(),
   targetType: z
-    .enum(['user', 'bot', 'kyc', 'model', 'admin', 'deposit_address', 'deposit', 'session'])
+    .enum([
+      'user',
+      'bot',
+      'kyc',
+      'model',
+      'admin',
+      'network',
+      'deposit_address',
+      'payout_address',
+      'deposit',
+      'withdrawal',
+      'session',
+      'trading_control',
+    ])
     .optional(),
+
   reference: z.string().trim().max(200).optional(),
   from: z.string().trim().optional(),
   to: z.string().trim().optional(),

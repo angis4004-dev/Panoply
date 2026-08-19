@@ -16,7 +16,18 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
  */
 
 export type AuditTargetType =
-  'user' | 'bot' | 'kyc' | 'model' | 'admin' | 'deposit_address' | 'deposit' | 'session';
+  | 'user'
+  | 'bot'
+  | 'kyc'
+  | 'model'
+  | 'admin'
+  | 'network'
+  | 'deposit_address'
+  | 'payout_address'
+  | 'deposit'
+  | 'withdrawal'
+  | 'session'
+  | 'trading_control';
 
 export interface IAdminAuditLog extends Document {
   /**
@@ -64,7 +75,19 @@ const AdminAuditLogSchema = new Schema<IAdminAuditLog>({
   targetType: {
     type: String,
     required: true,
-    enum: ['user', 'bot', 'kyc', 'model', 'admin', 'deposit_address', 'deposit', 'session'],
+    enum: [
+      'user',
+      'bot',
+      'kyc',
+      'model',
+      'admin',
+      'network',
+      'deposit_address',
+      'payout_address',
+      'deposit',
+      'withdrawal',
+      'session',
+    ],
   },
   targetId: { type: String, required: true },
   affectedUserId: { type: Schema.Types.ObjectId, ref: 'User', default: null, index: true },

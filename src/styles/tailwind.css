@@ -875,3 +875,129 @@ body {
     transition: none;
   }
 }
+
+/* =============================================================================
+   Icons
+   =============================================================================
+
+   Lucide ships every icon at stroke-width 2, a weight chosen for its 24px
+   default. This interface draws them mostly at 16px, where that renders a
+   1.33px line - heavier than the hairline rules, borders and 13px type it sits
+   beside, so the icons carried more visual weight than the text they label.
+   Dropping to 1.75 renders 1.17px and settles them into the page.
+
+   Retuned here rather than by passing strokeWidth at 53 files' worth of call
+   sites, which would drift the moment someone adds an icon and forgets. Lucide
+   stamps `class="lucide lucide-<name>"` on every svg, and a CSS rule beats the
+   presentation attribute it writes - so this is one authority for the whole
+   app, and a new icon inherits it for free.
+
+   1.75 and not lower: below about 1.5 the strokes thin enough to shimmer
+   against the dark surface on non-retina displays. Hand-rolled SVGs - the risk
+   ring, the signal field, the wordmark - set their own widths and are
+   untouched, because the selector only reaches Lucide.
+*/
+.lucide {
+  stroke-width: 1.75;
+}
+
+/* Optical sizing, the same idea type has.
+ *
+ * stroke-width is measured in viewBox units, and every Lucide glyph is drawn
+ * in a 24-unit box - so the rendered stroke is `stroke-width x size / 24` and
+ * grows with the icon. One fixed weight therefore cannot serve every size: at
+ * a constant 1.75, a 16px icon renders a 1.2px line and a 40px icon renders a
+ * 2.9px one. Side by side they read as two different icon sets.
+ *
+ * These steps hold the rendered stroke near 1.0-1.7px everywhere, so a large
+ * empty-state glyph looks like the same family as the 16px one in the nav.
+ *
+ *   h-4  16px @ 1.75  ->  1.17px
+ *   h-5  20px @ 1.75  ->  1.46px
+ *   h-6  24px @ 1.5   ->  1.50px
+ *   h-8  32px @ 1.25  ->  1.67px
+ *   h-10 40px @ 1     ->  1.67px
+ */
+.lucide.h-6,
+.lucide.h-7 {
+  stroke-width: 1.5;
+}
+
+.lucide.h-8,
+.lucide.h-9 {
+  stroke-width: 1.25;
+}
+
+.lucide.h-10,
+.lucide.h-11,
+.lucide.h-12,
+.lucide.h-14,
+.lucide.h-16 {
+  stroke-width: 1;
+}
+
+/* =============================================================================
+   Sidebar navigation
+   ============================================================================= */
+
+/*
+ * One curve for the whole row. A strong ease-out rather than the built-in
+ * easing: the movement is front-loaded, so the row answers on the first frame
+ * the pointer arrives, which is the moment the eye is actually watching.
+ *
+ * 150ms because this is a control people use dozens of times a day. Anything
+ * slower and navigation starts to feel like it is asking you to wait.
+ */
+.nav-link {
+  transition:
+    background-color 150ms cubic-bezier(0.23, 1, 0.32, 1),
+    color 150ms cubic-bezier(0.23, 1, 0.32, 1),
+    border-color 150ms cubic-bezier(0.23, 1, 0.32, 1),
+    transform 100ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/*
+ * Press feedback, on pointer-down rather than on navigation. Next.js may spend
+ * a moment fetching the route; without this the row sits inert through it and
+ * the click reads as dropped. Subtle - 0.98 is felt more than seen.
+ */
+.nav-link:active {
+  transform: scale(0.98);
+}
+
+/* Icon colour rides currentColor from the row, so only weight animates here. */
+.nav-icon {
+  transition: stroke-width 150ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/*
+ * The active row is heavier, not just brighter.
+ *
+ * Colour was the only thing separating current from the rest, which fails for
+ * anyone who cannot separate those two colours (WCAG 1.4.1) and is weak even
+ * for those who can. Weight is a second, non-colour channel, and it is the
+ * same device the type uses - so the icon thickens as the label lights up
+ * instead of the two states being told apart by hue alone.
+ *
+ * Beats the global `.lucide` rule on specificity, so it needs no !important.
+ */
+[data-nav-active='true'] .nav-icon {
+  stroke-width: 2.25;
+}
+
+/*
+ * Reduced motion keeps the colour transitions - they aid comprehension and
+ * cause nobody motion sickness - and drops the scale, which is movement.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .nav-link {
+    transition:
+      background-color 150ms ease,
+      color 150ms ease,
+      border-color 150ms ease;
+  }
+
+  .nav-link:active {
+    transform: none;
+  }
+}

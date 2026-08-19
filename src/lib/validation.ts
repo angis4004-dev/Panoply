@@ -203,6 +203,65 @@ export const adminDepositAddressSchema = z.object({
 });
 
 /**
+ * A trader saving a wallet to be paid out to.
+ *
+ * The address is only length-checked here. The real check is against the
+ * network's own format rule, which lives in the catalog and therefore needs a
+ * database read - see checkAddressForNetwork in src/lib/admin/networks.ts.
+ * `confirmOwnership` must be true: sending crypto is irreversible, and the
+ * trader asserting the wallet is theirs is the only control the platform has
+ * before an operator acts on it.
+ */
+export const payoutAddressCreateSchema = z.object({
+  networkKey: z
+    .string()
+    .trim()
+    .min(2, 'is required')
+    .max(20, 'is too long')
+    .regex(/^[a-zA-Z0-9]+$/, 'must contain only letters and numbers')
+    .transform((value) => value.toUpperCase()),
+  coin: z
+    .string()
+    .trim()
+    .min(2, 'must be at least 2 characters')
+    .max(12, 'must be at most 12 characters')
+    .regex(/^[a-zA-Z0-9]+$/, 'must contain only letters and numbers')
+    .transform((value) => value.toUpperCase()),
+  address: z.string().trim().min(8, 'must be a valid wallet address').max(200, 'is too long'),
+  memoTag: z.string().trim().max(100, 'is too long').optional(),
+  label: z.string().trim().max(60, 'is too long').optional(),
+  confirmOwnership: z
+    .literal(true, { message: 'You must confirm you control this wallet.' })
+    .describe('The trader asserting they control the private key.'),
+});
+
+/**
+ * A withdrawal request.
+ *
+ * Carries the payout address id rather than an address. A trader must not be
+ * able to name a destination in the request body: the address has to be one
+ * they previously saved and confirmed ownership of, and the server copies it
+ * from that row. Accepting a raw address here would make every other check on
+ * the payout address pointless.
+ *
+ * Nothing about the lock, the balance, or the network floor is expressed here -
+ * all of it needs database state, and all of it is enforced server-side in
+ * validateWithdrawalRequest.
+ */
+export const withdrawalCreateSchema = z.object({
+  amount: dollarAmount,
+  payoutAddressId: objectId,
+});
+
+export const payoutAddressActionSchema = z.discriminatedUnion('action', [
+  z.object({ action: z.literal('deactivate') }),
+  z.object({
+    action: z.literal('relabel'),
+    label: z.string().trim().max(60, 'is too long'),
+  }),
+]);
+
+/**
  * Choosing a first PIN. No pendingToken: this is done from the dashboard, so
  * the session is the credential.
  */

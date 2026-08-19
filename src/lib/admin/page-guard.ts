@@ -5,7 +5,7 @@ import { headers } from 'next/headers';
 import { redirect, notFound } from 'next/navigation';
 import { resolveAdminSession, type AdminSessionContext } from './session';
 import { hasPermission, type Permission } from './permissions';
-import { classifyHost, hostConfigFromEnv, isAdminHostConfigured } from './host';
+import { adminSurfaceDenial, hostConfigFromEnv } from './host';
 
 /**
  * The page-rendering counterpart to requireAdmin.
@@ -22,15 +22,21 @@ export interface AdminPageContext extends AdminSessionContext {
   can: (permission: Permission) => boolean;
 }
 
+/*
+ * A server component cannot see its own pathname - headers() carries the host
+ * but Next exposes no reliable request path here. It does not need to: every
+ * caller of these two functions is a file under src/app/(admin)/admin, so the
+ * request being served is an admin path by construction. Passing the literal
+ * is stating that fact rather than working around a missing value.
+ */
+const ADMIN_PAGE_PATH = '/admin';
+
 export async function requireAdminPage(permission?: Permission): Promise<AdminPageContext> {
   const headerList = await headers();
-  const config = hostConfigFromEnv();
 
-  if (classifyHost(headerList.get('host'), config) !== 'admin') {
-    notFound();
-  }
-  if (process.env.NODE_ENV === 'production' && !isAdminHostConfigured(config)) {
-    console.error('ADMIN_HOST is not configured; refusing to render the admin console.');
+  const denial = adminSurfaceDenial(headerList.get('host'), ADMIN_PAGE_PATH, hostConfigFromEnv());
+  if (denial) {
+    if (denial.startsWith('ADMIN_HOST')) console.error(denial);
     notFound();
   }
 
@@ -63,10 +69,10 @@ export async function requireAdminPage(permission?: Permission): Promise<AdminPa
  */
 export async function requireAdminPageForSetup(): Promise<AdminPageContext> {
   const headerList = await headers();
-  const config = hostConfigFromEnv();
 
-  if (classifyHost(headerList.get('host'), config) !== 'admin') notFound();
-  if (process.env.NODE_ENV === 'production' && !isAdminHostConfigured(config)) notFound();
+  if (adminSurfaceDenial(headerList.get('host'), ADMIN_PAGE_PATH, hostConfigFromEnv())) {
+    notFound();
+  }
 
   const session = await resolveAdminSession({ headers: headerList as unknown as Headers });
   if (!session) redirect('/admin/login');

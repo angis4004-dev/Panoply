@@ -24,6 +24,25 @@ export interface HostConfig {
   adminHost?: string;
   /** Canonical trader hostname, e.g. app.example.com. */
   appHost?: string;
+  /**
+   * Serve the console at /admin on the ordinary application host instead of
+   * on a subdomain.
+   *
+   * Off by default, and it should stay off wherever a subdomain is possible -
+   * the subdomain split is what makes /api/admin unreachable from the trader
+   * origin, and turning this on gives that up.
+   *
+   * It exists because some deployments cannot have the subdomain at all. A
+   * Vercel project on its default *.vercel.app URL is the case that forced it:
+   * arbitrary subdomains of vercel.app cannot be registered, so
+   * admin.myproject.vercel.app will never resolve no matter what ADMIN_HOST
+   * says. Without this flag such a deployment has no reachable console.
+   *
+   * Optional, and absent means off. A config assembled by hand - in a test, or
+   * anywhere that only cares about hostnames - must not switch this on by
+   * omission.
+   */
+  pathRouting?: boolean;
 }
 
 /** Strips the port and lowercases. Returns '' for anything unusable. */
@@ -50,7 +69,23 @@ export function hostConfigFromEnv(env: NodeJS.ProcessEnv = process.env): HostCon
   return {
     adminHost: normalizeHostname(stripScheme(env.ADMIN_HOST || env.ADMIN_APP_URL)),
     appHost: normalizeHostname(stripScheme(env.APP_HOST || env.NEXT_PUBLIC_APP_URL)),
+    pathRouting: isTruthy(env.ADMIN_PATH_ROUTING),
   };
+}
+
+/**
+ * Only an explicit affirmative enables a flag.
+ *
+ * Anything else - including the string "false", which is what an environment
+ * variable set to false actually contains and which is truthy in JavaScript -
+ * leaves it off. For a flag that removes an isolation boundary, the failure
+ * mode has to be "stayed off" rather than "turned on because the value was a
+ * non-empty string".
+ */
+function isTruthy(value: string | undefined): boolean {
+  if (!value) return false;
+  const normalized = value.trim().toLowerCase();
+  return normalized === '1' || normalized === 'true' || normalized === 'yes';
 }
 
 function stripScheme(value: string | undefined): string {
@@ -99,8 +134,19 @@ export function isAdminHostConfigured(config: HostConfig = hostConfigFromEnv()):
  * admin host. Keeping one list means the two rules cannot fall out of step.
  */
 export function isAdminPath(pathname: string): boolean {
+  /*
+   * Each prefix needs its trailing slash, and its exact form spelled out
+   * separately. `startsWith('/api/admin')` without the slash also matches
+   * /api/administrators - a trader route that would then 404 on the trader
+   * host and be served on the admin one. No such route exists today, which is
+   * the only reason the bug was invisible; adding one would have made a
+   * trader endpoint reachable only by an operator.
+   */
   return (
-    pathname === '/admin' || pathname.startsWith('/admin/') || pathname.startsWith('/api/admin')
+    pathname === '/admin' ||
+    pathname.startsWith('/admin/') ||
+    pathname === '/api/admin' ||
+    pathname.startsWith('/api/admin/')
   );
 }
 
@@ -116,4 +162,65 @@ export function isInfrastructurePath(pathname: string): boolean {
     pathname === '/apple-icon.png' ||
     pathname === '/robots.txt'
   );
+}
+
+/**
+ * Which surface a request belongs to, given both the host and the path.
+ *
+ * The host alone is not enough once path routing is available: under that mode
+ * one hostname serves both applications and only the path separates them.
+ * classifyHost is left as it was - it answers a narrower question and is used
+ * where only the host is known - so this is the function to reach for when the
+ * path is in hand, which is everywhere that matters.
+ */
+export function resolveSurface(
+  host: string | null | undefined,
+  pathname: string,
+  config: HostConfig = hostConfigFromEnv()
+): Surface {
+  if (config.pathRouting) {
+    return isAdminPath(pathname) ? 'admin' : 'app';
+  }
+  return classifyHost(host, config);
+}
+
+/**
+ * Why this request must not be served the console, or null if it may be.
+ *
+ * The whole host rule in one place. It previously existed as the same six
+ * lines copied into the proxy, the API guard and both page guards, which is
+ * three opportunities for the four of them to disagree - and disagreement here
+ * means either a console nobody can reach or one anybody can.
+ *
+ * Returns a reason string rather than a boolean so the caller can log
+ * something an operator can act on. A console that 404s silently is the
+ * failure this function was written after: the deployment was correct in every
+ * respect except one unset variable, and nothing anywhere said so.
+ */
+export function adminSurfaceDenial(
+  host: string | null | undefined,
+  pathname: string,
+  config: HostConfig = hostConfigFromEnv(),
+  isProduction: boolean = process.env.NODE_ENV === 'production'
+): string | null {
+  if (resolveSurface(host, pathname, config) !== 'admin') {
+    return 'This request is not addressed to the admin surface.';
+  }
+
+  /*
+   * Fail closed, but only when nothing has been configured. Path routing is
+   * itself an explicit statement of where the console lives, so it satisfies
+   * this requirement in the same way ADMIN_HOST does. Without that exemption
+   * the flag would be inert in production, which is the only place it is for.
+   */
+  if (isProduction && !isAdminHostConfigured(config) && !config.pathRouting) {
+    return (
+      'ADMIN_HOST is not configured. Refusing to serve the admin console rather than ' +
+      'falling back to matching any hostname beginning with "admin.". Set ADMIN_HOST to ' +
+      'the console hostname, or set ADMIN_PATH_ROUTING=true to serve it at /admin on the ' +
+      'main host.'
+    );
+  }
+
+  return null;
 }

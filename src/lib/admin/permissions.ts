@@ -38,6 +38,18 @@ export const PERMISSIONS = [
   /** Approve or reject a submission, and view the identity document. */
   'kyc.review',
 
+  /** See the chain catalog: which networks exist and their address rules. */
+  'network.read',
+  /**
+   * Add a network, change its address rule, or switch deposits and
+   * withdrawals on and off for it. Deliberately separate from
+   * deposit_address.manage: publishing an address decides where funds land on
+   * a chain the platform already trusts, whereas this decides which chains
+   * exist at all and what counts as a valid address on them. Someone who can
+   * loosen an address rule can make a wrong-chain payout pass validation.
+   */
+  'network.manage',
+
   /** See deposit addresses assigned across the platform. */
   'deposit_address.read',
   /** Assign, deactivate, and rotate deposit addresses. */
@@ -52,6 +64,18 @@ export const PERMISSIONS = [
    */
   'deposit.authorize',
 
+  /** See the withdrawal queue. */
+  'withdrawal.read',
+  /**
+   * Decide a withdrawal: approve it, refuse it, or mark an approved one paid.
+   *
+   * Approving debits the trader's wallet, so this is money movement and is
+   * granted explicitly rather than coming with the Admin role. Rejecting moves
+   * nothing, but it is bundled here because an operator working the queue needs
+   * both halves - the same reasoning that keeps deposit.authorize single.
+   */
+  'withdrawal.review',
+
   /**
    * Post a manual ledger adjustment against a trader's wallet. Grantable, but
    * deliberately separate from deposit.authorize: authorizing a deposit that
@@ -59,6 +83,26 @@ export const PERMISSIONS = [
    * balance movement.
    */
   'ledger.adjust',
+
+  /** See the trading controls: the kill switch, the limits, and the venue. */
+  'trading.read',
+  /**
+   * Engage the kill switch - stop all trading.
+   *
+   * Grantable, and deliberately easy to hold. Halting is the safe direction:
+   * the worst outcome of a halt nobody needed is that no orders are placed for
+   * a while. Requiring the MainAdmin to be awake before anything can be
+   * stopped would be the more dangerous design.
+   */
+  'trading.halt',
+  /**
+   * Lift the halt and change the risk limits.
+   *
+   * The other half of the switch, and MainAdmin-only. Resuming trading and
+   * raising a ceiling are the two actions here that can cause money to move,
+   * and neither is urgent in the way stopping is. See MAIN_ADMIN_ONLY.
+   */
+  'trading.manage',
 
   /** Read the audit log. */
   'audit.read',
@@ -91,6 +135,13 @@ export const MAIN_ADMIN_ONLY: readonly Permission[] = [
   'admin.create',
   'admin.manage',
   'platform.manage',
+  /*
+   * Resuming trading and raising a risk ceiling both end with customer money
+   * at the venue. Its counterpart trading.halt is grantable, and that
+   * asymmetry is the design: anyone trusted enough to watch the platform can
+   * stop it, only the MainAdmin can start it again.
+   */
+  'trading.manage',
 ];
 
 /**
@@ -103,8 +154,14 @@ export const ADMIN_DEFAULT_PERMISSIONS: readonly Permission[] = [
   'trader.read',
   'kyc.read',
   'kyc.review',
+  'network.read',
   'deposit_address.read',
   'deposit.read',
+  'withdrawal.read',
+  // Seeing whether the platform is trading is not authority over it, and an
+  // admin who cannot tell that trading is halted will misread every other
+  // screen in the console.
+  'trading.read',
   'audit.read',
   'admin.read',
 ];

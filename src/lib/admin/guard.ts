@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { getClientIp } from '@/lib/rate-limit';
 import { hasPermission, type Permission } from './permissions';
 import { resolveAdminSession, type AdminSessionContext } from './session';
-import { classifyHost, hostConfigFromEnv, isAdminHostConfigured } from './host';
+import { adminSurfaceDenial, hostConfigFromEnv } from './host';
 
 /**
  * The one gate every admin API route passes through.
@@ -75,21 +75,18 @@ function noStore(): Record<string, string> {
  * back when it is not.
  */
 export function requireAdminSurface(request: NextRequest): NextResponse | null {
-  const config = hostConfigFromEnv();
+  const denial = adminSurfaceDenial(
+    request.headers.get('host'),
+    request.nextUrl.pathname,
+    hostConfigFromEnv()
+  );
+  if (!denial) return null;
 
-  if (classifyHost(request.headers.get('host'), config) !== 'admin') {
-    return notFound();
-  }
-
-  if (process.env.NODE_ENV === 'production' && !isAdminHostConfigured(config)) {
-    console.error(
-      'ADMIN_HOST is not configured. Refusing to serve the admin API rather than ' +
-        'falling back to matching any hostname beginning with "admin.".'
-    );
-    return notFound();
-  }
-
-  return null;
+  // Logged only when the request looked like it was meant for the console.
+  // A trader-origin request to /api/admin is an ordinary 404 and logging it
+  // would bury the misconfiguration case in noise.
+  if (denial.startsWith('ADMIN_HOST')) console.error(denial);
+  return notFound();
 }
 
 export async function requireAdmin(

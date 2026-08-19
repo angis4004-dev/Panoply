@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { PageHeader } from '@/components/dashboard/page-header';
 import { IdentityScore } from '@/components/dashboard/identity-score';
 import { PinSection } from '@/components/dashboard/pin-section';
+import { PayoutAddresses } from '@/components/dashboard/payout-addresses';
 import { useAppStore } from '@/store/app-store';
 import { useAuth } from '@/hooks/use-auth';
 import { Loader } from '@/components/ui/loader';
@@ -152,6 +153,15 @@ export default function SettingsPage() {
           </div>
         </section>
 
+        {/* The control the withdraw page sends people here to find. Until this
+            existed the link led to a page with nothing on it to click. */}
+        <PayoutAddresses />
+
+        {/* The legacy single-wallet confirmation, kept because the achievements
+            engine still scores it. It is no longer what withdrawal is gated on
+            - that moved to the per-chain confirmation above, because this
+            block only renders for an assigned walletAddress and essentially no
+            account has one, which made withdrawal impossible to reach. */}
         {user?.walletAddress && !user?.walletOwnershipConfirmed && (
           <section className="rounded-xl border border-ds-border bg-ds-surface-raised/50 p-5">
             <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-ds-text-muted">

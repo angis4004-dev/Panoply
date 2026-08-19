@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Zap } from 'lucide-react';
+import { Sprout } from 'lucide-react';
 import { PageHeader } from '@/components/dashboard/page-header';
 import { Skeleton } from '@/components/ui/Skeleton';
 
@@ -83,7 +83,7 @@ export default function YieldPage() {
         </div>
       ) : opportunities.length === 0 ? (
         <div className="rounded-xl border border-ds-border bg-ds-surface-raised/50 p-10 text-center">
-          <Zap className="mx-auto mb-3 h-8 w-8 text-ds-text-muted" />
+          <Sprout className="mx-auto mb-3 h-8 w-8 text-ds-text-muted" />
           <p className="text-sm text-ds-text-muted">No yield opportunities are available yet.</p>
         </div>
       ) : (
@@ -118,7 +118,7 @@ export default function YieldPage() {
                 >
                   <td className="px-4 py-3.5">
                     <div className="flex items-center gap-2">
-                      <Zap className="h-4 w-4 text-primary" />
+                      <Sprout className="h-4 w-4 text-primary" />
                       <span className="font-medium text-ds-text">{row.protocol}</span>
                     </div>
                   </td>

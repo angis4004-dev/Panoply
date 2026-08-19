@@ -26,7 +26,12 @@ import { Loader } from '@/components/ui/loader';
 interface PlatformAddress {
   id: string;
   coin: string;
+  /** Catalog key, e.g. TRC20. The stable identifier, not the label. */
   network: string;
+  /** What the network is called, e.g. "Tron (TRC-20)". Falls back to the key. */
+  networkName: string;
+  networkDescription: string;
+  memoRequired: boolean;
   address: string;
   memoTag: string | null;
 }
@@ -260,7 +265,7 @@ export function DepositModal({ onClose }: { onClose: () => void }) {
                           {entry.coin}
                         </span>
                         <span translate="no" className="text-xs text-ds-text-muted">
-                          {entry.network}
+                          {entry.networkName || entry.network}
                         </span>
                       </button>
                     );
@@ -368,6 +373,15 @@ export function DepositModal({ onClose }: { onClose: () => void }) {
                       Anything else is unrecoverable.
                     </span>
                   </p>
+
+                  {/* Written by the operator against the network in the console.
+                      Chain-specific guidance - fees, confirmation times - that
+                      the generic warning above cannot carry. */}
+                  {selected.networkDescription ? (
+                    <p className="mt-1.5 text-xs leading-relaxed text-ds-text-muted">
+                      {selected.networkDescription}
+                    </p>
+                  ) : null}
                 </div>
               )}
 

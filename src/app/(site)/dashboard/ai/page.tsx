@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ArrowUpRight, Brain, Lock } from 'lucide-react';
+import { ArrowUpRight, Bot, Lock } from 'lucide-react';
 import { PageHeader } from '@/components/dashboard/page-header';
 import { TierBadge } from '@/components/dashboard/tier-badge';
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -90,7 +90,7 @@ export default function AIPage() {
         ) : isVanguard ? (
           <div className="rounded-xl border border-ds-value-positive/30 bg-ds-surface-raised/50 p-8">
             <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-ds-value-positive/10">
-              <Brain className="h-6 w-6 text-ds-value-positive" />
+              <Bot className="h-6 w-6 text-ds-value-positive" />
             </div>
 
             <div className="mb-3 flex flex-wrap items-center gap-2">

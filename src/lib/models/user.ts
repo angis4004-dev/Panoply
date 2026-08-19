@@ -111,6 +111,24 @@ export interface IUser extends Document {
   walletOwnershipConfirmed: boolean;
   walletOwnershipConfirmedAt?: Date;
   lifetimeDeposited: number;
+  /*
+   * Capital commitment, for withdrawals. See src/lib/withdrawal-rules.ts.
+   *
+   * The trader picks a horizon when they first deposit; it sets how long
+   * capital is committed - three months for short, twelve for long. Stored
+   * on the account rather than per deposit, so a later top-up neither
+   * restarts the term nor fragments the balance into separately maturing
+   * pieces.
+   */
+  investmentHorizon?: 'short' | 'long';
+  /**
+   * When the first signal flow started running. Half of the unlock clock -
+   * the other half is the first approved deposit, and the term counts from
+   * whichever happened later.
+   */
+  tradingStartedAt?: Date;
+  /** When the first deposit was approved. The other half of that clock. */
+  firstDepositApprovedAt?: Date;
   xp: number;
   tier: 'unverified' | 'novice' | 'amateur' | 'strategist' | 'vanguard';
   currentStreak: number;
@@ -189,6 +207,12 @@ const UserSchema = new Schema<IUser>(
     walletOwnershipConfirmed: { type: Boolean, default: false },
     walletOwnershipConfirmedAt: { type: Date },
     lifetimeDeposited: { type: Number, default: 0, min: 0 },
+    // No default. Undefined means "not chosen yet", which is a real state -
+    // an account that has never deposited has no term to serve, and
+    // defaulting it to 'short' would silently start a clock nobody set.
+    investmentHorizon: { type: String, enum: ['short', 'long'] },
+    tradingStartedAt: { type: Date },
+    firstDepositApprovedAt: { type: Date },
     xp: { type: Number, default: 0, min: 0 },
     tier: {
       type: String,

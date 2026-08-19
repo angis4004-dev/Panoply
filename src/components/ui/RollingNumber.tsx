@@ -121,30 +121,13 @@ export function useLiveDrift(base: number, driftPct = 0.006, intervalMs = 4000):
   return value;
 }
 
-const ACTIVITY_PHASES = ['RUNNING', 'SELL', 'HOLD'] as const;
-export type ActivityPhase = (typeof ACTIVITY_PHASES)[number];
-
-/**
- * Cycles a running signal flow through RUNNING -> SELL -> HOLD -> RUNNING on
- * an interval, so a live flow reads as actually doing something rather than
- * sitting on a static "running" label. Purely a decorative activity
- * indicator - it doesn't drive real trade execution or P&L, both of which
- * are already computed server-side (see bot-pnl.ts). Starts at a random
- * phase so multiple flow cards don't flip in lockstep.
+/*
+ * useActivityPhase used to live here: it flipped a running flow's badge
+ * between RUNNING, SELL and HOLD on a five-second timer so a card "read as
+ * actually doing something". It was decorative, and it was invented - a flow
+ * that had never placed an order still showed SELL every fifteen seconds.
+ *
+ * Now that the scheduler records what each cycle actually decided, the badge
+ * shows that instead. Deleted rather than kept for reuse: a component that
+ * fabricates trading activity has no honest use on this platform.
  */
-export function useActivityPhase(active: boolean, intervalMs = 5000): ActivityPhase {
-  const [index, setIndex] = useState(() => Math.floor(Math.random() * ACTIVITY_PHASES.length));
-
-  useEffect(() => {
-    if (!active) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-    const id = setInterval(
-      () => setIndex((i) => (i + 1) % ACTIVITY_PHASES.length),
-      intervalMs + Math.random() * 1500
-    );
-    return () => clearInterval(id);
-  }, [active, intervalMs]);
-
-  return active ? ACTIVITY_PHASES[index] : 'RUNNING';
-}

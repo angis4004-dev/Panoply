@@ -30,12 +30,22 @@ export default function DisclaimerPage() {
       </section>
 
       <section>
-        <h2>Simulated activity notice</h2>
+        <h2>Trading mode</h2>
         <p>
-          Certain features currently operate in a dry-run capacity: displayed profit and loss, trade
-          activity, and balances in those areas are simulated for demonstration and testing purposes
-          and do not reflect real capital or executed trades unless explicitly stated otherwise in
-          the product interface.
+          Signal flow performance is derived from orders placed on a connected exchange and the
+          fills returned for them. Profit and loss figures are calculated from those fills, not
+          modelled or projected.
+        </p>
+        <p>
+          Panoply can be operated in a paper trading mode, in which orders are evaluated against
+          live market prices but are not sent to an exchange. Where an account is running in that
+          mode it is stated in the product interface, and figures shown for it do not reflect
+          executed trades.
+        </p>
+        <p>
+          Realized profit and loss is booked to your wallet when a position closes. Unrealized
+          profit and loss reflects the current market value of an open position, changes with the
+          market, and is not payable until the position is closed.
         </p>
       </section>
 
