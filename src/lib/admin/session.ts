@@ -16,11 +16,16 @@ import { readAdminToken, readCookie, adminChallengeCookieName } from './cookie';
  * and a stateless token cannot answer either.
  */
 
-const SESSION_SECRET = process.env.SESSION_SECRET;
-if (!SESSION_SECRET) {
-  throw new Error('SESSION_SECRET environment variable is required for admin authentication.');
+function getAdminSecret(): string {
+  const secret = process.env.SESSION_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === 'production' && !process.env.NEXT_PHASE?.includes('build')) {
+      throw new Error('SESSION_SECRET environment variable is required for admin authentication.');
+    }
+    return 'build-time-fallback-secret-for-static-analysis-only';
+  }
+  return secret;
 }
-const SECRET: string = SESSION_SECRET;
 
 function positiveIntEnv(name: string, fallback: number): number {
   const raw = process.env[name];
@@ -242,7 +247,7 @@ export function createChallengeToken(adminId: string): string {
     JSON.stringify({ adminId, issuedAt: Date.now(), scope: CHALLENGE_SCOPE })
   ).toString('base64url');
   const signature = crypto
-    .createHmac('sha256', SECRET)
+    .createHmac('sha256', getAdminSecret())
     .update(`${CHALLENGE_SCOPE}:${payload}`)
     .digest('hex');
   return `${payload}.${signature}`;
@@ -254,7 +259,7 @@ export function verifyChallengeToken(token: unknown): string | null {
   if (!payload || !signature) return null;
 
   const expected = crypto
-    .createHmac('sha256', SECRET)
+    .createHmac('sha256', getAdminSecret())
     .update(`${CHALLENGE_SCOPE}:${payload}`)
     .digest('hex');
 
