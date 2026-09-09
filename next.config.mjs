@@ -5,6 +5,10 @@ const nextConfig = {
   output: 'standalone',
   outputFileTracingRoot: import.meta.dirname,
   productionBrowserSourceMaps: true,
+  experimental: {
+    cpus: 1,
+    memoryBasedWorkersCount: true,
+  },
   distDir: process.env.DIST_DIR || '.next',
   images: {
     remotePatterns: imageHosts,
