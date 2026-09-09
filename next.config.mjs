@@ -2,6 +2,7 @@ import { imageHosts } from './image-hosts.config.mjs';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'standalone',
   outputFileTracingRoot: import.meta.dirname,
   productionBrowserSourceMaps: true,
   distDir: process.env.DIST_DIR || '.next',
