@@ -1,4 +1,9 @@
 .git
+.claude
+.claude-flow
+.gstack
+.vercel
+.worktrees
 .next
 node_modules
 data
