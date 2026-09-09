@@ -47,11 +47,16 @@ export { UNLOCK_HEADER };
  * undefined in a browser, so anything that pulls this into the client graph
  * turns that guard into a rendering crash.
  */
-const SESSION_SECRET = process.env.SESSION_SECRET;
-if (!SESSION_SECRET) {
-  throw new Error('SESSION_SECRET environment variable is required to sign dashboard unlocks.');
+function getUnlockSecret(): string {
+  const secret = process.env.SESSION_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === 'production' && !process.env.NEXT_PHASE?.includes('build')) {
+      throw new Error('SESSION_SECRET environment variable is required to sign dashboard unlocks.');
+    }
+    return 'build-time-fallback-secret-for-static-analysis-only';
+  }
+  return secret;
 }
-const SECRET: string = SESSION_SECRET;
 
 interface UnlockPayload {
   userId: string;
@@ -61,7 +66,7 @@ interface UnlockPayload {
 }
 
 function sign(payload: string): string {
-  return crypto.createHmac('sha256', SECRET).update(`${UNLOCK_SCOPE}:${payload}`).digest('hex');
+  return crypto.createHmac('sha256', getUnlockSecret()).update(`${UNLOCK_SCOPE}:${payload}`).digest('hex');
 }
 
 export function createDashboardUnlockToken(userId: string, tokenVersion: number): string {
