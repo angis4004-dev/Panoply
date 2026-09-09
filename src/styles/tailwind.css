@@ -542,7 +542,8 @@ body {
  * normalisation the dash offset would drift mid-animation. */
 .signal-trace {
   stroke-dasharray: 0.35 1;
-  animation: signal-trace-run var(--ds-dur-slow, 380ms) var(--ds-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) 1 both;
+  animation: signal-trace-run var(--ds-dur-slow, 380ms)
+    var(--ds-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) 1 both;
 }
 @keyframes signal-trace-run {
   from {

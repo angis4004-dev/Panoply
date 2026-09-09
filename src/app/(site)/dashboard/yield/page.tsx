@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Calculator, Layers, Search, Shield, Sprout, TrendingUp, X } from 'lucide-react';
+import { Calculator, Layers, Search, Sprout, TrendingUp, X } from 'lucide-react';
 import { PageHeader } from '@/components/dashboard/page-header';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { RiskBadge } from '@/components/dashboard/risk-badge';
@@ -60,8 +60,10 @@ export default function YieldPage() {
   // Filtered pool results
   const filtered = useMemo(() => {
     return opportunities.filter((item) => {
-      const matchChain = selectedChain === 'all' || item.chain.toLowerCase() === selectedChain.toLowerCase();
-      const matchRisk = selectedRisk === 'all' || item.risk.toLowerCase() === selectedRisk.toLowerCase();
+      const matchChain =
+        selectedChain === 'all' || item.chain.toLowerCase() === selectedChain.toLowerCase();
+      const matchRisk =
+        selectedRisk === 'all' || item.risk.toLowerCase() === selectedRisk.toLowerCase();
       const matchSearch =
         !search.trim() ||
         item.protocol.toLowerCase().includes(search.toLowerCase()) ||
@@ -385,4 +387,3 @@ export default function YieldPage() {
     </div>
   );
 }
-

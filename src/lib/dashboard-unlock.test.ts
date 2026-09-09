@@ -41,7 +41,7 @@ describe('unlock tokens', () => {
   });
 
   it('rejects a token whose payload has been edited', () => {
-    const [scope, payload, signature] = unlocked().split('.');
+    const [scope, , signature] = unlocked().split('.');
     const tampered = Buffer.from(
       JSON.stringify({
         userId: 'someone-else',

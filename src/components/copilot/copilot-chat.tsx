@@ -382,7 +382,8 @@ function Message({ turn, onEscalate }: { turn: Turn; onEscalate: () => void }) {
       <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
         {turn.sources && turn.sources.length > 0 ? (
           <p className="text-[11px] text-ds-text-muted">
-            Based on: {turn.sources.map((s) => s.replace(/^Panoply — what it is — ?/, '')).join(', ')}
+            Based on:{' '}
+            {turn.sources.map((s) => s.replace(/^Panoply — what it is — ?/, '')).join(', ')}
           </p>
         ) : (
           <div />

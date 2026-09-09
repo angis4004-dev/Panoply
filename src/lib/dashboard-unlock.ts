@@ -66,7 +66,10 @@ interface UnlockPayload {
 }
 
 function sign(payload: string): string {
-  return crypto.createHmac('sha256', getUnlockSecret()).update(`${UNLOCK_SCOPE}:${payload}`).digest('hex');
+  return crypto
+    .createHmac('sha256', getUnlockSecret())
+    .update(`${UNLOCK_SCOPE}:${payload}`)
+    .digest('hex');
 }
 
 export function createDashboardUnlockToken(userId: string, tokenVersion: number): string {

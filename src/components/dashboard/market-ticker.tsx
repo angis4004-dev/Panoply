@@ -92,7 +92,11 @@ export function MarketTicker() {
                 >
                   <span className="font-semibold text-ds-text">{coin.symbol}</span>
                   <span className="font-mono text-ds-text-secondary">
-                    ${data.usd?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    $
+                    {data.usd?.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
                   </span>
                   <span
                     className={`flex items-center text-[11px] font-mono font-medium ${
@@ -119,7 +123,12 @@ export function MarketTicker() {
         <div className="flex items-center justify-end gap-2 text-[11px] text-ds-text-muted">
           {lastUpdated && (
             <span className="hidden xl:inline">
-              Updated {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+              Updated{' '}
+              {lastUpdated.toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+              })}
             </span>
           )}
           <button

@@ -62,7 +62,6 @@ export function YieldCalculatorModal({ isOpen, onClose, pool }: YieldCalculatorM
   const dailyProfit = (amount * apyRate) / 365;
   const return30d = calculateReturn(30);
   const return90d = calculateReturn(90);
-  const return180d = calculateReturn(180);
   const return365d = calculateReturn(365);
 
   return (
@@ -117,7 +116,10 @@ export function YieldCalculatorModal({ isOpen, onClose, pool }: YieldCalculatorM
 
         {/* Deposit Capital Input */}
         <div className="mt-4">
-          <label htmlFor="deposit-amount" className="block text-xs font-medium text-ds-text-secondary">
+          <label
+            htmlFor="deposit-amount"
+            className="block text-xs font-medium text-ds-text-secondary"
+          >
             Projected Principal ($ USD)
           </label>
           <div className="relative mt-1.5 flex items-center">
@@ -222,7 +224,11 @@ export function YieldCalculatorModal({ isOpen, onClose, pool }: YieldCalculatorM
             </span>
           </div>
           <span className="font-mono text-sm font-bold text-ds-text">
-            ${return365d.total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            $
+            {return365d.total.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
           </span>
         </div>
 

@@ -4,7 +4,6 @@ import '../../styles/tailwind.css';
 import '@/lib/chartSetup';
 import { Toaster } from 'sonner';
 import { AuthProvider } from '@/context/AuthContext';
-import { AppStoreProvider } from '@/store/app-store';
 import {
   IBM_Plex_Sans,
   IBM_Plex_Mono,
