@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import DashboardSidebar from '@/components/dashboard/sidebar';
 import { DashboardHeader } from '@/components/dashboard/dashboard-header';
+import { CopilotLauncher } from '@/components/copilot/copilot-launcher';
 import { useAuth } from '@/hooks/use-auth';
 import { useAppStore } from '@/store/app-store';
 import { ACHIEVEMENT_CATALOG, type AchievementKey } from '@/lib/achievements/catalog';
@@ -126,6 +127,12 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         <DashboardHeader onMenuClick={() => setMobileNavOpen(true)} />
         <main className="flex-1 overflow-y-auto">{children}</main>
       </div>
+
+      {/* Outside the main column so the sheet is positioned against the
+          viewport rather than a scrolling container, and rendered here rather
+          than in the layout so it sits inside the same auth and store
+          providers the rest of the dashboard does. */}
+      <CopilotLauncher />
     </div>
   );
 }

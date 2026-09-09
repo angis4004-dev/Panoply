@@ -138,9 +138,24 @@ function LoginForm({
       const payload = await response.json();
 
       if (!response.ok) {
+        /*
+         * The server answers a failed sign-in with a deliberately generic
+         * "Invalid credentials." - it will not say whether the email is
+         * unknown or the password is wrong, so that nobody can use this form
+         * to discover which addresses hold accounts.
+         *
+         * This used to translate that non-answer into "No account was found
+         * for that email", which gave away the very thing the server was
+         * protecting and was frequently untrue besides: anyone with the right
+         * email and a mistyped password was told their account did not exist
+         * and invited to sign up for one they already had.
+         *
+         * So the message says only what is actually known - the pair was not
+         * accepted - and points at both recovery routes.
+         */
         const fallbackMessage =
           payload.error === 'Invalid credentials.'
-            ? 'No account was found for that email. Create one with your Google account or email address, or switch to sign up.'
+            ? 'That email and password combination was not recognised. Check both and try again, or reset your password below.'
             : payload.error || 'Unable to sign in right now.';
         setError('email', {
           message: fallbackMessage,

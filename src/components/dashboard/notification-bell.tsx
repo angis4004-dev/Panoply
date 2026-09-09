@@ -60,7 +60,23 @@ export function NotificationBell() {
       if (!res.ok) return;
       const data = await res.json();
       setItems(data.notifications || []);
-      setUnread(data.unreadCount || 0);
+
+      /*
+       * A new notification almost always means the account itself changed -
+       * an identity check approved, a deposit credited - so this poll is the
+       * earliest moment anything on the page knows to go and look again.
+       *
+       * Announced under its own name rather than reusing
+       * 'aegis:notifications-changed', which this component also listens to:
+       * dispatching that one here would call this loader from inside itself.
+       */
+      setUnread((previous) => {
+        const next = data.unreadCount || 0;
+        if (next > previous) {
+          window.dispatchEvent(new Event('aegis:account-changed'));
+        }
+        return next;
+      });
     } catch {
       // A failed poll is not worth surfacing - the next one is a minute away,
       // and an error toast for a background refresh nobody asked for is noise.

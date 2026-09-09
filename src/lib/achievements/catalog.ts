@@ -162,7 +162,7 @@ export const ACHIEVEMENT_CATALOG: AchievementDefinition[] = [
   {
     key: 'signal_explorer',
     name: 'Signal Explorer',
-    description: 'View AI-generated signals in the AI Center.',
+    description: 'View AI-generated signals in Ask Panoply.',
     category: 'strategy-analytics',
     xp: 50,
     hasCertificate: false,

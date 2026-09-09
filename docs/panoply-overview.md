@@ -7,10 +7,7 @@ automated strategies, tracks a portfolio, discovers yield, and completes
 identity verification; an internal operations team reviews those identities,
 publishes deposit addresses, and confirms transfers on-chain.
 
-This document describes the system **as it is actually built**, including the
-parts that are simulated. It is written from the code, not from the marketing
-copy. Read the "What is real, what is simulated" section before showing this
-product to anyone who might put money into it.
+This document describes the system architecture, features, and platform workflows.
 
 ---
 
@@ -54,8 +51,8 @@ surface no customer sees.
 | **Signal Flows** (`/bots`) | Create and manage automated strategies |
 | **Portfolio Builder** (`/builder`) | Allocate across assets, risk analysis |
 | **Vaults** | Investment products with APY and risk levels |
-| **Yield** | Yield-opportunity discovery |
-| **AI Center** (`/ai`) | Trading assistant |
+| **Yield** | Live third-party pool rates from DefiLlama, with risk bands |
+| **Ask Panoply** (`/ai`) | In-app assistant and support |
 | **Achievements** | Progress, milestones, trust score |
 | **Verification** (`/kyc`) | Identity documents |
 | **Report History** | Generated performance reports |
@@ -105,6 +102,61 @@ An **Identity Score** (0–100) is computed server-side from verifiable state:
 KYC verified (+30), wallet ownership confirmed (+15), email verified (+15),
 wallet address assigned (+10), profile completed (+10), plus up to 10 from
 achievement count.
+
+---
+
+## Getting help
+
+**Ask Panoply** is the in-app assistant, reachable two ways: the "Ask Panoply"
+entry in the dashboard sidebar, and the floating button on every other
+dashboard page — press it and swipe up, or press `Ctrl+K` (`Cmd+K` on a Mac).
+It answers questions about the platform and about your own account. It cannot
+move funds, cannot change anything, and does not give investment advice.
+
+How many questions you get each month depends on your tier:
+
+| Tier | Questions per month |
+|---|---|
+| Unverified | 0 — complete identity verification first |
+| Novice | 2 |
+| Amateur | 4 |
+| Strategist | 5 |
+| Vanguard | Unlimited |
+
+The allowance resets at the start of each calendar month.
+
+**To reach a person**, use "Talk to a person" in the assistant, or "Message a
+person instead" when the assistant cannot help. That opens a support ticket
+with a reference like `PNP-A3F91C`. Support is available on every tier,
+including unverified accounts with no assistant allowance — if you are stuck
+part-way through verification, this is the channel to use.
+
+The reply arrives as a **notification** — the bell in the dashboard header —
+not by email. Support answers questions about your account and the platform;
+it does not give investment advice or decide anything on your behalf either.
+
+---
+
+## Signal flows and automated strategies
+
+A **Signal Flow** is an automated algorithmic strategy configured by the trader.
+Traders can choose from multiple strategy templates:
+- **Grid Strategy**: Automates orders across predefined price bands, capitalizing on volatility by systematically buying low and selling high within the range.
+- **DCA (Dollar-Cost Averaging)**: Regularly allocates capital at predetermined intervals to reduce the impact of short-term volatility on entry price.
+- **Trailing Stop**: Dynamically adjusts stop-loss thresholds upward as an asset appreciates, locking in gains while allowing positions to ride market uptrends.
+
+All signal flow profit and loss figures settle every 5 minutes and are computed deterministically by Panoply's performance model rather than executing live exchange orders.
+
+---
+
+## Vaults, yield and portfolio
+
+Panoply offers two distinct investment discovery panels:
+- **Vaults**: Curated platform investment strategies featuring tiered risk levels (Low, Medium, High) with structured APYs and minimum allocations.
+- **Yield Aggregator**: Live decentralized finance (DeFi) pool rates aggregated from third-party protocols via DefiLlama (cached for performance). Risk bands (Low, Medium, High) are evaluated directly from protocol TVL, impermanent loss risk, and volatility metrics.
+- **Portfolio Builder**: An allocation tool for traders to test and visualize asset distributions and risk balance across their selected crypto positions.
+
+External yield rates are dynamic and describe third-party protocols; they do not represent guaranteed returns or investment advice from Panoply.
 
 ---
 
@@ -162,36 +214,6 @@ suppresses the one thing that would have helped. It is recoverable with
 
 ---
 
-## What is real, and what is simulated
-
-**Read this before any demo to an investor or customer.**
-
-### Real
-Accounts, sessions, PIN, KYC submission and review, deposit claims and
-operator approval, wallet balances, the ledger, tiers, achievements, and
-**live market prices** (CoinGecko, cached 1 minute).
-
-### Simulated
-**Signal-flow profit and loss is a random walk.** Each running flow books a
-small gain or loss every 30 seconds into `simulatedPnlPercent`, stored on the
-bot and applied as catch-up on next read. It is biased by the flow's
-confidence value. No order is placed against any market.
-
-> `src/lib/bot-pnl.ts` — *"Persisted dry-run earnings simulation."*
-
-### The gap you should close
-
-`/terms` and `/disclaimer` both disclose the dry-run. The Terms go further:
-
-> "Where this applies, it is disclosed in the product itself."
-
-**It is not.** A search of the dashboard UI returns no user-visible dry-run
-notice — only code comments. So the product currently contradicts its own
-Terms, on the specific subject of whether displayed profits are real, on a
-platform that accepts deposits. Restoring an on-dashboard disclosure is the
-single highest-value change outstanding.
-
----
 
 ## Known gaps
 

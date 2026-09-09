@@ -104,6 +104,19 @@ export const PERMISSIONS = [
    */
   'trading.manage',
 
+  /** See the support queue and read tickets. */
+  'support.read',
+  /**
+   * Answer a support ticket and close it.
+   *
+   * Part of the Admin role's defaults rather than an explicit grant. Support
+   * is the work the role exists to do, an answer moves no money, and a queue
+   * only the MainAdmin can clear is a queue nobody clears. The blast radius of
+   * a bad reply is a wrong sentence in a notification, and the remedy for that
+   * is sending a right one.
+   */
+  'support.reply',
+
   /** Read the audit log. */
   'audit.read',
 
@@ -162,6 +175,8 @@ export const ADMIN_DEFAULT_PERMISSIONS: readonly Permission[] = [
   // admin who cannot tell that trading is halted will misread every other
   // screen in the console.
   'trading.read',
+  'support.read',
+  'support.reply',
   'audit.read',
   'admin.read',
 ];

@@ -1,5 +1,19 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
+/**
+ * No longer the source of the yield panel. Do not add rows expecting them to
+ * appear on screen.
+ *
+ * `/api/yield` now serves live pools from DefiLlama (src/lib/defillama.ts).
+ * This schema is kept because UserYieldInvestment declares `ref:
+ * 'YieldOpportunity'` against it, and because the collection still exists in
+ * the database - it holds eight rows written once on 2026-07-22, which is
+ * precisely why the endpoint stopped reading it.
+ *
+ * If nothing ever populates that ref, this and UserYieldInvestment can both
+ * go, and the collection can be dropped.
+ */
+
 export interface IYieldOpportunity extends Document {
   protocol: string;
   chain: string;

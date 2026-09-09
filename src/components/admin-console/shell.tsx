@@ -3,8 +3,8 @@ import Link from 'next/link';
 import {
   ArrowDownToLine,
   ArrowUpFromLine,
-  Gauge,
   LayoutDashboard,
+  LifeBuoy,
   Network,
   ScrollText,
   ShieldCheck,
@@ -55,6 +55,7 @@ const NAV: NavItem[] = [
     permission: 'withdrawal.read',
   },
   { href: '/admin/kyc', label: 'KYC queue', icon: ShieldCheck, permission: 'kyc.read' },
+  { href: '/admin/support', label: 'Support', icon: LifeBuoy, permission: 'support.read' },
   { href: '/admin/traders', label: 'Traders', icon: Users, permission: 'trader.read' },
   { href: '/admin/networks', label: 'Networks', icon: Network, permission: 'network.read' },
   {
@@ -63,7 +64,6 @@ const NAV: NavItem[] = [
     icon: Wallet,
     permission: 'deposit_address.read',
   },
-  { href: '/admin/trading', label: 'Trading', icon: Gauge, permission: 'trading.read' },
   { href: '/admin/admins', label: 'Admins', icon: UserCog, permission: 'admin.read' },
   { href: '/admin/audit', label: 'Audit log', icon: ScrollText, permission: 'audit.read' },
 ];

@@ -121,7 +121,7 @@ export default function HomePage() {
         <FeaturesGrid />
         <HowItWorks />
         <FinalCta />
-        <Footer />
+        <Footer showEntityDisclosure={false} />
       </div>
     </main>
   );

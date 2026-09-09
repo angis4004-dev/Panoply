@@ -15,21 +15,6 @@ const STATUS_STYLES: Record<string, string> = {
   fallback: 'bg-primary/10 text-primary',
 };
 
-/**
- * How long ago the scheduler last looked at this flow.
- *
- * Coarse on purpose. The exact second is noise; what the reader needs is
- * whether the flow is being evaluated at all.
- */
-function sinceLabel(iso: string): string {
-  const minutes = Math.floor((Date.now() - new Date(iso).getTime()) / 60_000);
-  if (minutes < 1) return 'just now';
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  return `${Math.floor(hours / 24)}d ago`;
-}
-
 function BotCard({
   bot,
   onToggle,
@@ -102,28 +87,6 @@ function BotCard({
           <p className="font-mono font-semibold text-ds-text">{bot.confidence}%</p>
         </div>
       </div>
-
-      {/* What the flow last decided, in its own words. A running flow that is
-          waiting out a DCA interval or sitting inside its grid band is working
-          correctly and doing nothing, and without this the only visible
-          evidence is a P&L that never moves. */}
-      {isRunning && (
-        <p className="mt-3 text-xs leading-relaxed text-ds-text-muted">
-          {bot.lastCycleReason ? (
-            <>
-              {bot.lastCycleReason}
-              {bot.lastCycleAt && (
-                <span className="text-ds-text-muted/70">
-                  {' '}
-                  · checked {sinceLabel(bot.lastCycleAt)}
-                </span>
-              )}
-            </>
-          ) : (
-            'Waiting for its first scheduled check.'
-          )}
-        </p>
-      )}
       <div className="mt-4 flex gap-2 border-t border-ds-border pt-3">
         {/* 44px minimum, per WCAG 2.5.8 and the Apple/Material guidance. These
             were 29px tall, and the delete control was a 29x29 box holding a
@@ -248,7 +211,7 @@ export default function BotsPage() {
           href="/dashboard/ai"
           className="rounded text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
         >
-          Ask the AI Center
+          Ask Panoply
         </Link>
       </p>
 

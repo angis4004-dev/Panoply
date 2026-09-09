@@ -27,7 +27,8 @@ export type AuditTargetType =
   | 'deposit'
   | 'withdrawal'
   | 'session'
-  | 'trading_control';
+  | 'trading_control'
+  | 'support_ticket';
 
 export interface IAdminAuditLog extends Document {
   /**
@@ -87,6 +88,8 @@ const AdminAuditLogSchema = new Schema<IAdminAuditLog>({
       'deposit',
       'withdrawal',
       'session',
+      'trading_control',
+      'support_ticket',
     ],
   },
   targetId: { type: String, required: true },

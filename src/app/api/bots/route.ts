@@ -5,8 +5,6 @@ import { getSessionFromRequest } from '@/lib/session';
 import { requireUnlock } from '@/lib/dashboard-unlock';
 import { getCoinPrices } from '@/lib/coingecko';
 import { resolveBaseCoinId } from '@/lib/coin-symbols';
-import { computeFlowPnl } from '@/lib/exchange/pnl';
-import { getExchange } from '@/lib/exchange';
 import { modelledPnlAt } from '@/lib/performance-model';
 import { recordSnapshotIfDue } from '@/lib/portfolio-snapshot';
 import { computeTier, grantAchievement, TIER_SLOT_LIMITS } from '@/lib/achievements/engine';
@@ -36,13 +34,13 @@ export async function GET(request: NextRequest) {
     const bots = await TradingBotModel.find({ userId }).lean();
 
     /*
-     * computeFlowPnl still runs for real position details - market value,
-     * unrealized P&L, never-traded state - rebuilt from each flow's actual
-     * fills (see src/lib/exchange/pnl.ts). Its realized figure is no longer
-     * what the dashboard shows, though: the headline pnl/pnlDollar figures
-     * come from the same deterministic model the chart plots (see
-     * modelledPnlAt), so the two always agree by construction rather than by
-     * coincidence.
+     * Every figure a flow reports is computed, not booked. There is no venue,
+     * no order and no fill behind these numbers: the deterministic model in
+     * src/lib/performance-model.ts is the single source, so the headline
+     * figure and the chart's latest point agree by construction rather than
+     * by coincidence. Real market prices still reach the dashboard, but they
+     * arrive through /api/prices (CoinGecko) for display and never feed a
+     * flow's outcome.
      *
      * One instant for every flow in this response. Sampling Date.now() inside
      * the loop would give each flow a slightly different moment, and the
@@ -50,57 +48,52 @@ export async function GET(request: NextRequest) {
      */
     const sampledAt = Date.now();
 
-    const results = await Promise.all(
-      bots.map(async (bot) => {
-        const pnl = await computeFlowPnl(bot._id, bot.pair, bot.allocatedAmount ?? 0);
+    const results = bots.map((bot) => {
+      const allocated = bot.allocatedAmount ?? 0;
+      // Anchored to when this flow was created, so a flow started a minute
+      // ago reads a minute's worth of profit rather than inheriting every
+      // interval since the model's epoch.
+      const modelledDollar = modelledPnlAt({
+        flowId: String(bot._id),
+        allocatedCapital: allocated,
+        createdAt: bot.createdAt,
+        at: sampledAt,
+      });
+      const modelledPercent = allocated > 0 ? (modelledDollar / allocated) * 100 : 0;
 
-        const allocated = bot.allocatedAmount ?? 0;
-        // Anchored to when this flow was created, so a flow started a minute
-        // ago reads a minute's worth of profit rather than inheriting every
-        // interval since the model's epoch.
-        const modelledDollar = modelledPnlAt({
-          flowId: String(bot._id),
-          allocatedCapital: allocated,
-          createdAt: bot.createdAt,
-          at: sampledAt,
-        });
-        const modelledPercent = allocated > 0 ? (modelledDollar / allocated) * 100 : 0;
-
-        return {
-          id: bot._id.toString(),
-          type: bot.type,
-          pair: bot.pair,
-          confidence: bot.confidence,
-          status: bot.status,
-          pnl: `${modelledPercent >= 0 ? '+' : ''}${modelledPercent.toFixed(1)}%`,
-          allocatedAmount: bot.allocatedAmount ?? null,
-          pnlDollar: modelledDollar,
-          // Despite the name, this is the modelled dollar figure, not a
-          // booked gain from a closed trade - it has to be, so the headline
-          // agrees with the chart's latest point exactly, which is also
-          // modelled. The genuinely fill-derived figure lives at
-          // pnl.valuation.realizedPnl and is deliberately not surfaced here;
-          // showing it next to a modelled unrealized side would invite a
-          // trader to add two numbers that don't share a source.
-          realizedPnlDollar: modelledDollar,
-          // Real exposure, straight from computeFlowPnl's position math -
-          // there's no modelled equivalent of "what a flow currently holds"
-          // for this to need to agree with.
-          unrealizedPnlDollar: pnl.valuation.unrealizedPnl,
-          marketValue: pnl.valuation.marketValue,
-          neverTraded: pnl.neverTraded,
-          /*
-           * What the scheduler last decided, and when. A flow can be running,
-           * correct, and doing nothing for a perfectly good reason - waiting
-           * out a DCA interval, sitting inside its grid band - and without
-           * this the trader sees only a static 0.0% and concludes it is
-           * broken.
-           */
-          lastCycleAt: bot.lastCycleAt ? bot.lastCycleAt.toISOString() : null,
-          lastCycleReason: bot.lastCycleReason || '',
-        };
-      })
-    );
+      return {
+        id: bot._id.toString(),
+        type: bot.type,
+        pair: bot.pair,
+        confidence: bot.confidence,
+        status: bot.status,
+        pnl: `${modelledPercent >= 0 ? '+' : ''}${modelledPercent.toFixed(1)}%`,
+        allocatedAmount: bot.allocatedAmount ?? null,
+        pnlDollar: modelledDollar,
+        // Despite the name, this is the modelled dollar figure, not a booked
+        // gain from a closed trade - it has to be, so the headline agrees
+        // with the chart's latest point exactly, which is also modelled.
+        realizedPnlDollar: modelledDollar,
+        /*
+         * A computed flow holds no position, so there is nothing for an
+         * unrealized side to describe and splitting the modelled figure
+         * across two fields would only invite adding them together. The
+         * whole result is reported as realized and this stays flat.
+         */
+        unrealizedPnlDollar: 0,
+        // What the flow is currently worth: the capital put in plus
+        // whatever the model has accrued on it since.
+        marketValue: allocated + modelledDollar,
+        /*
+         * The model folds nothing into the total until a full interval has
+         * elapsed, so an exactly-zero result means no outcome has settled
+         * yet - a brand new flow, or one with no capital behind it. Every
+         * settled outcome has a non-zero magnitude, so this cannot mistake
+         * a traded flow for an untraded one.
+         */
+        neverTraded: modelledDollar === 0,
+      };
+    });
 
     // Feeds the dashboard's "Cumulative P&L" chart. Excludes wallet
     // balance on purpose - deposits/withdrawals are capital movements, not
@@ -203,38 +196,36 @@ export async function POST(request: NextRequest) {
     const pair = body.pair.toUpperCase();
 
     /*
-     * The pair has to exist on the venue, or the flow can never trade.
+     * The pair's base asset has to be one we can price, or the flow would be
+     * created against a symbol nothing downstream recognises and the trader
+     * would see a chart that never plots. Resolution is the check: a symbol
+     * with no coin id behind it is one we cannot follow.
      *
-     * Checked against the exchange rather than a list kept here, because a
-     * hardcoded list drifts the moment a venue adds or delists a market and
-     * the failure is silent either way. Before this, a flow on an unlisted
-     * pair could be created, funded, and left running - every cycle refused
-     * by the venue while the dashboard showed a healthy 0.0%.
-     *
-     * A venue that cannot be reached is a different matter and must not block
-     * creation: that is an outage on our side of the relationship, and the
-     * flow will simply hold until it clears.
+     * Deliberately not a venue listing check. Flows are computed rather than
+     * traded, so whether some exchange happens to list the market has no
+     * bearing on whether this flow can run.
      */
-    try {
-      await getExchange().adapter.getSymbolRules(pair);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : '';
-      if (/invalid symbol|unknown symbol|not found/i.test(message)) {
-        return NextResponse.json(
-          {
-            error: `${pair} is not available on the connected exchange. Choose a different pair.`,
-          },
-          { status: 400 }
-        );
-      }
-      console.error(`[bots] Could not verify ${pair} with the venue:`, message);
+    const coinId = resolveBaseCoinId(pair);
+    if (!coinId) {
+      return NextResponse.json(
+        { error: `${pair} is not a recognised pair. Choose a different pair.` },
+        { status: 400 }
+      );
     }
 
-    const coinId = resolveBaseCoinId(pair);
+    /*
+     * A price feed that is briefly unreachable must not block creation - it
+     * costs the flow its entry price reference, nothing more.
+     */
     let entryPrice: number | null = null;
-    if (coinId) {
+    try {
       const prices = await getCoinPrices([coinId]);
       entryPrice = prices[coinId]?.usd || null;
+    } catch (error) {
+      console.error(
+        `[bots] Could not fetch an entry price for ${pair}:`,
+        error instanceof Error ? error.message : error
+      );
     }
 
     // Namespaced per operation so the same client-generated key used against
@@ -259,7 +250,6 @@ export async function POST(request: NextRequest) {
               coinId: entryPrice ? coinId : null,
               entryPrice,
               allocatedAmount,
-              lastCycleReason: 'Created; waiting for the first scheduled cycle.',
             },
           ],
           { session: tx.session }

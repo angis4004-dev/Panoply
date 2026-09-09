@@ -36,7 +36,7 @@ import { TierBadge } from '@/components/dashboard/tier-badge';
  *   product deliberately moved away from. Waypoints draws routed nodes, which
  *   is what a signal flow is.
  *
- *   AI Center had Brain, the stock glyph on every AI feature shipped since
+ *   Ask Panoply had Brain, the stock glyph on every AI feature shipped since
  *   2023. Sparkles is the convention premium tools have settled on for
  *   assisted/generated work.
  *
@@ -64,7 +64,7 @@ import { TierBadge } from '@/components/dashboard/tier-badge';
  */
 const navItems = [
   { href: '/dashboard', label: 'Overview', icon: LayoutGrid, exact: true },
-  { href: '/dashboard/ai', label: 'AI Center', icon: Sparkles },
+  { href: '/dashboard/ai', label: 'Ask Panoply', icon: Sparkles },
   { href: '/dashboard/bots', label: 'Signal Flows', icon: Waypoints },
   { href: '/dashboard/vaults', label: 'Vaults', icon: Landmark },
   { href: '/dashboard/yield', label: 'Yield', icon: Sprout },
@@ -97,7 +97,7 @@ export default function DashboardSidebar({ onNavigate }: DashboardSidebarProps) 
     exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
 
   return (
-    <aside className="flex h-full min-h-screen w-64 flex-col border-r border-ds-border bg-ds-surface-chrome">
+    <aside className="sticky top-0 flex h-screen w-64 flex-col border-r border-ds-border bg-ds-surface-chrome">
       <div className="flex h-14 items-center gap-2.5 border-b border-ds-border px-5">
         <PanoplyMark size={28} className="text-brand-cream" />
         <div>
@@ -111,7 +111,7 @@ export default function DashboardSidebar({ onNavigate }: DashboardSidebarProps) 
         </div>
       </div>
 
-      <nav className="flex-1 space-y-0.5 px-3 py-4">
+      <nav className="flex-1 overflow-y-auto space-y-0.5 px-3 py-3">
         {navItems.map(({ href, label, icon: Icon, exact }) => {
           const active = isActive(href, exact);
           return (
@@ -152,7 +152,7 @@ export default function DashboardSidebar({ onNavigate }: DashboardSidebarProps) 
         })}
       </nav>
 
-      <div className="border-t border-ds-border p-3">
+      <div className="shrink-0 border-t border-ds-border p-3">
         {user && (
           <div className="mb-2 flex items-center gap-2.5 rounded-lg px-2 py-2">
             <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-xs font-bold text-primary">

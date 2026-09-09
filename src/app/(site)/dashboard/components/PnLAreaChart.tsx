@@ -12,6 +12,25 @@ import {
   ReferenceLine,
 } from 'recharts';
 import { LoadingState } from '@/components/ui/loader';
+import { SETTLEMENT_INTERVAL_MS } from '@/lib/performance-model';
+
+/*
+ * Read off the model so the copy below cannot drift from what it does.
+ *
+ * Formatted rather than fixed to one unit: the interval has been six hours
+ * and is now five minutes, and a label hardcoded to either reads as nonsense
+ * the moment it changes ("every 0 hours").
+ */
+function settlementLabel(short: boolean): string {
+  const minutes = Math.round(SETTLEMENT_INTERVAL_MS / 60_000);
+  if (minutes < 60) return short ? `${minutes} min` : `${minutes} minutes`;
+  const hours = Math.round(minutes / 60);
+  if (short) return `${hours}h`;
+  return `${hours} ${hours === 1 ? 'hour' : 'hours'}`;
+}
+
+const SETTLEMENT_LABEL = settlementLabel(false);
+const SETTLEMENT_LABEL_SHORT = settlementLabel(true);
 
 interface ChartDataPoint {
   /** Epoch ms. The x-axis is a real time scale, not a category index. */
@@ -239,7 +258,15 @@ export default function PnLAreaChart() {
   const [data, setData] = useState<ChartDataPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedRange, setSelectedRange] = useState('30d');
+  /*
+   * A day, not a month.
+   *
+   * At a five-minute settlement the day view is the only one that shows the
+   * texture of what a flow is actually doing; a month compresses those steps
+   * into a line that barely leaves zero, and a flow younger than a few days
+   * spends most of a 30d window as flat pre-creation nothing.
+   */
+  const [selectedRange, setSelectedRange] = useState('1d');
   /**
    * Capital the trader has committed, reported by the API alongside the series.
    *
@@ -251,7 +278,9 @@ export default function PnLAreaChart() {
 
   useEffect(() => {
     let isMounted = true;
-    const days = RANGES.find((r) => r.label === selectedRange)?.days ?? 30;
+    // Falls back to the default range, not to a month - an unrecognised label
+    // should fetch what the buttons show as selected, not something else.
+    const days = RANGES.find((r) => r.label === selectedRange)?.days ?? 1;
 
     async function fetchHistory() {
       try {
@@ -428,8 +457,12 @@ export default function PnLAreaChart() {
               </span>
             </div>
           )}
+          {/* The settlement cadence is the chart's real resolution: no point
+              between two settlements carries new information, so a reader who
+              does not know it will read a step as a stall. */}
           <p className="text-ds-caption text-ds-text-secondary mt-0.5">
-            {rangeDescription[selectedRange]} · signal flows
+            {rangeDescription[selectedRange]} · signal flows · modelled, settles every{' '}
+            {SETTLEMENT_LABEL_SHORT}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
@@ -473,7 +506,7 @@ export default function PnLAreaChart() {
         <div className="flex flex-col items-center justify-center h-[220px] text-center px-6">
           {hasCapital ? (
             <>
-              <p className="text-sm text-ds-text-secondary">No realized P&amp;L yet</p>
+              <p className="text-sm text-ds-text-secondary">No P&amp;L yet</p>
               <p className="text-ds-caption text-ds-text-muted mt-1.5">
                 <span className="tabular-nums">
                   $
@@ -482,9 +515,9 @@ export default function PnLAreaChart() {
                     maximumFractionDigits: 2,
                   })}
                 </span>{' '}
-                is allocated. This chart plots profit and loss that has been booked, which happens
-                when a position closes — open positions move your flow&apos;s P&amp;L but do not
-                appear here until then.
+                is allocated. Results settle once every {SETTLEMENT_LABEL}, so a flow reads exactly
+                zero until its first one lands — for a flow started just now, that is about{' '}
+                {SETTLEMENT_LABEL} away.
               </p>
             </>
           ) : (
@@ -569,10 +602,21 @@ export default function PnLAreaChart() {
               label={<CurrentValueBadge value={latestValue} color={lineColor} />}
             />
             <Area
-              // Linear, not monotone. Monotone smooths a spline through the
-              // points, rounding off every reversal - which is most of what
-              // made the line look designed rather than observed.
-              type="linear"
+              /*
+               * Monotone, for a curve rather than a sawtooth.
+               *
+               * At a five-minute settlement a day holds 288 outcomes, and
+               * drawing them with straight segments turned every one of them
+               * into a visible corner - accurate, but unreadable as a trend.
+               *
+               * Monotone is the honest way to soften that: it interpolates
+               * through every data point exactly and cannot overshoot, so no
+               * plotted value is invented and no peak or trough is moved. It
+               * curves the path between points, nothing else. The underlying
+               * series is untouched - the tooltip still reports the real
+               * value at every point.
+               */
+              type="monotone"
               dataKey="value"
               stroke="url(#pnlStroke)"
               strokeWidth={1.75}

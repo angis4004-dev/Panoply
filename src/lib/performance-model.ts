@@ -27,14 +27,37 @@ export interface ModelledPnlInput {
   sampleTimes: number[];
 }
 
-const INTERVAL_MS = 6 * 60 * 60 * 1000;
+/**
+ * How often an outcome settles.
+ *
+ * Exported because the dashboard has to tell a trader with a brand new flow
+ * how long the chart will legitimately read zero. Hardcoding that number in
+ * the copy would let it drift from the model the moment this changes.
+ */
+export const SETTLEMENT_INTERVAL_MS = 5 * 60 * 1000;
+const INTERVAL_MS = SETTLEMENT_INTERVAL_MS;
 const CYCLE_SIZE = 20;
 const PROFITS_PER_CYCLE = 13;
 
-const GAIN_MIN = 0.00025; // 0.025% of allocated capital
-const GAIN_MAX = 0.00075; // 0.075% of allocated capital
-const LOSS_MIN = 0.0004; // 0.040% of allocated capital
-const LOSS_MAX = 0.001; // 0.100% of allocated capital
+/*
+ * Magnitudes are quoted per six hours - the period this model was originally
+ * tuned against - and scaled down to whatever the settlement interval
+ * actually is.
+ *
+ * Writing them this way makes the interval a presentation choice rather than
+ * an economic one: shortening it changes how often the line moves, never how
+ * much a flow earns in a day. The previous six-hour interval meant a flow
+ * showed nothing whatsoever for its first six hours, and the one-day chart -
+ * which samples every five minutes - could only ever draw four distinct steps
+ * across 288 points.
+ */
+const TUNING_INTERVAL_MS = 6 * 60 * 60 * 1000;
+const MAGNITUDE_SCALE = SETTLEMENT_INTERVAL_MS / TUNING_INTERVAL_MS;
+
+const GAIN_MIN = 0.00025 * MAGNITUDE_SCALE; // 0.025% of capital per six hours
+const GAIN_MAX = 0.00075 * MAGNITUDE_SCALE; // 0.075% of capital per six hours
+const LOSS_MIN = 0.0004 * MAGNITUDE_SCALE; // 0.040% of capital per six hours
+const LOSS_MAX = 0.001 * MAGNITUDE_SCALE; // 0.100% of capital per six hours
 
 const UINT32_MAX = 0xffffffff;
 
@@ -57,11 +80,6 @@ function fnv1a(value: string): number {
   return hash >>> 0;
 }
 
-/** A repeatable unit value in [0, 1] for one hash key. */
-function unitValue(key: string): number {
-  return fnv1a(key) / UINT32_MAX;
-}
-
 /**
  * Whether the outcome at `outcomeIndex` is a gain.
  *
@@ -72,22 +90,109 @@ function unitValue(key: string): number {
  * into "exactly thirteen of twenty" without ever drawing a value that could
  * fail to land there.
  */
+/*
+ * The ranking is a property of the cycle, not of the slot - all twenty slots
+ * in a cycle share one answer - so it is computed once and held until the
+ * fold moves on to the next cycle.
+ *
+ * Without this, folding a flow re-ranked and re-sorted the same twenty slots
+ * twenty times over, once per outcome. That was affordable only while
+ * outcomes were six hours apart; at a five-minute interval a one-year-old
+ * flow needs 105,120 outcomes, and the redundant work put a single history
+ * request into the seconds. One cached cycle is enough because the fold walks
+ * outcomes in ascending order and never revisits a cycle it has left.
+ */
+let cachedOrderSeedId: string | null = null;
+let cachedOrderSeed = 0;
+
+function orderSeed(flowId: string): number {
+  if (flowId === cachedOrderSeedId) return cachedOrderSeed;
+  cachedOrderSeedId = flowId;
+  cachedOrderSeed = fnv1a(`${flowId}:order:`);
+  return cachedOrderSeed;
+}
+
+/** Continue an FNV-1a fold with two integers, four bytes each. */
+function mixInts(seed: number, a: number, b: number): number {
+  let hash = seed;
+  let first = a;
+  let second = b;
+  for (let byte = 0; byte < 4; byte++) {
+    hash ^= first & 0xff;
+    hash = Math.imul(hash, 0x01000193);
+    first >>>= 8;
+  }
+  for (let byte = 0; byte < 4; byte++) {
+    hash ^= second & 0xff;
+    hash = Math.imul(hash, 0x01000193);
+    second >>>= 8;
+  }
+  return hash >>> 0;
+}
+
+let cachedMaskKey = '';
+let cachedMask = 0;
+
+/** Bitmask of the profitable slots in one cycle. Twenty slots fit in an int. */
+function profitMaskForCycle(flowId: string, cycle: number): number {
+  const key = `${flowId}:${cycle}`;
+  if (key === cachedMaskKey) return cachedMask;
+
+  // Same trick as the magnitude hash: one hash of the flow prefix, then the
+  // cycle and slot mixed in as bytes, so ranking a cycle allocates nothing.
+  const seed = orderSeed(flowId);
+  const ranked = Array.from({ length: CYCLE_SIZE }, (_, s) => ({
+    slot: s,
+    hash: mixInts(seed, cycle, s),
+  })).sort((a, b) => a.hash - b.hash);
+
+  let mask = 0;
+  for (let rank = 0; rank < PROFITS_PER_CYCLE; rank++) {
+    mask |= 1 << ranked[rank].slot;
+  }
+
+  cachedMaskKey = key;
+  cachedMask = mask;
+  return mask;
+}
+
 export function modelledOutcomeIsProfit(flowId: string, outcomeIndex: number): boolean {
   const cycle = Math.floor(outcomeIndex / CYCLE_SIZE);
   const slot = outcomeIndex - cycle * CYCLE_SIZE;
+  return (profitMaskForCycle(flowId, cycle) & (1 << slot)) !== 0;
+}
 
-  const ranked = Array.from({ length: CYCLE_SIZE }, (_, s) => ({
-    slot: s,
-    hash: fnv1a(`${flowId}:order:${cycle}:${s}`),
-  })).sort((a, b) => a.hash - b.hash);
+/*
+ * The flow half of the magnitude key, hashed once per flow.
+ *
+ * Building `${flowId}:magnitude:${i}` per outcome allocated a string for
+ * every one of them, which was the single largest cost left in a long fold.
+ * FNV-1a is a running fold, so the flow prefix can be hashed once and the
+ * index mixed into the result directly.
+ */
+let cachedSeedId: string | null = null;
+let cachedSeed = 0;
 
-  const rank = ranked.findIndex((entry) => entry.slot === slot);
-  return rank < PROFITS_PER_CYCLE;
+function magnitudeSeed(flowId: string): number {
+  if (flowId === cachedSeedId) return cachedSeed;
+  cachedSeedId = flowId;
+  cachedSeed = fnv1a(`${flowId}:magnitude:`);
+  return cachedSeed;
 }
 
 /** The signed share of allocated capital that outcome `outcomeIndex` moves. */
 function outcomeMagnitude(flowId: string, outcomeIndex: number, isProfit: boolean): number {
-  const unit = unitValue(`${flowId}:magnitude:${outcomeIndex}`);
+  // Mix the index in as four bytes, continuing the same FNV-1a fold the
+  // prefix left off at, so each index still gets its own well-spread value.
+  let hash = magnitudeSeed(flowId);
+  let remaining = outcomeIndex;
+  for (let byte = 0; byte < 4; byte++) {
+    hash ^= remaining & 0xff;
+    hash = Math.imul(hash, 0x01000193);
+    remaining >>>= 8;
+  }
+
+  const unit = (hash >>> 0) / UINT32_MAX;
   return isProfit
     ? GAIN_MIN + unit * (GAIN_MAX - GAIN_MIN)
     : LOSS_MIN + unit * (LOSS_MAX - LOSS_MIN);

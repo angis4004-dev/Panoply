@@ -25,12 +25,8 @@ export interface Bot {
    * that grows with capital.
    */
   realizedPnlDollar?: number;
-  /** True when the flow has never filled an order, so no position exists. */
+  /** True before the flow's first modelled outcome has settled. */
   neverTraded?: boolean;
-  /** When the scheduler last evaluated this flow. Null before its first cycle. */
-  lastCycleAt?: string | null;
-  /** What it decided, in words. The answer to "why is my flow doing nothing". */
-  lastCycleReason?: string;
 }
 
 export interface Report {
@@ -322,7 +318,31 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
      * screen yet, so a refetch updates in place rather than flashing skeletons.
      */
     const interval = setInterval(fetchBots, 30 * 1000);
-    return () => clearInterval(interval);
+
+    /*
+     * The balance has to follow too.
+     *
+     * It only ever moves because an admin credited a deposit or settled a
+     * withdrawal, and it was fetched once per sign-in - so the trader saw the
+     * notification saying their deposit had been approved while the balance
+     * beside it still read the old figure, and only a reload reconciled them.
+     *
+     * Slower than the flow list because it changes far less often, and on the
+     * same sixty-second beat as the notification that announces the change.
+     */
+    const balanceTimer = setInterval(() => {
+      if (document.visibilityState === 'visible') fetchWalletBalance();
+    }, 60 * 1000);
+    const onBalanceRefresh = () => fetchWalletBalance();
+    window.addEventListener('aegis:notifications-changed', onBalanceRefresh);
+    window.addEventListener('aegis:account-changed', onBalanceRefresh);
+
+    return () => {
+      clearInterval(interval);
+      clearInterval(balanceTimer);
+      window.removeEventListener('aegis:notifications-changed', onBalanceRefresh);
+      window.removeEventListener('aegis:account-changed', onBalanceRefresh);
+    };
   }, [user]);
 
   const setBotModalOpen = (open: boolean) => {

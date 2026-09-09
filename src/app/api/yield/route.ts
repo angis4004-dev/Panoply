@@ -1,33 +1,34 @@
 import { NextResponse } from 'next/server';
-import { connectToDatabase } from '@/lib/mongo';
-import { YieldOpportunityModel } from '@/lib/models';
+import { getYieldSnapshot } from '@/lib/defillama';
 
-// GET /api/yield - Returns all yield opportunities (public data)
+/**
+ * GET /api/yield — live yield opportunities.
+ *
+ * Public data, no session required: these are published market rates, the same
+ * ones anyone can read on DefiLlama, and nothing here is account-specific.
+ *
+ * No longer reads MongoDB. The `yieldopportunities` collection it used to
+ * serve had no writer anywhere in the codebase and its eight rows all carried
+ * the same July timestamp, so the endpoint was returning month-old constants
+ * under a field called `apy`. See src/lib/defillama.ts.
+ */
+
+// Our own ten-minute cache lives in the service, so Next must not add a second
+// caching layer with different semantics on top of it.
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
-  try {
-    const connection = await connectToDatabase();
-    if (!connection) {
-      return NextResponse.json({ error: 'Database connection unavailable' }, { status: 503 });
-    }
+  const snapshot = await getYieldSnapshot();
 
-    // Get all yield opportunities (no filtering - public data)
-    const yields = await YieldOpportunityModel.find().lean();
-
-    // Transform to match frontend format. Only include fields backed by real
-    // data - the schema has no TVL, audit, volume, or utilization data yet,
-    // so those aren't fabricated here anymore (see YieldOpportunity model).
-    const formattedYields = yields.map((yieldOp) => ({
-      id: yieldOp._id.toString(),
-      protocol: yieldOp.protocol,
-      chain: yieldOp.chain,
-      apy: yieldOp.apr30d, // Using 30d APR as APY for simplicity
-      tvl: null,
-      risk: yieldOp.riskLevel,
-    }));
-
-    return NextResponse.json(formattedYields);
-  } catch (error) {
-    console.error('Error fetching yield opportunities:', error);
-    return NextResponse.json({ error: 'Failed to fetch yield opportunities' }, { status: 500 });
+  if (!snapshot) {
+    /*
+     * Nothing cached and the upstream is unreachable. An empty list would
+     * render as "no yield opportunities available", which reads as a fact
+     * about the market rather than about our connection - so this is an
+     * error, and the dashboard shows its retry control.
+     */
+    return NextResponse.json({ error: 'Yield data is temporarily unavailable' }, { status: 503 });
   }
+
+  return NextResponse.json(snapshot);
 }

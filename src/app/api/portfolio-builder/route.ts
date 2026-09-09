@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import type { PortfolioReport, Holding, RiskProfile } from '@/lib/types';
 import { Resend } from 'resend';
 import { getSessionFromRequest } from '@/lib/session';
+import { requireUnlock } from '@/lib/dashboard-unlock';
 import { getUserModel } from '@/lib/models';
 import { consumeAttempt } from '@/lib/rate-limit';
 import {
@@ -371,6 +372,18 @@ export async function POST(request: Request) {
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    /*
+     * The PIN gate applies here too.
+     *
+     * This was the one trader route reading a session without also demanding
+     * the unlock token, and it does not merely read: it writes to the user
+     * document and grants achievements. A session cookie alone was therefore
+     * enough to change account state without ever presenting the PIN, which
+     * is exactly what the gate exists to prevent.
+     */
+    const locked = requireUnlock(request, session);
+    if (locked) return locked;
 
     const userModel = await getUserModel();
     if (!userModel) {

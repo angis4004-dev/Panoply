@@ -152,7 +152,17 @@ export default function MetricsBentoGrid({
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-4 gap-4 mb-6">
-      {/* HERO: Realized P&L — spans 2 cols */}
+      {/* HERO: Modelled P&L — spans 2 cols.
+
+          Named "Modelled", not "Realized". Realized P&L is a term of art: it
+          means gains booked when a position closed. Nothing here closed a
+          position, because nothing opened one - the figure is produced by the
+          deterministic model in src/lib/performance-model.ts and no order is
+          ever sent to a venue. Showing a generated number under the industry
+          term for a booked one is the single most misleading thing this
+          dashboard could do, so the label says what the number is. What the
+          model is and how it differs from executed trading is set out on the
+          About page under Transparency. */}
       <div className="col-span-2 bg-gradient-to-br from-ds-surface-raised to-ds-surface-raised/80 border border-ds-border rounded-2xl p-5 relative overflow-hidden group hover:border-primary/30 transition-colors duration-base ease-ds-out">
         <div className="absolute top-0 right-0 w-48 h-48 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2" />
         <div className="relative z-10">
@@ -162,7 +172,7 @@ export default function MetricsBentoGrid({
                 <DollarSign size={16} className="text-primary" />
               </div>
               <span className="text-xs font-semibold uppercase tracking-widest text-ds-text-secondary">
-                Realized P&L
+                Modelled P&L
               </span>
             </div>
             <DeltaBadge delta={`${Math.abs(portfolioPnlPercent).toFixed(1)}%`} dir={pnlDir} />

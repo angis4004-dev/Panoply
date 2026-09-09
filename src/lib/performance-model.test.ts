@@ -1,17 +1,30 @@
 import { describe, expect, it } from 'vitest';
-import { modelledOutcomeIsProfit, modelledPnlAt, modelledPnlSeries } from './performance-model';
+import {
+  SETTLEMENT_INTERVAL_MS,
+  modelledOutcomeIsProfit,
+  modelledPnlAt,
+  modelledPnlSeries,
+} from './performance-model';
 
 const HOUR = 3_600_000;
-const INTERVAL_MS = 6 * HOUR;
+const INTERVAL_MS = SETTLEMENT_INTERVAL_MS;
 const START = Date.UTC(2026, 0, 1);
 
-// Mirrors GAIN_MIN / GAIN_MAX / LOSS_MIN / LOSS_MAX in performance-model.ts.
-// Those constants aren't exported, so the per-outcome magnitude bounds below
-// are pinned to the same literal values by hand.
-const GAIN_MIN = 0.00025;
-const GAIN_MAX = 0.00075;
-const LOSS_MIN = 0.0004;
-const LOSS_MAX = 0.001;
+/*
+ * Mirrors GAIN_MIN / GAIN_MAX / LOSS_MIN / LOSS_MAX in performance-model.ts.
+ * Those are not exported, so the bounds are restated here by hand - which is
+ * the point: a test that imported them would still pass if the gain and loss
+ * ranges were swapped in the model.
+ *
+ * They are quoted per six hours, exactly as the model quotes them, and scaled
+ * by the same ratio, so shortening the settlement interval does not require
+ * touching these literals.
+ */
+const MAGNITUDE_SCALE = SETTLEMENT_INTERVAL_MS / (6 * HOUR);
+const GAIN_MIN = 0.00025 * MAGNITUDE_SCALE;
+const GAIN_MAX = 0.00075 * MAGNITUDE_SCALE;
+const LOSS_MIN = 0.0004 * MAGNITUDE_SCALE;
+const LOSS_MAX = 0.001 * MAGNITUDE_SCALE;
 
 describe('deterministic performance model', () => {
   it('has exactly thirteen gains in each twenty-outcome cycle', () => {
@@ -48,14 +61,14 @@ describe('deterministic performance model', () => {
     };
     expect(first).not.toBe(second);
     expect(modelledPnlAt(first)).toBe(modelledPnlAt(second));
-    expect(modelledPnlAt(input)).toBeCloseTo(4.228566671774854, 9);
+    expect(modelledPnlAt(input)).toBeCloseTo(0.6534305502210985, 9);
     expect(modelledPnlAt({ ...input, flowId: 'flow-b' })).not.toBe(modelledPnlAt(input));
     expect(modelledPnlAt({ ...input, allocatedCapital: 0 })).toBe(0);
     expect(modelledPnlAt({ ...input, at: START - HOUR })).toBe(0);
   });
 
   it('returns cumulative values with gains and losses and a matching final value', () => {
-    const sampleTimes = Array.from({ length: 21 }, (_, i) => START + i * 6 * HOUR);
+    const sampleTimes = Array.from({ length: 21 }, (_, i) => START + i * INTERVAL_MS);
     const input = { flowId: 'flow-a', allocatedCapital: 1000, createdAt: START, sampleTimes };
     const series = modelledPnlSeries(input);
     const deltas = series.slice(1).map((value, i) => value - series[i]);
@@ -83,11 +96,12 @@ describe('deterministic performance model', () => {
   });
 
   it('keeps samples before a later-created flow at zero', () => {
-    const sampleTimes = [START, START + 6 * HOUR, START + 12 * HOUR];
+    const sampleTimes = [START, START + INTERVAL_MS, START + 2 * INTERVAL_MS];
     const series = modelledPnlSeries({
       flowId: 'late-flow',
       allocatedCapital: 500,
-      createdAt: START + 9 * HOUR,
+      // After every sample above, so all three are genuinely pre-creation.
+      createdAt: START + 3 * INTERVAL_MS,
       sampleTimes,
     });
     expect(series).toEqual([0, 0, 0]);
@@ -113,10 +127,15 @@ describe('deterministic performance model', () => {
   it('keeps cumulative P&L within [-capital, capital] once drift has had long enough to reach it', () => {
     const flowId = 'flow-clamp';
     const allocatedCapital = 1000;
-    // Net drift is ~+0.16% of capital per 20-outcome (120h) cycle, so reaching
-    // the 100% bound takes roughly 100 / 0.16 ~= 625 cycles, ~12,500 outcomes,
-    // ~8.5 years. Use 20 years (~1,460 cycles, ~234% of capital unclamped) so
-    // the clamp has clear headroom to engage well before the end of the run.
+    // Net drift is ~+0.032% of capital per day whatever the settlement
+    // interval is - magnitudes scale with it - so reaching the 100% bound
+    // takes ~8.5 years. Twenty years leaves the clamp clear headroom to
+    // engage well before the end of the run.
+    //
+    // Deliberately not trimmed to save time. The headroom is the point of the
+    // test: a horizon that merely grazed the bound could pass without the
+    // clamp ever engaging. At a five-minute interval that horizon is ~2.1M
+    // outcomes, which is why this one carries an explicit timeout.
     const years = 20;
     const totalMs = years * 365 * 24 * HOUR;
     const sampleCount = 400;
@@ -134,7 +153,8 @@ describe('deterministic performance model', () => {
     // falling short of it): the unclamped drift over this horizon is well
     // over 100%, so the series must have touched the upper bound.
     expect(Math.max(...series)).toBe(allocatedCapital);
-  });
+    // ~6s of genuine work; the 5s default is not a meaningful bound here.
+  }, 30_000);
 
   it('maps a shuffled sampleTimes array to the same values as the sorted array', () => {
     const flowId = 'flow-order';

@@ -5,10 +5,7 @@ import { getSessionFromRequest } from '@/lib/session';
 import { requireUnlock } from '@/lib/dashboard-unlock';
 import { withLedger } from '@/lib/ledger';
 import { toDollars, toMinor } from '@/lib/money';
-import { liquidateFlow } from '@/lib/exchange/execution';
-import { computeFlowPnl } from '@/lib/exchange/pnl';
-import { formatPnlPercent } from '@/lib/exchange/position';
-import { toMinorUnits } from '@/lib/exchange/types';
+import { modelledPnlAt } from '@/lib/performance-model';
 import { objectId, parseBody, updateBotSchema } from '@/lib/validation';
 
 // PATCH /api/bots/[id] - Update a bot the logged-in user owns (e.g. toggle status)
@@ -44,18 +41,6 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     }
 
     if (body.status) {
-      /*
-       * Resuming clears the last cycle note, which otherwise leaves "Flow is
-       * paused; no action taken." on screen until the scheduler next runs -
-       * reading as though the resume had not taken effect.
-       *
-       * lastCycleAt is deliberately left alone. It is the scheduler's fairness
-       * key, and resetting it on resume would send a flow to the back of the
-       * queue every time it was toggled.
-       */
-      if (body.status === 'running' && bot.status !== 'running') {
-        bot.lastCycleReason = 'Resumed; waiting for the next scheduled cycle.';
-      }
       bot.status = body.status;
     }
 
@@ -126,38 +111,23 @@ export async function DELETE(
     const releaseMinor = bot.allocatedAmount ? toMinor(bot.allocatedAmount) : 0;
 
     /*
-     * Liquidate before settling.
+     * The flow's result is the model's value at the instant it closes.
      *
-     * A flow holding an open position has unrealized P&L, and unrealized P&L
-     * is not money - it is a price the market is quoting today. Paying it out
-     * would mean crediting a figure the platform has not received, so the
-     * position is sold first and only what the sale actually realized is
-     * settled.
-     *
-     * If the sale fails the close is abandoned rather than settled on an
-     * estimate. Better a flow the trader has to close again than a payout
-     * against an asset the platform still holds.
+     * There is no position to sell and no unrealized side to worry about: the
+     * figure settled here is the same one the trader has been reading on the
+     * dashboard all along, sampled once, now. Closing is therefore a pure
+     * bookkeeping step that cannot fail on anything external.
      */
-    const liquidation = await liquidateFlow(String(bot._id));
-    if (!liquidation.ok) {
-      return NextResponse.json(
-        {
-          error: `Could not close the position before settling: ${liquidation.reason} Nothing was changed - try again shortly.`,
-        },
-        { status: 409 }
-      );
-    }
+    const allocated = bot.allocatedAmount ?? 0;
+    const finalPnlDollar = modelledPnlAt({
+      flowId: String(bot._id),
+      allocatedCapital: allocated,
+      createdAt: bot.createdAt,
+      at: Date.now(),
+    });
+    const finalPnlPercent = allocated > 0 ? (finalPnlDollar / allocated) * 100 : 0;
 
-    // Recomputed after the liquidation so the sale's own fills are included.
-    const finalPnl = await computeFlowPnl(bot._id, bot.pair, bot.allocatedAmount ?? 0);
-    const finalPnlPercent = finalPnl.valuation.pnlPercent ?? 0;
-
-    /*
-     * Realized only. Anything still unrealized at this point means the
-     * liquidation did not fully close - which liquidateFlow refuses to return
-     * ok for - so in practice this is the whole result.
-     */
-    const rawPnlMinor = toMinorUnits(finalPnl.valuation.realizedPnl);
+    const rawPnlMinor = toMinor(finalPnlDollar);
 
     // A flow cannot lose more than was committed to it. Clamping here rather
     // than relying on the ledger's insufficient-funds guard keeps the failure
@@ -220,7 +190,7 @@ export async function DELETE(
             relatedEntityType: 'bot',
             relatedEntityId: bot._id,
             idempotencyKey: `bot-settle:${bot._id}`,
-            memo: `Realized ${formatPnlPercent(finalPnl.valuation.pnlPercent)} on ${bot.type} ${bot.pair}`,
+            memo: `Settled ${finalPnlPercent >= 0 ? '+' : ''}${finalPnlPercent.toFixed(1)}% on ${bot.type} ${bot.pair}`,
           });
         }
       });

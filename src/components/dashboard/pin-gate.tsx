@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { KeyRound, LogOut, ShieldCheck, TriangleAlert } from 'lucide-react';
+import { KeyRound, LogOut, TriangleAlert } from 'lucide-react';
 import { PanoplyMark } from '@/components/ui/PanoplyLogo';
 import { Loader } from '@/components/ui/loader';
 import { PinInput, PIN_LENGTH } from '@/components/auth/pin-input';
@@ -319,11 +319,7 @@ export function PinGate({ children }: { children: React.ReactNode }) {
                   disabled={busy || lockedOut || pin.length !== PIN_LENGTH}
                   className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors duration-fast ease-ds-out hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
                 >
-                  {busy ? (
-                    <Loader size={16} />
-                  ) : (
-                    <ShieldCheck className="h-4 w-4" aria-hidden="true" />
-                  )}
+                  {busy && <Loader size={16} />}
                   <span>{busy ? 'Checking…' : 'Unlock dashboard'}</span>
                 </button>
 

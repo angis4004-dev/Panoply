@@ -7,12 +7,15 @@ import { ArrowUpRight, Vault, Waypoints } from 'lucide-react';
 import { OnboardingChecklist } from '@/components/dashboard/onboarding-checklist';
 import MetricsBentoGrid from '@/app/(site)/dashboard/components/MetricsBentoGrid';
 import { PageHeader } from '@/components/dashboard/page-header';
+import { MarketTicker } from '@/components/dashboard/market-ticker';
 import { DepositModal } from '@/components/dashboard/deposit-modal';
 import { IdentityScore } from '@/components/dashboard/identity-score';
 import { TierBadge } from '@/components/dashboard/tier-badge';
+import { RiskBadge } from '@/components/dashboard/risk-badge';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useAppStore } from '@/store/app-store';
 import { useAuth } from '@/hooks/use-auth';
+import { compactUsd } from '@/lib/utils';
 
 // Recharts pulls in a meaningful amount of JS - load it only once this chart
 // is actually needed rather than blocking the rest of the dashboard's paint.
@@ -31,7 +34,10 @@ interface TopYield {
   id: string;
   protocol: string;
   chain: string;
+  symbol: string;
   apy: number;
+  tvlUsd: number;
+  risk: 'Low' | 'Medium' | 'High';
 }
 
 interface IdentitySummary {
@@ -81,6 +87,7 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const isVerified = user?.kycStatus === 'verified';
   const [topYields, setTopYields] = useState<TopYield[]>([]);
+  const [yieldMeta, setYieldMeta] = useState<{ asOf: string; stale: boolean } | null>(null);
   const [yieldsLoading, setYieldsLoading] = useState(true);
   const [yieldsError, setYieldsError] = useState(false);
   const [yieldRetry, setYieldRetry] = useState(0);
@@ -98,7 +105,12 @@ export default function DashboardPage() {
         if (!res.ok) throw new Error('Yield request failed');
         return res.json();
       })
-      .then((data: TopYield[]) => setTopYields([...data].sort((a, b) => b.apy - a.apy).slice(0, 3)))
+      // The route returns pools already filtered and sorted by APY, so this
+      // takes the first three rather than re-deciding what "top" means.
+      .then((data: { pools: TopYield[]; asOf: string; stale: boolean }) => {
+        setTopYields(data.pools.slice(0, 3));
+        setYieldMeta({ asOf: data.asOf, stale: data.stale });
+      })
       .catch(() => {
         setTopYields([]);
         setYieldsError(true);
@@ -136,6 +148,9 @@ export default function DashboardPage() {
         title="Portfolio Overview"
         description="Signal flows, vaults, and yield in one view."
       />
+
+      {/* Live Spot Market Ticker */}
+      <MarketTicker />
 
       {/* Setting a PIN and verifying identity used to be two separate banners
           that could appear together in no particular order. They are one
@@ -210,10 +225,6 @@ export default function DashboardPage() {
             step in OnboardingChecklist above, so it is not asked for twice on
             one screen. Pressing Deposit while unverified still explains itself
             through a toast, which is the contextual half of the same message. */}
-
-        {/* Beside the wallet balance, because this is the panel where the two
-            numbers meet: the balance is real money from the ledger, the P&L
-            below is simulated, and only the first can leave the platform. */}
       </section>
 
       {depositOpen && <DepositModal onClose={() => setDepositOpen(false)} />}
@@ -452,59 +463,76 @@ export default function DashboardPage() {
                     >
                       {yield_.protocol.charAt(0)}
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <h3 className="font-semibold text-ds-text">{yield_.protocol}</h3>
-                      <p className="text-xs text-ds-text-muted">{yield_.chain}</p>
+                      <p className="truncate text-xs text-ds-text-muted">
+                        {yield_.chain} · {yield_.symbol} · {compactUsd(yield_.tvlUsd)} TVL
+                      </p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-mono text-lg font-bold text-ds-value-positive">
-                      {yield_.apy}%
-                    </p>
-                    <p className="text-ds-caption uppercase tracking-wide text-ds-text-muted">
-                      APY
-                    </p>
+                  <div className="flex items-center gap-3">
+                    {/*
+                      The risk band travels with the rate, always. It was in
+                      the data all along and the old widget dropped it - so two
+                      pools the source itself flagged High showed as bare green
+                      percentages, directly above a hardcoded "Low Risk" badge.
+                    */}
+                    <RiskBadge risk={yield_.risk} />
+                    <div className="text-right">
+                      <p className="font-mono text-lg font-bold text-ds-value-positive">
+                        {yield_.apy}%
+                      </p>
+                      <p className="text-ds-caption uppercase tracking-wide text-ds-text-muted">
+                        APY
+                      </p>
+                    </div>
                   </div>
                 </div>
               ))
             )}
           </div>
 
-          {/* Risk score card — signature element */}
-          <div className="mt-4 rounded-xl border border-ds-border bg-ds-surface-raised/50 p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-ds-text-muted">
-                  Panoply Risk Score
-                </p>
-                <p className="mt-1 text-xl font-bold text-ds-value-positive">Low Risk</p>
-                <p className="text-sm text-ds-text-muted">78 / 100</p>
-              </div>
-              <div className="relative flex h-16 w-16 items-center justify-center">
-                <svg className="h-full w-full -rotate-90" viewBox="0 0 36 36">
-                  <circle
-                    cx="18"
-                    cy="18"
-                    r="15"
-                    fill="none"
-                    className="stroke-ds-border"
-                    strokeWidth="2.5"
-                  />
-                  <circle
-                    cx="18"
-                    cy="18"
-                    r="15"
-                    fill="none"
-                    className="stroke-primary"
-                    strokeWidth="2.5"
-                    strokeDasharray="78 100"
-                    strokeLinecap="round"
-                  />
-                </svg>
-                <Vault className="absolute h-5 w-5 text-primary" />
+          {/*
+            Provenance, where a fabricated "Panoply Risk Score — Low Risk —
+            78 / 100" used to sit.
+
+            Every part of that card was a literal, including the dial's
+            `strokeDasharray="78 100"`. It read nothing and computed nothing,
+            and it sat directly beneath pools the data itself rated High -
+            so the screen said Panoply had assessed these and found them safe.
+            Nothing had assessed anything.
+
+            What replaces it answers the question the old card only pretended
+            to: where these numbers came from and how old they are.
+          */}
+          {!yieldsLoading && !yieldsError && topYields.length > 0 && (
+            <div className="mt-4 rounded-xl border border-ds-border bg-ds-surface-raised/50 p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium uppercase tracking-wider text-ds-text-muted">
+                    Yield data
+                  </p>
+                  <p className="mt-1 text-sm text-ds-text-secondary">
+                    Live pool rates from DefiLlama, filtered to pools over $1m with at least a month
+                    of history. Risk bands are derived from each pool&apos;s liquidity, rate
+                    volatility and impermanent-loss exposure — not a rating of the protocol, and not
+                    a recommendation.
+                  </p>
+                  {yieldMeta && (
+                    <p className="mt-1.5 text-ds-caption text-ds-text-muted">
+                      {yieldMeta.stale ? 'Last reached' : 'Updated'}{' '}
+                      {new Date(yieldMeta.asOf).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                      {yieldMeta.stale && ' · refresh failed, showing the last good data'}
+                    </p>
+                  )}
+                </div>
+                <Vault className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
               </div>
             </div>
-          </div>
+          )}
         </section>
       </div>
     </div>
