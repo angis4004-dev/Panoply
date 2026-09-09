@@ -1,0 +1,69 @@
+name: Deploy to cPanel
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the verified commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Build standalone application
+        run: npm run build
+        env:
+          SESSION_SECRET: ci-build-placeholder-not-a-real-secret
+
+      - name: Create deployment archive
+        run: |
+          mkdir -p deploy/.next deploy/public
+          cp -R .next/standalone/. deploy/
+          cp -R .next/static deploy/.next/
+          cp -R public/. deploy/public/
+          rm -rf deploy/.env deploy/.env.* deploy/data
+          tar -czf panoply-cpanel.tar.gz -C deploy .
+
+      - name: Upload deployment archive
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.CPANEL_HOST }}
+          username: ${{ secrets.CPANEL_USER }}
+          key: ${{ secrets.CPANEL_SSH_KEY }}
+          port: ${{ secrets.CPANEL_SSH_PORT || 22 }}
+          source: panoply-cpanel.tar.gz
+          target: /tmp
+
+      - name: Extract and restart cPanel app
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.CPANEL_HOST }}
+          username: ${{ secrets.CPANEL_USER }}
+          key: ${{ secrets.CPANEL_SSH_KEY }}
+          port: ${{ secrets.CPANEL_SSH_PORT || 22 }}
+          script: |
+            mkdir -p "${{ secrets.CPANEL_APP_PATH }}"
+            tar -xzf /tmp/panoply-cpanel.tar.gz -C "${{ secrets.CPANEL_APP_PATH }}"
+            mkdir -p "${{ secrets.CPANEL_APP_PATH }}/tmp"
+            touch "${{ secrets.CPANEL_APP_PATH }}/tmp/restart.txt"
