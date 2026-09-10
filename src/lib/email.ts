@@ -1,6 +1,7 @@
 import { Resend } from 'resend';
 import { PANOPLY_LOGO_BASE64 } from '@/lib/email-logo';
 import { EMAIL_LOGO_CID } from '@/lib/email-template';
+import { SUPPORT_EMAIL } from '@/lib/contact';
 
 interface SendEmailOptions {
   to: string;
@@ -32,6 +33,20 @@ export async function sendEmail({
       // call site and a silent failure at runtime.
       from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
       to: [to],
+      /*
+       * Replies reach a person.
+       *
+       * Transactional mail is sent from a no-reply address because the From
+       * has to be one Resend is authorised for, and because a shared human
+       * mailbox should not be the thing every automated message appears to
+       * come from. Neither of those is a reason to throw away the replies.
+       *
+       * People do reply to these. The most valuable one is a reply to a
+       * password reset that reads "I didn't ask for this" - which is a report
+       * of an account under attack, arriving from the account's own owner,
+       * and a no-reply address is a decision to never hear it.
+       */
+      replyTo: process.env.EMAIL_REPLY_TO || SUPPORT_EMAIL,
       subject,
       html,
       /*

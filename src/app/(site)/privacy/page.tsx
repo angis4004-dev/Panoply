@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { LegalPageLayout } from '@/components/legal/LegalPageLayout';
 import { OperatingEntities } from '@/components/legal/OperatingEntities';
+import { PRIVACY_EMAIL, SUPPORT_EMAIL } from '@/lib/contact';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy | Panoply',
@@ -113,11 +114,22 @@ export default function PrivacyPage() {
         </p>
       </section>
 
+      {/*
+        This section used to say questions "can be directed to your account
+        administrator or support contact within the platform", which is not a
+        contact detail - it is a description of one. The section above grants
+        rights of access, correction and deletion and tells the reader to
+        "contact us using the details below"; the details below were not
+        there. A policy that grants a right and withholds the means of
+        exercising it is unenforceable by the person it was written for.
+      */}
       <section>
         <h2>Contact</h2>
         <p>
-          Questions about this policy or your data can be directed to your account administrator or
-          support contact within the platform.
+          To exercise any of the rights above, or to ask how your data is handled, write to{' '}
+          <a href={`mailto:${PRIVACY_EMAIL}`}>{PRIVACY_EMAIL}</a>. Anything else about your account
+          goes to <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>, or through Ask Panoply
+          once you are signed in.
         </p>
       </section>
     </LegalPageLayout>

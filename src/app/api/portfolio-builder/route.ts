@@ -15,6 +15,7 @@ import {
 import { BRAND_COLORS } from '@/lib/brand-colors';
 import { parseBody, portfolioBuilderSchema } from '@/lib/validation';
 import { PANOPLY_LOGO_BASE64 } from '@/lib/email-logo';
+import { SUPPORT_EMAIL } from '@/lib/contact';
 
 // Text/background pairs per risk profile, drawn from the app's real brand
 // values (tailwind.config.js `primary`/`brand.purple` and the `teal.600`
@@ -46,6 +47,10 @@ async function sendEmailReport(email: string, htmlContent: string): Promise<bool
     const { error } = await resend.emails.send({
       from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
       to: [email],
+      // This route builds its own Resend call rather than going through
+      // sendEmail, so the Reply-To has to be repeated here. Without it the
+      // report is the one email the product sends that cannot be replied to.
+      replyTo: process.env.EMAIL_REPLY_TO || SUPPORT_EMAIL,
       subject: 'Your Portfolio Report',
       html: htmlContent,
       attachments: [
