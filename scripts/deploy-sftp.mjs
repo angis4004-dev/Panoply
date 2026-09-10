@@ -106,12 +106,36 @@ async function main() {
 
   const setup = new SftpClient();
   await setup.connect(connect);
-  await setup.mkdir(REMOTE_ROOT, true).catch(() => {});
+
+  /*
+   * Create, then force the mode to 0755. Both halves matter.
+   *
+   * lftp created its directories as 0644 - readable and writable but with no
+   * execute bit. On Unix that means the directory cannot be entered, so
+   * nothing can be written inside it. That one detail caused every symptom
+   * we chased: lftp "losing" files it had just made a home for, and then this
+   * uploader failing on 287 of them with EACCES. The directories were
+   * unusable and every tool was correct to refuse.
+   *
+   * chmod runs on every deploy rather than only on creation, because the
+   * broken directories already exist on the server and a deploy that only
+   * fixed new ones would never repair them. It is idempotent and cheap
+   * relative to the upload.
+   *
+   * Depth order is what makes this work: a parent must regain its execute bit
+   * before anything beneath it can even be reached.
+   */
+  const ensureDir = async (path) => {
+    await setup.mkdir(path, true).catch(() => {});
+    await setup.chmod(path, 0o755).catch(() => {});
+  };
+
+  await ensureDir(REMOTE_ROOT);
   for (const dir of dirs) {
-    await setup.mkdir(posix.join(REMOTE_ROOT, dir), true).catch(() => {});
+    await ensureDir(posix.join(REMOTE_ROOT, dir));
   }
   await setup.end();
-  console.log(`Prepared ${dirs.length} directories.`);
+  console.log(`Prepared ${dirs.length} directories (created and set to 0755).`);
 
   let done = 0;
   const failures = [];
@@ -158,31 +182,49 @@ async function main() {
   }
 
   /*
-   * Count what is actually there, rather than trusting that the writes above
-   * all landed. This is the check lftp did not do, and its absence is the
-   * whole reason a broken release reached production looking healthy.
+   * Verify a sample, by stat, rather than walking the whole tree.
+   *
+   * The first version of this counted every file on the server recursively.
+   * That is one round trip per directory - several hundred of them - and it
+   * ran for over nine minutes against this host without finishing. A check
+   * that costs more than the upload it is checking will be removed by the
+   * next person in a hurry, which makes it worse than a cheaper one.
+   *
+   * The sample is not random. Every path containing a bracket is checked,
+   * because those are the ones lftp silently dropped and they are exactly the
+   * shape most likely to break a transfer tool. A spread of ordinary files
+   * goes in beside them to catch a general failure.
    */
+  const bracketed = files.filter((f) => f.includes('[') || f.includes(']'));
+  const stride = Math.max(1, Math.floor(files.length / 40));
+  const spread = files.filter((_, i) => i % stride === 0);
+  const sample = [...new Set([...bracketed, ...spread])];
+
   const audit = new SftpClient('audit');
   await audit.connect(connect);
-  let remote = 0;
-  async function count(dir) {
-    const list = await audit.list(dir);
-    for (const entry of list) {
-      if (entry.type === 'd') await count(posix.join(dir, entry.name));
-      else if (entry.type === '-') remote++;
+  const missing = [];
+  for (const file of sample) {
+    try {
+      const local = await stat(join(LOCAL_ROOT, file));
+      const remote = await audit.stat(posix.join(REMOTE_ROOT, file));
+      if (remote.size !== local.size) {
+        missing.push(`${file} (size ${remote.size}, expected ${local.size})`);
+      }
+    } catch (error) {
+      missing.push(`${file} (${String(error.message || error).slice(0, 60)})`);
     }
   }
-  await count(REMOTE_ROOT);
   await audit.end();
 
-  console.log(`Uploaded ${done} files; server now holds ${remote}.`);
-  if (remote < files.length) {
-    console.error(
-      `::error::Expected at least ${files.length} files on the server but found ${remote}.`
-    );
+  if (missing.length > 0) {
+    console.error(`::error::${missing.length} of ${sample.length} sampled files are wrong:`);
+    for (const m of missing.slice(0, 20)) console.error(`  ${m}`);
     process.exit(1);
   }
-  console.log('Upload verified.');
+
+  console.log(
+    `Uploaded ${done} files. Verified ${sample.length} by size, including all ${bracketed.length} bracketed paths.`
+  );
 }
 
 main().catch((error) => {
