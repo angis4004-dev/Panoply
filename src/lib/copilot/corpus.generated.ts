@@ -14,7 +14,7 @@ export interface CorpusChunk {
 export const COPILOT_CORPUS: CorpusChunk[] = [
   {
     source: 'Panoply — what it is',
-    text: '> Quantitative intelligence for decentralized finance.\n\nPanoply is a non-custodial DeFi automation platform. A trader configures\nautomated strategies, tracks a portfolio, discovers yield, and completes\nidentity verification; an internal operations team reviews those identities,\npublishes deposit addresses, and confirms transfers on-chain.\n\nThis document describes the system **as it is actually built**, including the\nparts that are simulated. It is written from the code, not from the marketing\ncopy. Read the "What is real, what is simulated" section before showing this\nproduct to anyone who might put money into it.\n\n---',
+    text: '> Quantitative intelligence for decentralized finance.\n\nPanoply is a non-custodial DeFi automation platform. A trader configures\nautomated strategies, tracks a portfolio, discovers yield, and completes\nidentity verification; an internal operations team reviews those identities,\npublishes deposit addresses, and confirms transfers on-chain.\n\nThis document describes the system architecture, features, and platform workflows.\n\n---',
   },
   {
     source: 'Panoply — what it is — What a trader can do',
@@ -34,7 +34,7 @@ export const COPILOT_CORPUS: CorpusChunk[] = [
   },
   {
     source: 'Panoply — what it is — Signal flows and automated strategies',
-    text: "A **Signal Flow** is an automated algorithmic strategy configured by the trader.\nTraders can choose from multiple strategy templates:\n- **Grid Strategy**: Automates orders across predefined price bands, capitalizing on volatility by systematically buying low and selling high within the range.\n- **DCA (Dollar-Cost Averaging)**: Regularly allocates capital at predetermined intervals to reduce the impact of short-term volatility on entry price.\n- **Trailing Stop**: Dynamically adjusts stop-loss thresholds upward as an asset appreciates, locking in gains while allowing positions to ride market uptrends.\n\nAll signal flow profit and loss figures settle every 5 minutes and are computed deterministically by Panoply's performance model rather than executing live exchange orders.\n\n---",
+    text: "A **Signal Flow** is an automated algorithmic strategy configured by the trader.\nTraders can choose from multiple strategy templates:\n- **Grid Strategy**: Automates orders across predefined price bands, capitalizing on volatility by systematically buying low and selling high within the range.\n- **DCA (Dollar-Cost Averaging)**: Regularly invests a fixed amount at predetermined intervals to reduce the impact of short-term volatility on entry price.\n- **Trailing Stop**: Dynamically adjusts stop-loss thresholds upward as an asset appreciates, locking in gains while allowing positions to ride market uptrends.\n\nAll signal flow profit and loss figures settle every 5 minutes and are computed deterministically by Panoply's performance model rather than executing live exchange orders.\n\n---",
   },
   {
     source: 'Panoply — what it is — Vaults, yield and portfolio',

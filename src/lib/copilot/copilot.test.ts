@@ -134,6 +134,34 @@ describe('copilot retrieval', () => {
   });
 
   /*
+   * The section allowlist only filters headings, and a document's intro has no
+   * heading to filter - so every document under docs/ used to contribute its
+   * opening paragraphs unconditionally. Adding docs/cpanel-auto-deploy.md put
+   * SSH key setup, GitHub secret names and server paths into the corpus the
+   * customer assistant answers from, without touching the section list at all.
+   *
+   * The generator now allowlists documents as well. This is the guard on that:
+   * every chunk must come from the one customer-facing document, whatever else
+   * lands in docs/ later.
+   */
+  it('indexes only the customer-facing document, whatever else is in docs/', () => {
+    for (const chunk of COPILOT_CORPUS) {
+      expect(chunk.source.startsWith('Panoply — what it is')).toBe(true);
+    }
+
+    const all = COPILOT_CORPUS.map((c) => `${c.source} ${c.text}`)
+      .join('\n')
+      .toLowerCase();
+    // Terms that only ever appear in deployment or infrastructure writing.
+    // Deliberately not "workflow" - the overview legitimately describes
+    // platform workflows to customers, and a sentinel that flags real product
+    // vocabulary gets deleted the first time it cries wolf.
+    for (const operational of ['cpanel', 'ssh', 'github actions', 'private key', 'passenger']) {
+      expect(all).not.toContain(operational);
+    }
+  });
+
+  /*
    * The counterpart to the test above: the allowlist must keep letting the
    * one section through that says how to reach a person. "How do I contact
    * support?" is the question an assistant absolutely cannot answer with "I

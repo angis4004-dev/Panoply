@@ -14,7 +14,7 @@
  */
 
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
-import { format } from 'prettier';
+import { format, resolveConfig } from 'prettier';
 import { join, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -24,6 +24,23 @@ const OUT = join(ROOT, 'src', 'lib', 'copilot', 'corpus.generated.ts');
 
 /** Chunks below this are headings with no body and retrieve nothing useful. */
 const MIN_CHUNK_CHARS = 120;
+
+/**
+ * Documents the assistant is allowed to read at all.
+ *
+ * The section allowlist below filters headings *within* a document, which
+ * quietly assumed every document in docs/ was a customer-facing one. It is
+ * not: every document's intro is included unconditionally, because an intro
+ * has no heading to check. So the moment docs/cpanel-auto-deploy.md was added
+ * - SSH key setup, secret names, server paths - its opening paragraphs went
+ * straight into the corpus the customer assistant answers from.
+ *
+ * Filtering at the document level too means an internal document added next
+ * month is excluded by default and has to be named here to become visible.
+ * Same direction as the section list, applied one level up, for the same
+ * reason: the safe state is the one you get by doing nothing.
+ */
+const CUSTOMER_FACING_DOCS = new Set(['panoply-overview.md']);
 
 /**
  * Sections the assistant is allowed to quote to a customer.
@@ -100,6 +117,11 @@ function titleFor(markdown, filename) {
 
 const files = readdirSync(DOCS_DIR)
   .filter((f) => f.endsWith('.md'))
+  .filter((f) => CUSTOMER_FACING_DOCS.has(f))
+  .sort();
+
+const skipped = readdirSync(DOCS_DIR)
+  .filter((f) => f.endsWith('.md') && !CUSTOMER_FACING_DOCS.has(f))
   .sort();
 
 const chunks = [];
@@ -135,7 +157,25 @@ export const COPILOT_CORPUS: CorpusChunk[] = ${JSON.stringify(chunks, null, 2)};
  * always the same, and a lint error people learn to ignore is worse than no
  * lint error at all.
  */
-writeFileSync(OUT, await format(body, { filepath: OUT }), 'utf8');
+/*
+ * resolveConfig, not just filepath.
+ *
+ * `filepath` alone only tells Prettier which parser to use - it does not load
+ * .prettierrc. So the first version of this formatted with Prettier's own
+ * defaults, which double-quote strings, while the repository is configured to
+ * single-quote them. The file came out formatted, consistently, and wrong: 14
+ * lint errors in a generated file, which fails CI and therefore blocks the
+ * deploy of a change that had nothing to do with it.
+ */
+const prettierOptions = await resolveConfig(OUT);
+writeFileSync(OUT, await format(body, { ...prettierOptions, filepath: OUT }), 'utf8');
 console.info(
   `[copilot] wrote ${chunks.length} chunks from ${files.length} document(s) to ${OUT.replace(ROOT, '.')}`
 );
+
+// Named out loud, every run. A document silently left out of the assistant's
+// knowledge is the safe failure, but it should still be a visible one - this
+// is the line that tells you a new doc needs adding to CUSTOMER_FACING_DOCS.
+if (skipped.length > 0) {
+  console.info(`[copilot] treated as internal, not indexed: ${skipped.join(', ')}`);
+}

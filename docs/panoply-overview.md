@@ -142,7 +142,7 @@ it does not give investment advice or decide anything on your behalf either.
 A **Signal Flow** is an automated algorithmic strategy configured by the trader.
 Traders can choose from multiple strategy templates:
 - **Grid Strategy**: Automates orders across predefined price bands, capitalizing on volatility by systematically buying low and selling high within the range.
-- **DCA (Dollar-Cost Averaging)**: Regularly allocates capital at predetermined intervals to reduce the impact of short-term volatility on entry price.
+- **DCA (Dollar-Cost Averaging)**: Regularly invests a fixed amount at predetermined intervals to reduce the impact of short-term volatility on entry price.
 - **Trailing Stop**: Dynamically adjusts stop-loss thresholds upward as an asset appreciates, locking in gains while allowing positions to ride market uptrends.
 
 All signal flow profit and loss figures settle every 5 minutes and are computed deterministically by Panoply's performance model rather than executing live exchange orders.

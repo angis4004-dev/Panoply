@@ -10,6 +10,17 @@ on:
 permissions:
   contents: read
 
+# One deploy at a time, and never cancel one half-way.
+#
+# Two pushes in quick succession would otherwise race: both build, both upload
+# to the same path, and whichever SSH session finishes last wins - which is not
+# necessarily the newer commit. `cancel-in-progress: false` matters as much as
+# the group: cancelling a run mid-extraction would leave the application
+# directory holding half of one release and half of another.
+concurrency:
+  group: deploy-cpanel
+  cancel-in-progress: false
+
 jobs:
   deploy:
     if: >-
@@ -28,42 +39,169 @@ jobs:
           node-version: 22
           cache: npm
 
+      # Fails before the build rather than after the deploy.
+      #
+      # NEXT_PUBLIC_APP_URL is compiled into the output, not read at runtime -
+      # so if it is missing here the build silently substitutes the localhost
+      # fallback in src/lib/site-url.ts and the site ships a sitemap full of
+      # http://localhost:4028 URLs and password-reset emails linking to a
+      # machine that is not the server. That is not something anybody notices
+      # until a user cannot reset their password, so it is a hard stop.
+      #
+      # It lives in Variables rather than Secrets: it is the public address of
+      # the site, printed on every page. Masking it in the logs would only make
+      # this failure harder to read.
+      - name: Require the public site URL
+        run: |
+          if [ -z "${{ vars.NEXT_PUBLIC_APP_URL }}" ]; then
+            echo "::error::NEXT_PUBLIC_APP_URL is not set."
+            echo "Add it under Settings > Secrets and variables > Actions > Variables."
+            echo "Example: https://panoply.example.com (no trailing slash)"
+            exit 1
+          fi
+          echo "Building for ${{ vars.NEXT_PUBLIC_APP_URL }}"
+
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
       - name: Build standalone application
         run: npm run build
         env:
+          # Compiled in. See the guard step above.
+          NEXT_PUBLIC_APP_URL: ${{ vars.NEXT_PUBLIC_APP_URL }}
+          # Build-time only, and deliberately not the real one. src/lib/session.ts
+          # reads SESSION_SECRET through a function at each use rather than at
+          # module scope, so this placeholder is never captured in the output -
+          # the running server reads the real value from the cPanel environment.
           SESSION_SECRET: ci-build-placeholder-not-a-real-secret
 
-      - name: Create deployment archive
+      # Assembles exactly the tree the server should hold. Next's standalone
+      # output already contains the traced node_modules, which is why cPanel
+      # never has to run npm install.
+      - name: Assemble the release
         run: |
           mkdir -p deploy/.next deploy/public
           cp -R .next/standalone/. deploy/
           cp -R .next/static deploy/.next/
           cp -R public/. deploy/public/
+          # A local build copies .env into the standalone output. CI has no
+          # .env to copy, but this stays as a belt-and-braces guard against
+          # ever shipping one, and against overwriting the server's own data/.
           rm -rf deploy/.env deploy/.env.* deploy/data
-          tar -czf panoply-cpanel.tar.gz -C deploy .
+          echo "Release contains $(find deploy -type f | wc -l) files, $(du -sh deploy | cut -f1)."
 
-      - name: Upload deployment archive
-        uses: appleboy/scp-action@v1
-        with:
-          host: ${{ secrets.CPANEL_HOST }}
-          username: ${{ secrets.CPANEL_USER }}
-          key: ${{ secrets.CPANEL_SSH_KEY }}
-          port: ${{ secrets.CPANEL_SSH_PORT || 22 }}
-          source: panoply-cpanel.tar.gz
-          target: /tmp
+      # Proves the guard above actually worked, on the real artifact, before
+      # anything leaves the runner. A build that still contains the localhost
+      # fallback must never reach the server.
+      - name: Refuse to ship a localhost build
+        run: |
+          if grep -rq "localhost:4028" deploy/.next/server/app/sitemap.xml.body 2>/dev/null; then
+            echo "::error::The build baked in the localhost fallback URL. Deployment stopped."
+            exit 1
+          fi
+          echo "Sitemap origin looks correct."
 
-      - name: Extract and restart cPanel app
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.CPANEL_HOST }}
-          username: ${{ secrets.CPANEL_USER }}
-          key: ${{ secrets.CPANEL_SSH_KEY }}
-          port: ${{ secrets.CPANEL_SSH_PORT || 22 }}
-          script: |
-            mkdir -p "${{ secrets.CPANEL_APP_PATH }}"
-            tar -xzf /tmp/panoply-cpanel.tar.gz -C "${{ secrets.CPANEL_APP_PATH }}"
-            mkdir -p "${{ secrets.CPANEL_APP_PATH }}/tmp"
-            touch "${{ secrets.CPANEL_APP_PATH }}/tmp/restart.txt"
+      # Everything below transfers files and nothing runs a command remotely.
+      #
+      # This host (Spaceship / Namecheap shared) authenticates the SSH key
+      # perfectly but ends the session with "Shell access is not enabled on
+      # your account!" - so tar, touch and every other remote command is
+      # unavailable, and enabling them means a support request. SFTP, however,
+      # is fully working: directories, uploads, overwrites and deletes were all
+      # verified against this account.
+      #
+      # So the archive is unpacked here, on the runner, and the resulting tree
+      # is mirrored up file by file. Slower than shipping one tarball, and the
+      # only approach that needs nothing from the host.
+      - name: Install lftp
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+
+      - name: Write the deploy key
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "${{ secrets.CPANEL_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+      - name: Upload the release over SFTP
+        env:
+          HOST: ${{ secrets.CPANEL_HOST }}
+          USER_NAME: ${{ secrets.CPANEL_USER }}
+          PORT: ${{ secrets.CPANEL_SSH_PORT || 22 }}
+          APP_PATH: ${{ secrets.CPANEL_APP_PATH }}
+        run: |
+          set -euo pipefail
+
+          # Passenger restarts when the mtime of tmp/restart.txt changes.
+          # Uploading a freshly written file changes it exactly as `touch`
+          # would, which is how the app is restarted without a shell.
+          date -u +"restarted %Y-%m-%dT%H:%M:%SZ by ${GITHUB_SHA:0:7}" > restart.txt
+
+          # --parallel matters far more than bandwidth here: the tree is ~3,200
+          # mostly-small files, so the cost is per-file round trips.
+          #
+          # Deliberately no --delete. Next.js names every chunk after its
+          # content, so leaving the previous release's files in .next/static is
+          # what stops a browser that loaded a page seconds before the deploy
+          # from 404ing on scripts it was promised. Routing comes from the
+          # manifests, which are overwritten, so nothing stale is ever served.
+          lftp -c "
+            set sftp:connect-program 'ssh -a -x -i $HOME/.ssh/deploy_key -p $PORT -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null';
+            set net:timeout 30;
+            set net:max-retries 3;
+            set net:reconnect-interval-base 5;
+            set xfer:clobber on;
+            open -u $USER_NAME, sftp://$HOST;
+            mkdir -p -f $APP_PATH;
+            mkdir -p -f $APP_PATH/tmp;
+            mirror -R --parallel=10 --verbose=1 deploy $APP_PATH;
+            # Left over from the manual upload this workflow replaces: an
+            # archive that could never be unpacked without a shell. -f so a
+            # deploy to a server that never had one does not fail here.
+            rm -f $APP_PATH/panoply-cpanel.zip;
+            put restart.txt -o $APP_PATH/tmp/restart.txt;
+            bye
+          "
+
+      - name: Remove the deploy key from the runner
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
+
+      # The deploy is not finished when the files land - it is finished when
+      # the application answers. Passenger respawns lazily on the next request,
+      # so without this a crash-on-boot (a missing environment variable, most
+      # likely) would show a green tick here and a 500 to every visitor.
+      - name: Verify the site is answering
+        run: |
+          URL="${{ vars.NEXT_PUBLIC_APP_URL }}"
+          echo "Waiting for $URL to serve the application..."
+          for attempt in 1 2 3 4 5 6; do
+            headers=$(curl -sI --max-time 25 "$URL" 2>/dev/null || true)
+            code=$(printf '%s' "$headers" | awk 'NR==1{print $2}')
+
+            # A 200 is not proof the app is up.
+            #
+            # Before the Node application is mapped to the domain, LiteSpeed
+            # answers the same URL with a directory listing - "Index of /" -
+            # and that is a perfectly good HTTP 200. A health check looking
+            # only at the status code would go green while the site served a
+            # public file index.
+            #
+            # Next.js sets X-Powered-By: Next.js (poweredByHeader is on in
+            # next.config.mjs), and no static listing does. That header is the
+            # cheapest thing on the response that only our app produces.
+            if printf '%s' "$headers" | grep -qi '^x-powered-by:.*next'; then
+              echo "Live: the Next.js application is serving $URL (HTTP ${code})."
+              exit 0
+            fi
+
+            if [ "${code:-000}" = "200" ]; then
+              echo "Attempt ${attempt}: HTTP 200 but not from Next.js - something else is answering this domain."
+            else
+              echo "Attempt ${attempt}: HTTP ${code:-000}. Retrying in 10s."
+            fi
+            sleep 10
+          done
+          echo "::error::$URL is not being served by the application."
+          echo "Either the app crashed on boot - check the log in Setup Node.js App -"
+          echo "or the domain is still pointing at public_html instead of the Node app."
+          exit 1

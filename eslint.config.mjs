@@ -75,6 +75,25 @@ const eslintConfig = [
       // config does not read .gitignore, so being ignored by git is not
       // enough on its own.
       '.gstack/**',
+      /*
+       * The same trap as .gstack above, caught a second time.
+       *
+       * outputs/ is gitignored build scratch - 69MB and 2,335 lintable .js and
+       * .ts files, including generated bundles and a deployment archive. Flat
+       * config does not read .gitignore, so eslint walked and parsed every one
+       * of them: `npm run lint` ran for over ten minutes and then died with a
+       * stack trace, exactly as .gstack used to.
+       *
+       * Local only - a CI checkout has no outputs/ - which is precisely what
+       * makes it worth fixing. A lint that passes in CI and crashes on the
+       * developer's machine is one people stop running, and the last time that
+       * happened four prettier errors piled up in src/ unnoticed.
+       *
+       * .vercel and .superpowers are tool state for the same reason.
+       */
+      'outputs/**',
+      '.vercel/**',
+      '.superpowers/**',
       'docs/**',
       'data/**',
       'next-env.d.ts',
