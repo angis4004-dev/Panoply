@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requestPasswordReset } from '@/lib/auth-store';
 import { sendEmail } from '@/lib/email';
+import { renderEmail } from '@/lib/email-template';
 import { forgotPasswordSchema, parseBody } from '@/lib/validation';
 
 // Always return this exact message, whether or not the email has an account,
@@ -22,18 +23,20 @@ export async function POST(request: Request) {
       await sendEmail({
         to: email,
         subject: 'Reset your Panoply password',
-        html: `
-          <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
-            <h2>Reset your password</h2>
-            <p>We received a request to reset the password for your Panoply account.</p>
-            <p>
-              <a href="${resetLink}" style="display:inline-block;padding:12px 20px;background:#243B8F;color:#FFF0C9;text-decoration:none;border-radius:8px;font-weight:600;">
-                Reset Password
-              </a>
-            </p>
-            <p>This link expires in 1 hour. If you didn't request this, you can safely ignore this email.</p>
-          </div>
-        `,
+        html: renderEmail({
+          eyebrow: 'Account access',
+          title: 'Reset your password',
+          preheader: 'Your reset link works once and expires in an hour.',
+          paragraphs: ['Someone asked to reset the password on your Panoply account.'],
+          action: { label: 'Choose a new password', url: resetLink },
+          actionNote: 'Works once. Expires in one hour.',
+          // Reassurance, not a warning, so it is a quiet line rather than an
+          // amber box. And phrased as "nothing has happened" rather than
+          // "ignore this": an unexpected reset email is alarming, and the
+          // useful fact is that the account is untouched until the link is used.
+          footnote:
+            "Didn't ask for this? Nothing has changed. Your password stays as it is unless the link above is used.",
+        }),
       });
     }
 

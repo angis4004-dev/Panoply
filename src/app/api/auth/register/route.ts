@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { registerUser, requestEmailVerification } from '@/lib/auth-store';
 import { sendEmail } from '@/lib/email';
+import { renderEmail } from '@/lib/email-template';
 import { grantAchievement } from '@/lib/achievements/engine';
 import { setCookie } from '@/lib/session';
 import { parseBody, registerSchema } from '@/lib/validation';
@@ -27,18 +28,20 @@ export async function POST(request: Request) {
       await sendEmail({
         to: result.user.email,
         subject: 'Verify your Panoply email address',
-        html: `
-          <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
-            <h2>Verify your email</h2>
-            <p>Welcome to Panoply. Confirm your email address to finish setting up your account.</p>
-            <p>
-              <a href="${verifyLink}" style="display:inline-block;padding:12px 20px;background:#1E63FF;color:#F2F5FA;text-decoration:none;border-radius:8px;font-weight:600;">
-                Verify Email
-              </a>
-            </p>
-            <p>This link expires in 24 hours.</p>
-          </div>
-        `,
+        // Two paragraphs became one, and the second - a paragraph explaining
+        // the PIN - was cut entirely. It was an instruction in an email whose
+        // only job is a single click, and instructions in email do not get
+        // read. The dashboard prompts for a PIN at the right moment anyway.
+        html: renderEmail({
+          eyebrow: 'Welcome',
+          title: 'One click to finish',
+          preheader: 'Confirm your email address to activate your account.',
+          paragraphs: [
+            'Your Panoply account is created. Confirming your address is the last step, and it is how we reach you about deposits and verification.',
+          ],
+          action: { label: 'Verify my email', url: verifyLink },
+          actionNote: 'Expires in 24 hours.',
+        }),
       }).catch((err) => {
         console.error('Failed to send verification email:', err);
       });

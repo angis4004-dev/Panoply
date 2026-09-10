@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { getUserModel } from '@/lib/models';
 import { getSessionFromRequest } from '@/lib/session';
 import { sendEmail } from '@/lib/email';
+import { renderEmail } from '@/lib/email-template';
 import { parseBody, pinForgotSchema } from '@/lib/validation';
 
 /** Matches the password-reset window. */
@@ -55,19 +56,27 @@ export async function POST(request: Request) {
     const sent = await sendEmail({
       to: user.email,
       subject: 'Choose a new Panoply PIN',
-      html: `
-        <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
-          <h2>Choose a new PIN</h2>
-          <p>Someone entered your password and asked to reset the 6-digit PIN on your Panoply account.</p>
-          <p>
-            <a href="${resetLink}" style="display:inline-block;padding:12px 20px;background:#243B8F;color:#FFF0C9;text-decoration:none;border-radius:8px;font-weight:600;">
-              Choose a New PIN
-            </a>
-          </p>
-          <p>This link expires in 1 hour and can be used once.</p>
-          <p><strong>If this wasn't you, someone knows your password.</strong> Ignore this link and reset your password immediately.</p>
-        </div>
-      `,
+      html: renderEmail({
+        eyebrow: 'Security',
+        title: 'Choose a new PIN',
+        preheader: 'A PIN reset was requested after your password was entered.',
+        paragraphs: [
+          'Someone signed in with your password and asked to reset the six-digit PIN on your account.',
+        ],
+        action: { label: 'Choose a new PIN', url: resetLink },
+        actionNote: 'Works once. Expires in one hour.',
+        /*
+         * This one is not "ignore it if it wasn't you".
+         *
+         * Reaching a PIN reset requires the password, so an unrequested one
+         * means the password is already known to someone else. Ignoring the
+         * link leaves that true. The instruction has to be to change the
+         * password, and it belongs in the callout rather than a closing
+         * paragraph nobody reads.
+         */
+        alert:
+          "If this wasn't you, **someone knows your password.** Do not use this link — change your password immediately instead.",
+      }),
     });
 
     // The send result is actually checked here, unlike in the password-reset
