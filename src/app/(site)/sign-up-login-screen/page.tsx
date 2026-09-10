@@ -17,6 +17,7 @@ import {
   Mail,
   AlertCircle,
   Cpu,
+  Check,
 } from 'lucide-react';
 import PanoplyLogo from '@/components/ui/PanoplyLogo';
 import FlowFieldBackground from '@/components/ui/flow-field-background';
@@ -179,19 +180,19 @@ function LoginForm({
 
   return (
     <form ref={formRef} onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-      <div className="auth-field rounded-lg border border-[#2A3542]/60 bg-[#212A35]/40 px-3 py-3 text-sm text-[#C5CCD6]">
-        <p className="font-semibold text-[#E7ECF2]">Need an account?</p>
-        <p className="mt-1 text-xs text-[#8B95A5]">
-          Create one with your Google account or your email address, then return here to sign in.
-        </p>
-        <button
-          type="button"
-          onClick={onSwitchToSignup}
-          className="mt-2 inline-flex min-h-[44px] items-center rounded text-xs font-semibold text-primary underline decoration-primary/40 underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
-        >
-          Create an account
-        </button>
-      </div>
+      {/*
+        The "Need an account?" panel that used to sit here is gone.
+
+        It was the third thing on a sign-in form, wedged between "or continue
+        with email" and the email field itself - so somebody signing in read a
+        pitch to create an account in the middle of the task they had already
+        chosen. The Create Account tab is directly above it and does the same
+        job, which made it a second route to a destination already on screen.
+
+        The route out is still there, at the foot of the form where a person
+        looks after finding their credentials do not work, rather than before
+        they have tried.
+      */}
       {/* Email */}
       <div className="auth-field">
         <label
@@ -241,7 +242,7 @@ function LoginForm({
             id="signin-password"
             type={showPassword ? 'text' : 'password'}
             autoComplete="current-password"
-            placeholder="••••••••••••"
+            placeholder="Your password"
             className={`w-full bg-[#212A35] border rounded-lg pl-9 pr-10 py-2.5 min-h-[44px] text-ds-body text-[#E7ECF2] placeholder-ds-text-muted focus:outline-none focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_16px_-2px_rgba(30,99,255,0.45)] transition duration-fast ease-ds-out ${
               errors.password ? 'border-red-500/60' : 'border-[#2A3542]'
             }`}
@@ -264,20 +265,33 @@ function LoginForm({
       </div>
 
       {/* "Use MFA / OTP" sat to the left of Remember me. It is gone rather
-          than disabled - see the note on LoginFormValues. Remember me now
-          sits alone, so the row no longer needs justify-between. */}
-      <div className="auth-field flex items-center">
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            {...register('rememberMe')}
-            className="h-5 w-5 shrink-0 rounded border-ds-border-strong bg-[#212A35] accent-primary"
-          />
+          than disabled - see the note on LoginFormValues. Remember me pairs
+          with the reset link on one row: they are both things you decide about
+          your password, and splitting them across two rows put 75px of empty
+          card between the field and the button. */}
+      <div className="auth-field flex items-center justify-between gap-3">
+        {/*
+          Drawn rather than native.
+
+          `accent-primary` colours a checkbox only once it is ticked; an
+          unticked one keeps the platform's own default, which on Windows is a
+          white square. On this dark card that made the second-loudest thing on
+          the page a preference almost nobody changes, sitting directly above
+          the button they actually came to press.
+
+          The real input stays in the DOM and keeps every keyboard and screen
+          reader behaviour - it is `sr-only`, not hidden - and the box beside it
+          reflects its state through `peer-checked`. The tick inherits
+          `currentColor`, so it is invisible until the peer flips the colour.
+        */}
+        <label className="flex cursor-pointer items-center gap-2">
+          <input type="checkbox" {...register('rememberMe')} className="peer sr-only" />
+          <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded border border-ds-border-strong bg-[#212A35] text-transparent transition-colors duration-fast ease-ds-out peer-checked:border-primary peer-checked:bg-primary peer-checked:text-primary-foreground peer-focus-visible:ring-2 peer-focus-visible:ring-primary/50 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-[#122131]">
+            <Check size={11} strokeWidth={3.5} aria-hidden="true" />
+          </span>
           <span className="text-xs text-[#8B95A5]">Remember me</span>
         </label>
-      </div>
 
-      <div className="auth-field flex justify-end -mt-2">
         <Link
           href="/forgot-password"
           className="inline-flex min-h-[44px] items-center rounded text-xs text-primary hover:text-brand-cyan focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#122131]"
@@ -305,6 +319,19 @@ function LoginForm({
           </>
         )}
       </button>
+
+      {/* After the attempt, not before it. Someone whose password does not
+          work looks here; someone signing in normally never needs to read it. */}
+      <p className="auth-field pt-1 text-center text-xs text-[#8B95A5]">
+        No account yet?{' '}
+        <button
+          type="button"
+          onClick={onSwitchToSignup}
+          className="rounded font-semibold text-primary underline decoration-primary/40 underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+        >
+          Create one
+        </button>
+      </p>
     </form>
   );
 }
@@ -460,7 +487,7 @@ function SignupForm() {
           <input
             id="signup-password"
             type={showPassword ? 'text' : 'password'}
-            placeholder="••••••••••••"
+            placeholder="Create a password"
             className={`w-full bg-[#212A35] border rounded-lg px-4 pr-10 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_16px_-2px_rgba(30,99,255,0.45)] transition duration-fast ease-ds-out ${
               errors.password ? 'border-red-500/60' : 'border-[#2A3542]'
             }`}
@@ -501,7 +528,7 @@ function SignupForm() {
           <input
             id="signup-confirm-password"
             type={showConfirm ? 'text' : 'password'}
-            placeholder="••••••••••••"
+            placeholder="Repeat your password"
             className={`w-full bg-[#212A35] border rounded-lg px-4 pr-10 py-2.5 text-sm text-[#E7ECF2] placeholder-[#5C6675] focus:outline-none focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_16px_-2px_rgba(30,99,255,0.45)] transition duration-fast ease-ds-out ${
               errors.confirmPassword ? 'border-red-500/60' : 'border-[#2A3542]'
             }`}
@@ -735,13 +762,20 @@ function SignUpLoginPageContent() {
           {/* Mobile logo */}
           <PanoplyLogo size={32} className="mb-8 text-brand-cream lg:hidden" />
 
-          {/* Security badge */}
-          <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-3 py-2 mb-6">
-            <Shield size={13} className="text-emerald-400" />
-            <span className="text-xs text-emerald-400 font-medium">
-              Secure access for your Panoply workspace and portfolio intelligence
-            </span>
-          </div>
+          {/*
+            The green "Secure access for your Panoply workspace and portfolio
+            intelligence" banner is gone.
+
+            It asserted its own trustworthiness, which is the one claim a sign-in
+            page cannot make persuasively - a page that says it is secure looks
+            like every phishing page, which says the same. It carried nothing
+            the reader could act on and nothing they could check, and it took
+            the emerald treatment this interface uses for success, above a form
+            where nothing has succeeded yet.
+
+            Trust here is earned by the padlock in the browser bar, the domain,
+            and the product behind the form.
+          */}
 
           {/* Tab switcher */}
           <div
