@@ -100,9 +100,28 @@ async function main() {
    * create the same parent, and the loser sees a failure for a directory that
    * does exist. Creating them first makes the upload phase pure file writes.
    */
-  const dirs = [...new Set(files.map((f) => posix.dirname(f)).filter((d) => d !== '.'))].sort(
-    (a, b) => a.split('/').length - b.split('/').length
-  );
+  /*
+   * Every ancestor, not just the directory a file sits in directly.
+   *
+   * The first version listed only `dirname(file)`, which misses every
+   * intermediate level: files live in api/support/tickets, so api/support
+   * itself never appeared and never got its mode corrected. Recursive mkdir
+   * creates those parents silently, so they existed - with whatever
+   * permissions the tool that first made them chose, which for lftp was 0644
+   * and unusable.
+   *
+   * Expanding to the full chain also guarantees the depth sort below can
+   * actually repair a broken tree top-down: you cannot fix a child's mode
+   * through a parent you are not allowed to enter.
+   */
+  const dirSet = new Set();
+  for (const file of files) {
+    const parent = posix.dirname(file);
+    if (parent === '.') continue;
+    const parts = parent.split('/');
+    for (let i = 1; i <= parts.length; i++) dirSet.add(parts.slice(0, i).join('/'));
+  }
+  const dirs = [...dirSet].sort((a, b) => a.split('/').length - b.split('/').length);
 
   const setup = new SftpClient();
   await setup.connect(connect);
