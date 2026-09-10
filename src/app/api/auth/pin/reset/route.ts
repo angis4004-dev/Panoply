@@ -3,6 +3,13 @@ import { getUserModel } from '@/lib/models';
 import { hashPin, isWeakPin } from '@/lib/pin';
 import { notifySecurityEvent } from '@/lib/notifications';
 import { parseBody, pinResetSchema } from '@/lib/validation';
+import { checkLimit, consumeAttempt, getClientIp } from '@/lib/rate-limit';
+import {
+  RECOVERY_REDEEM_MAX_PER_IP,
+  RECOVERY_REDEEM_WINDOW_MS,
+  rateLimitKeys,
+  tooManyRequests,
+} from '@/lib/auth-rate-limits';
 
 /**
  * POST /api/auth/pin/reset - Completes the forgotten-PIN flow.
@@ -36,6 +43,20 @@ export async function POST(request: Request) {
       );
     }
 
+    /*
+     * Checked after the PIN itself has been validated, so that mistyping the
+     * confirmation or picking 111111 costs nothing. Those are the user's own
+     * form errors and have no bearing on whether the token is being guessed;
+     * only the token lookup below advances the counter.
+     */
+    const key = rateLimitKeys.pinResetIp(getClientIp(request));
+    const limit = await checkLimit(key, RECOVERY_REDEEM_MAX_PER_IP, RECOVERY_REDEEM_WINDOW_MS, {
+      whenUnavailable: 'deny',
+    });
+    if (limit.limited) {
+      return tooManyRequests('Too many failed PIN reset attempts.', limit.retryAfterMs);
+    }
+
     const userModel = await getUserModel();
     if (!userModel) {
       return NextResponse.json({ error: 'Database connection unavailable' }, { status: 503 });
@@ -61,6 +82,7 @@ export async function POST(request: Request) {
       { new: true, updatePipeline: true }
     );
     if (!user) {
+      await consumeAttempt(key, RECOVERY_REDEEM_MAX_PER_IP, RECOVERY_REDEEM_WINDOW_MS);
       return NextResponse.json(
         { error: 'This link is invalid or has expired. Request a new one.' },
         { status: 400 }

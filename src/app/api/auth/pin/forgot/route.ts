@@ -5,6 +5,13 @@ import { getSessionFromRequest } from '@/lib/session';
 import { sendEmail } from '@/lib/email';
 import { renderEmail } from '@/lib/email-template';
 import { parseBody, pinForgotSchema } from '@/lib/validation';
+import { consumeAttempt } from '@/lib/rate-limit';
+import {
+  RECOVERY_REQUEST_MAX_PER_RECIPIENT,
+  RECOVERY_REQUEST_WINDOW_MS,
+  rateLimitKeys,
+  tooManyRequests,
+} from '@/lib/auth-rate-limits';
 
 /** Matches the password-reset window. */
 const PIN_RESET_TTL_MS = 60 * 60 * 1000;
@@ -34,6 +41,28 @@ export async function POST(request: Request) {
     if (invalid) return invalid;
 
     const userId = session.user.id;
+
+    /*
+     * Keyed on the account, not the caller's address.
+     *
+     * The session has already established who this is, so there is nothing to
+     * infer from an IP, and an IP key would let one account's owner spend the
+     * budget of everyone behind the same NAT. Each call sends mail and mints a
+     * fresh token that invalidates the last one, so a user who clicks three
+     * times in frustration has already made their earlier links useless - the
+     * limit protects them from that as much as it protects the mail quota.
+     */
+    const limit = await consumeAttempt(
+      rateLimitKeys.pinForgotUser(userId),
+      RECOVERY_REQUEST_MAX_PER_RECIPIENT,
+      RECOVERY_REQUEST_WINDOW_MS
+    );
+    if (limit.limited) {
+      return tooManyRequests(
+        'A PIN reset link has already been sent to your email address.',
+        limit.retryAfterMs
+      );
+    }
 
     const userModel = await getUserModel();
     if (!userModel) {
