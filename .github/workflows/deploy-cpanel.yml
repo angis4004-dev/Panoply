@@ -110,11 +110,11 @@ jobs:
       # is fully working: directories, uploads, overwrites and deletes were all
       # verified against this account.
       #
-      # So the archive is unpacked here, on the runner, and the resulting tree
-      # is mirrored up file by file. Slower than shipping one tarball, and the
-      # only approach that needs nothing from the host.
-      - name: Install lftp
-        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+      # So the release is assembled here, on the runner, and sent up file by
+      # file. Slower than shipping one tarball, and the only approach that
+      # needs nothing at all from the host.
+      - name: Install the SFTP client
+        run: npm install --no-save ssh2-sftp-client@11
 
       - name: Write the deploy key
         run: |
@@ -122,45 +122,45 @@ jobs:
           printf '%s\n' "${{ secrets.CPANEL_SSH_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
 
+      # scripts/deploy-sftp.mjs rather than `lftp mirror`.
+      #
+      # lftp was tried first and silently lost files: the first real deploy
+      # reported success while .next/server/app/api/auth/ arrived empty, and
+      # every request to /api/auth/session returned 500. The script counts what
+      # actually landed and fails if anything is missing - see its header.
+      #
+      # Nothing is deleted first, deliberately. Next names every chunk after
+      # its content, so keeping the previous release's files in .next/static is
+      # what stops a browser that loaded a page seconds before the deploy from
+      # 404ing on scripts it was promised. Routing comes from the manifests,
+      # which are overwritten, so nothing stale is ever served.
       - name: Upload the release over SFTP
         env:
-          HOST: ${{ secrets.CPANEL_HOST }}
-          USER_NAME: ${{ secrets.CPANEL_USER }}
-          PORT: ${{ secrets.CPANEL_SSH_PORT || 22 }}
-          APP_PATH: ${{ secrets.CPANEL_APP_PATH }}
+          DEPLOY_HOST: ${{ secrets.CPANEL_HOST }}
+          DEPLOY_USER: ${{ secrets.CPANEL_USER }}
+          DEPLOY_PORT: ${{ secrets.CPANEL_SSH_PORT || 22 }}
+          DEPLOY_REMOTE_DIR: ${{ secrets.CPANEL_APP_PATH }}
+          DEPLOY_LOCAL_DIR: deploy
+          DEPLOY_KEY_PATH: /home/runner/.ssh/deploy_key
+        run: node scripts/deploy-sftp.mjs
+
+      # Passenger respawns when the mtime of tmp/restart.txt changes, and an
+      # upload changes it exactly as `touch` would. This one file is the whole
+      # restart mechanism, and why no shell is needed.
+      - name: Restart the application
+        env:
+          DEPLOY_HOST: ${{ secrets.CPANEL_HOST }}
+          DEPLOY_USER: ${{ secrets.CPANEL_USER }}
+          DEPLOY_PORT: ${{ secrets.CPANEL_SSH_PORT || 22 }}
+          DEPLOY_REMOTE_DIR: ${{ secrets.CPANEL_APP_PATH }}
+          DEPLOY_LOCAL_DIR: restart
+          DEPLOY_KEY_PATH: /home/runner/.ssh/deploy_key
+          DEPLOY_SKIP_AUDIT: 'true'
         run: |
           set -euo pipefail
-
-          # Passenger restarts when the mtime of tmp/restart.txt changes.
-          # Uploading a freshly written file changes it exactly as `touch`
-          # would, which is how the app is restarted without a shell.
-          date -u +"restarted %Y-%m-%dT%H:%M:%SZ by ${GITHUB_SHA:0:7}" > restart.txt
-
-          # --parallel matters far more than bandwidth here: the tree is ~3,200
-          # mostly-small files, so the cost is per-file round trips.
-          #
-          # Deliberately no --delete. Next.js names every chunk after its
-          # content, so leaving the previous release's files in .next/static is
-          # what stops a browser that loaded a page seconds before the deploy
-          # from 404ing on scripts it was promised. Routing comes from the
-          # manifests, which are overwritten, so nothing stale is ever served.
-          lftp -c "
-            set sftp:connect-program 'ssh -a -x -i $HOME/.ssh/deploy_key -p $PORT -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null';
-            set net:timeout 30;
-            set net:max-retries 3;
-            set net:reconnect-interval-base 5;
-            set xfer:clobber on;
-            open -u $USER_NAME, sftp://$HOST;
-            mkdir -p -f $APP_PATH;
-            mkdir -p -f $APP_PATH/tmp;
-            mirror -R --parallel=10 --verbose=1 deploy $APP_PATH;
-            # Left over from the manual upload this workflow replaces: an
-            # archive that could never be unpacked without a shell. -f so a
-            # deploy to a server that never had one does not fail here.
-            rm -f $APP_PATH/panoply-cpanel.zip;
-            put restart.txt -o $APP_PATH/tmp/restart.txt;
-            bye
-          "
+          mkdir -p restart/tmp
+          date -u +"restarted %Y-%m-%dT%H:%M:%SZ by ${GITHUB_SHA:0:7}" > restart/tmp/restart.txt
+          node scripts/deploy-sftp.mjs
 
       - name: Remove the deploy key from the runner
         if: always()
