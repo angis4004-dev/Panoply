@@ -25,7 +25,9 @@
     "admin:bootstrap": "node scripts/bootstrap-admin.mjs",
     "admin:bootstrap:dry-run": "node scripts/bootstrap-admin.mjs --dry-run",
     "seed:test-user": "node scripts/seed-test-user.mjs",
-    "brand:assets": "node scripts/generate-brand-assets.mjs"
+    "brand:assets": "node scripts/generate-brand-assets.mjs",
+    "admin:reset-password": "node scripts/reset-admin-password.mjs",
+    "admin:reset-password:dry-run": "node scripts/reset-admin-password.mjs --dry-run"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
