@@ -20,6 +20,10 @@
  * Either way the account is flagged `mustChangePassword`, so whatever this
  * script sets is a means of getting in once, not the password you keep.
  *
+ * Pass --clear-pin to remove the PIN as well, which the console then asks the
+ * operator to set again on the way in. The PIN is a separate factor, so it is
+ * a separate flag - a lost password does not imply a lost PIN.
+ *
  * Pass --dry-run to see what it would do without writing anything.
  */
 
@@ -31,6 +35,7 @@ import mongoose from 'mongoose';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const DRY_RUN = process.argv.includes('--dry-run');
+const CLEAR_PIN = process.argv.includes('--clear-pin');
 
 function loadEnv() {
   let raw;
@@ -141,23 +146,37 @@ if (existing.status !== 'active') {
 
 if (DRY_RUN) {
   console.log('\n  Would set a new password and require a change at next sign-in.');
+  if (CLEAR_PIN) console.log('  Would also remove the PIN and require a new one to be set.');
   console.log('  Nothing was written.\n');
   await mongoose.disconnect();
   process.exit(0);
 }
 
-await admins.updateOne(
-  { _id: existing._id },
-  {
-    $set: {
-      passwordHash: hashSecret(password),
-      // Whatever this script set is a way back in, not a password to keep -
-      // it has been on a terminal, and possibly in a shell history.
-      mustChangePassword: true,
-      updatedAt: new Date(),
-    },
-  }
-);
+/*
+ * The PIN is a second factor and clearing it is a second decision, so it takes
+ * its own flag rather than riding along with --password.
+ *
+ * The console asks for the PIN after the password, so an operator who has lost
+ * both is still locked out by the second one after a password reset. Removing
+ * the hash and setting mustSetPin makes the console ask them to choose a new
+ * PIN on the way in, which is the same path a newly created admin takes.
+ */
+const update = {
+  $set: {
+    passwordHash: hashSecret(password),
+    // Whatever this script set is a way back in, not a password to keep -
+    // it has been on a terminal, and possibly in a shell history.
+    mustChangePassword: true,
+    updatedAt: new Date(),
+  },
+};
+
+if (CLEAR_PIN) {
+  update.$set.mustSetPin = true;
+  update.$unset = { pinHash: '' };
+}
+
+await admins.updateOne({ _id: existing._id }, update);
 
 /*
  * Clear the sign-in rate limiter for this account too.
@@ -180,6 +199,7 @@ try {
 }
 
 console.log('  · password updated');
+if (CLEAR_PIN) console.log('  · PIN removed; a new one must be set at next sign-in');
 console.log('  · a password change is required at next sign-in\n');
 
 if (!supplied) {
