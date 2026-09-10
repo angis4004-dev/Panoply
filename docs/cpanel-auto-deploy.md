@@ -168,6 +168,74 @@ files were copied.
 
 ---
 
+## 5. The admin console on its own subdomain
+
+The operations console is meant to live on a separate hostname. That split is
+what makes `/api/admin` **not exist** from the trader origin, so a stolen admin
+cookie cannot be used from a page on the main site.
+
+Getting there on this host has one non-obvious step.
+
+1. **DNS.** Add an `A` record for `admin` pointing at the server's IP. On
+   Spaceship this is in their dashboard, not cPanel's Zone Editor — the
+   nameservers are `launch1/launch2.spaceship.net`. Enter just `admin` in the
+   host field; the panel appends the domain itself.
+2. **Create the subdomain.** cPanel's *Domains* tool is removed on Spaceship
+   plans, and searching for "subdomain" finds nothing. It lives in Spaceship's
+   own hosting dashboard instead. Do **not** click "Create website" there —
+   that installs a site builder over it.
+3. **Point it at the same document root.** This is the step that is easy to get
+   wrong. The subdomain is created with its own empty folder, and an empty
+   folder serves a directory listing, not the application.
+
+### Why a symlink, and not a copied config
+
+`~/admin.example.com` is a **symlink to `~/example.com`**, so both hostnames
+resolve to one document root:
+
+```
+ln -s /home/USER/example.com /home/USER/admin.example.com
+```
+
+The obvious alternative is to copy the `.htaccess` from the main document root
+into the subdomain's folder. Do not: cPanel stores the application's
+environment variables in that file, in plaintext. Two copies means changing a
+variable in cPanel updates one of them, and the other keeps serving the old
+value with nothing anywhere saying so.
+
+One folder, one config, no drift. If the symlink is ever replaced by a real
+directory, the subdomain silently starts serving a file listing instead of the
+app — that symptom is this step.
+
+4. **Issue the certificate.** cPanel → *SSL/TLS Status* → tick the subdomain →
+   **Run AutoSSL**. Until it completes, HTTPS to the subdomain fails during the
+   TLS handshake, which looks like the host being unreachable rather than a
+   certificate problem.
+5. **Switch the routing.** Only once HTTPS works: remove `ADMIN_PATH_ROUTING`
+   and set `ADMIN_HOST` to the subdomain. Save and restart.
+
+Order matters. Switching before the certificate exists leaves no reachable
+console at all.
+
+### Verifying it
+
+The console works when all six of these hold:
+
+| Request | Expected |
+|---|---|
+| `admin.example.com/admin` | 307 → `/admin/login` |
+| `admin.example.com/admin/login` | 200 |
+| `admin.example.com/api/admin/...` | 401 |
+| `example.com/admin` | **404** |
+| `example.com/admin/login` | **404** |
+| `example.com/api/admin/...` | **404** |
+
+The three 404s are the ones that matter. A 403 there would mean the console
+exists on the trader host and is merely refusing — the point is that it is not
+there at all.
+
+---
+
 ## What the workflow does, and why
 
 1. **Checks out the exact commit CI verified**, not whatever is newest on
@@ -214,5 +282,7 @@ interrupted mirror would leave half of one release on disk.
 | Upload succeeds but **Verify** says *"HTTP 200 but not from Next.js"* | The files are there, but the domain is still served from `public_html` rather than the Node app. Check the Application URL in **Setup Node.js App**. |
 | Deploy succeeds but **Verify the site is answering** fails | The app booted and crashed. Open **Setup Node.js App**, check the log — a missing `MONGODB_URI` or `SESSION_SECRET` is the usual reason. |
 | Site loads, admin console 404s | `ADMIN_HOST` is not set, or the subdomain does not exist. The console fails closed on purpose. |
+| Admin subdomain shows a file listing | Its document root is a real folder rather than a symlink to the main one, so there is no Passenger config in it. See section 5. |
+| `https://admin...` fails to connect at all | No certificate for that hostname yet. The TLS handshake aborts before HTTP, so it looks like the host is down. Run AutoSSL. |
 | Emails never arrive | `RESEND_API_KEY` / `EMAIL_FROM` unset, or the sending domain is not verified with Resend. |
 | Atlas connection times out | The cPanel server's IP is not in Atlas → Network Access. |
