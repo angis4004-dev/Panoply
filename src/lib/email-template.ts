@@ -19,8 +19,15 @@ import { BRAND_COLORS } from '@/lib/brand-colors';
  *     `max-width` on a div. A table with a fixed width is the only layout
  *     that survives it.
  *   - Gmail strips `<style>` blocks in several contexts, so anything that
- *     matters has to be inline. A `<style>` block is still included for
- *     dark-mode hints, but nothing depends on it.
+ *     matters has to be inline. A `<style>` block is included, but only to
+ *     tighten the padding on phones - nothing depends on it, and a client
+ *     that discards it still gets a layout that fits.
+ *   - Most of these are opened on a phone. The card is fluid - 100% wide up
+ *     to 560px - with a conditional wrapper that pins Outlook desktop at
+ *     560px, because Outlook ignores `max-width` and would otherwise stretch
+ *     the card across a whole monitor. The version before this set a hard
+ *     `width:560px`, which every phone either scrolled sideways or shrank
+ *     until the text was unreadable.
  *   - Gmail also strips `data:` image URIs entirely, showing a broken-image
  *     icon. The logo is therefore a CID attachment - see sendEmail.
  *
@@ -199,6 +206,14 @@ export function renderEmail(options: EmailOptions): string {
   <meta name="color-scheme" content="light" />
   <meta name="supported-color-schemes" content="light" />
   <title>${escapeHtml(title)}</title>
+  <style>
+    /* Progressive only. Clients that strip this still get a fluid card. */
+    @media only screen and (max-width: 480px) {
+      .p-card { padding-left: 22px !important; padding-right: 22px !important; }
+      .p-card-top { padding-top: 30px !important; }
+      .p-title { font-size: 26px !important; line-height: 32px !important; }
+    }
+  </style>
 </head>
 <body style="margin:0;padding:0;background:${CANVAS};">
   <!-- Preheader. Hidden, but read by the inbox list before the body is. -->
@@ -210,7 +225,8 @@ export function renderEmail(options: EmailOptions): string {
     <tr>
       <td align="center" style="padding:32px 12px;">
 
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="560" style="width:560px;max-width:560px;">
+        <!--[if mso]><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="560" align="center"><tr><td><![endif]-->
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;max-width:560px;">
 
           <!-- Masthead. The mark and the wordmark as one lockup, on the brand
                navy, so the email is recognisable before a word is read. -->
@@ -236,13 +252,13 @@ export function renderEmail(options: EmailOptions): string {
           </tr>
 
           <tr>
-            <td bgcolor="#FFFFFF" style="background:#FFFFFF;padding:38px 34px 32px;">
+            <td class="p-card p-card-top" bgcolor="#FFFFFF" style="background:#FFFFFF;padding:38px 34px 32px;">
               <p style="margin:0 0 10px;font-family:${FONT};font-size:11px;line-height:14px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${BRAND_COLORS.blue};">
                 ${escapeHtml(eyebrow)}
               </p>
               <!-- Serif, and larger than a sans headline would be. High-contrast
                    faces need the size to show their contrast at all. -->
-              <h1 style="margin:0 0 20px;font-family:${DISPLAY_FONT};font-size:30px;line-height:36px;font-weight:400;color:${INK};letter-spacing:-0.01em;">
+              <h1 class="p-title" style="margin:0 0 20px;font-family:${DISPLAY_FONT};font-size:30px;line-height:36px;font-weight:400;color:${INK};letter-spacing:-0.01em;">
                 ${escapeHtml(title)}
               </h1>
               ${body}
@@ -258,7 +274,7 @@ export function renderEmail(options: EmailOptions): string {
                and told the reader nothing they needed; the anti-phishing line
                is the only sentence in a footer that earns its place. -->
           <tr>
-            <td bgcolor="#FFFFFF" style="background:#FFFFFF;border-radius:0 0 14px 14px;padding:0 34px 30px;">
+            <td class="p-card" bgcolor="#FFFFFF" style="background:#FFFFFF;border-radius:0 0 14px 14px;padding:0 34px 30px;">
               <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
                 <tr><td style="border-top:1px solid ${HAIRLINE};font-size:0;line-height:0;height:1px;">&nbsp;</td></tr>
               </table>
@@ -269,6 +285,7 @@ export function renderEmail(options: EmailOptions): string {
           </tr>
 
         </table>
+        <!--[if mso]></td></tr></table><![endif]-->
       </td>
     </tr>
   </table>
