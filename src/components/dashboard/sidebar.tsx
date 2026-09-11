@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
+  ArrowDownToLine,
   ArrowUpFromLine,
   FileClock,
   Landmark,
@@ -69,6 +70,11 @@ const navItems = [
   { href: '/dashboard/vaults', label: 'Vaults', icon: Landmark },
   { href: '/dashboard/yield', label: 'Yield', icon: Sprout },
   { href: '/dashboard/builder', label: 'Portfolio Builder', icon: SlidersHorizontal },
+  // A link to the Overview with the deposit window open, not a page of its
+  // own: the window already exists there, and one home for the flow is one
+  // thing to keep right. The query string never matches `pathname`, so this
+  // entry never shows as active - Overview does, which is where the user is.
+  { href: '/dashboard?deposit=1', label: 'Deposit', icon: ArrowDownToLine },
   { href: '/dashboard/withdraw', label: 'Withdraw', icon: ArrowUpFromLine },
   { href: '/dashboard/history', label: 'Report History', icon: FileClock },
   { href: '/dashboard/kyc', label: 'Verification', icon: ShieldCheck },
