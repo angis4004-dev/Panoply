@@ -8,6 +8,7 @@ import { UserModel } from '@/lib/models/user';
 import { traderDepositClaimSchema } from '@/lib/admin/validation';
 import { parseBody } from '@/lib/validation';
 import { consumeAttempt, formatRetryAfter } from '@/lib/rate-limit';
+import { alertOps } from '@/lib/ops-alerts';
 
 /**
  * The trader's own deposits.
@@ -127,6 +128,16 @@ export async function POST(request: NextRequest) {
       txReference: body.txReference,
       status: 'pending',
       source: 'trader',
+    });
+
+    void alertOps({
+      type: 'deposit',
+      userId: session.user.id,
+      email: session.user.email,
+      amount: String(deposit.assetAmount),
+      coin: deposit.coin,
+      network: deposit.network,
+      txReference: deposit.txReference,
     });
 
     return NextResponse.json(

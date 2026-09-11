@@ -7,7 +7,8 @@ import { PayoutAddressModel } from '@/lib/models/PayoutAddress';
 import { NetworkModel } from '@/lib/models/Network';
 import { validateWithdrawalRequest } from '@/lib/withdrawal-rules';
 import { getWithdrawalStanding, serializeWithdrawal } from '@/lib/withdrawals';
-import { InvalidAmountError, toPositiveMinor } from '@/lib/money';
+import { InvalidAmountError, toDollars, toPositiveMinor } from '@/lib/money';
+import { alertOps } from '@/lib/ops-alerts';
 import { parseBody, withdrawalCreateSchema } from '@/lib/validation';
 import { DEMO_BANNER, isDemoMode } from '@/lib/demo-mode';
 
@@ -208,6 +209,16 @@ export async function POST(request: NextRequest) {
       horizonAtRequest: standing.horizon,
       unlockedAt: standing.lock.unlocksAt,
       status: 'pending',
+    });
+
+    void alertOps({
+      type: 'withdrawal',
+      userId: session.user.id,
+      email: session.user.email,
+      amountUsd: toDollars(amountMinor),
+      coin: payout.coin,
+      network: network.name || payout.networkKey,
+      destination: payout.address,
     });
 
     return NextResponse.json(

@@ -4,6 +4,7 @@ import { requireUnlock } from '@/lib/dashboard-unlock';
 import { getUserModel } from '@/lib/models';
 import { encryptPii, lastFour, maskFromLastFour, PiiCryptoError } from '@/lib/pii-crypto';
 import { kycSubmissionSchema, parseBody } from '@/lib/validation';
+import { alertOps } from '@/lib/ops-alerts';
 
 // GET /api/kyc - Returns the current user's KYC status and submitted info
 export async function GET(request: NextRequest) {
@@ -121,6 +122,17 @@ export async function POST(request: NextRequest) {
   if (!updated) {
     return NextResponse.json({ error: 'User not found' }, { status: 404 });
   }
+
+  // Name, country and document type only. The ID number and date of birth
+  // stay in the database; the queue link is how an operator reaches them.
+  void alertOps({
+    type: 'kyc',
+    userId: session.user.id,
+    name: updated.kycFullName || session.user.name,
+    email: session.user.email,
+    country: updated.kycCountry || '',
+    idType: updated.kycIdType || '',
+  });
 
   return NextResponse.json({
     status: updated.kycStatus,

@@ -5,6 +5,7 @@ import { renderEmail } from '@/lib/email-template';
 import { grantAchievement } from '@/lib/achievements/engine';
 import { setCookie } from '@/lib/session';
 import { parseBody, registerSchema } from '@/lib/validation';
+import { alertOps } from '@/lib/ops-alerts';
 
 export async function POST(request: Request) {
   try {
@@ -12,6 +13,13 @@ export async function POST(request: Request) {
     if (invalid) return invalid;
 
     const result = await registerUser(body);
+
+    void alertOps({
+      type: 'signup',
+      userId: result.user.id,
+      name: result.user.name,
+      email: result.user.email,
+    });
 
     await grantAchievement(result.user.id, 'welcome_to_aegis').catch((err) => {
       console.error('Failed to grant welcome_to_aegis achievement:', err);
