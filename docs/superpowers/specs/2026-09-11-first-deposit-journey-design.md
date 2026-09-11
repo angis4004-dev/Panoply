@@ -1,7 +1,7 @@
 # First-deposit journey — design
 
 **Date:** 2026-09-11
-**Status:** Approved in conversation, pending spec review
+**Status:** Approved and implemented
 
 ## Problem
 
@@ -106,10 +106,14 @@ so this needs no new request.
 |------|----------------|
 | `src/lib/onboarding-journey.ts` (new) | Pure function `deriveJourney(input) → JourneyStep[]` plus `isJourneyComplete`. Input: `hasPin`, `kycStatus`, a deposit summary (`hasApproved`, `hasPending`, `latestRejectedReason`), `walletBalance`, `botCount`. No React, no I/O. |
 | `src/lib/onboarding-journey.test.ts` (new) | Every state of every step, and the step-4 precedence rules. |
-| `src/components/dashboard/onboarding-checklist.tsx` | Renders the steps. Fetches `/api/deposits` only once `kycStatus === 'verified'`. Reads signal flows from the app store. Takes `onDeposit` and a `refreshKey` prop. |
-| `src/app/(site)/dashboard/page.tsx` | Owns `depositOpen`; handles `?deposit=1`; button swap; bumps `refreshKey` when the deposit window closes so step 4 reflects a just-submitted deposit. |
+| `src/components/dashboard/onboarding-checklist.tsx` | Renders the steps it is given. Presentational; takes `steps` and `onDeposit`. |
+| `src/hooks/use-deposit-summary.ts` (new) | Fetches `/api/deposits` once identity is verified; returns `{ summary, loaded }`; refetches on a refresh key. |
+| `src/app/(site)/dashboard/page.tsx` | Owns `depositOpen`; fetches the deposit summary via `useDepositSummary`; computes the journey once for the checklist and the hero; bumps a refresh key when the deposit window closes. |
+| `src/components/dashboard/portfolio-hero.tsx` (new) | Wallet balance and the three hero buttons, with `promoteDeposit` choosing which is solid. Moved out of the page, which was over the 500-line limit. |
+| `src/components/dashboard/identity-tier-card.tsx` (new) | The identity & tier card, moved out of the page unchanged for the same reason. |
+| `src/components/dashboard/deposit-query-opener.tsx` (new) | Opens the deposit window on `?deposit=1`, inside a Suspense boundary so the Overview stays statically rendered. |
 | `src/components/dashboard/sidebar.tsx` | One new nav entry. |
-| `src/components/dashboard/deposit-modal.tsx` | The first-time strip. |
+| `src/components/dashboard/deposit-first-time-steps.tsx` (new) | The first-time strip, rendered by `deposit-modal.tsx`. |
 
 A helper `summariseDeposits(deposits)` in the journey module turns the
 `/api/deposits` list into the summary above, so the checklist and the modal
