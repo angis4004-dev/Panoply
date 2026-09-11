@@ -55,6 +55,17 @@ export const RECOVERY_REDEEM_MAX_PER_IP = 10;
 export const RECOVERY_REDEEM_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
 
 /**
+ * Accounts one client may create per hour.
+ *
+ * Every sign-up sends a verification email and now an operations alert, so
+ * an unthrottled sign-up endpoint is a way to spend the shared mail quota and
+ * bury the support inbox. Three covers a household sharing a connection.
+ * Counted on success only: a rejected form retried is not an account made.
+ */
+export const SIGNUP_MAX_PER_IP = 3;
+export const SIGNUP_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+
+/**
  * Keys are namespaced per endpoint on purpose.
  *
  * Sharing one bucket across the recovery flow would mean a password reset
@@ -80,6 +91,8 @@ export const rateLimitKeys = {
   resetPasswordIp: (ip: string) => `reset-password:ip:${ip}`,
   /** Failed PIN-reset token redemptions from this client. */
   pinResetIp: (ip: string) => `pin-reset:ip:${ip}`,
+  /** Accounts created from this client. */
+  signupIp: (ip: string) => `signup:ip:${ip}`,
 };
 
 /**

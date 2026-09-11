@@ -98,3 +98,15 @@ describe('tooManyRequests', () => {
     });
   });
 });
+
+describe('sign-up limit', () => {
+  it('has its own bucket and a budget of three an hour', async () => {
+    const mod = await import('@/lib/auth-rate-limits');
+    expect(mod.SIGNUP_MAX_PER_IP).toBe(3);
+    expect(mod.SIGNUP_WINDOW_MS).toBe(60 * 60 * 1000);
+    expect(mod.rateLimitKeys.signupIp('198.51.100.7')).toBe('signup:ip:198.51.100.7');
+    expect(mod.rateLimitKeys.signupIp('198.51.100.7')).not.toBe(
+      mod.rateLimitKeys.forgotPasswordIp('198.51.100.7')
+    );
+  });
+});

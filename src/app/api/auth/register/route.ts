@@ -6,13 +6,42 @@ import { grantAchievement } from '@/lib/achievements/engine';
 import { setCookie } from '@/lib/session';
 import { parseBody, registerSchema } from '@/lib/validation';
 import { alertOps } from '@/lib/ops-alerts';
+import { checkLimit, consumeAttempt, getClientIp } from '@/lib/rate-limit';
+import {
+  SIGNUP_MAX_PER_IP,
+  SIGNUP_WINDOW_MS,
+  rateLimitKeys,
+  tooManyRequests,
+} from '@/lib/auth-rate-limits';
 
 export async function POST(request: Request) {
   try {
     const { data: body, error: invalid } = await parseBody(request, registerSchema);
     if (invalid) return invalid;
 
+    /*
+     * Per client, checked now and counted only once an account exists.
+     *
+     * Skipped when the address is unknown. getClientIp returns the literal
+     * 'unknown' without an x-forwarded-for header, and every visitor would
+     * then share one bucket - three sign-ups an hour for the whole site.
+     */
+    const ip = getClientIp(request);
+    const signupKey = ip === 'unknown' ? null : rateLimitKeys.signupIp(ip);
+    if (!signupKey) {
+      console.warn('Sign-up limit skipped: no client IP on the request.');
+    } else {
+      const limit = await checkLimit(signupKey, SIGNUP_MAX_PER_IP, SIGNUP_WINDOW_MS);
+      if (limit.limited) {
+        return tooManyRequests(
+          'Too many accounts created from this connection.',
+          limit.retryAfterMs
+        );
+      }
+    }
+
     const result = await registerUser(body);
+    if (signupKey) await consumeAttempt(signupKey, SIGNUP_MAX_PER_IP, SIGNUP_WINDOW_MS);
 
     void alertOps({
       type: 'signup',
