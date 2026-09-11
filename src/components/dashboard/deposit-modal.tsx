@@ -7,6 +7,8 @@ import { useGSAP } from '@gsap/react';
 import { useAppStore } from '@/store/app-store';
 import ButtonShimmer from '@/components/ui/button-shimmer';
 import { Loader } from '@/components/ui/loader';
+import { summariseDeposits } from '@/lib/onboarding-journey';
+import { DepositFirstTimeSteps } from '@/components/dashboard/deposit-first-time-steps';
 
 /**
  * How a trader actually deposits.
@@ -63,6 +65,7 @@ export function DepositModal({ onClose }: { onClose: () => void }) {
 
   const [addresses, setAddresses] = useState<PlatformAddress[] | null>(null);
   const [deposits, setDeposits] = useState<TraderDeposit[]>([]);
+  const [depositsLoaded, setDepositsLoaded] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [assetAmount, setAssetAmount] = useState('');
   const [txReference, setTxReference] = useState('');
@@ -133,6 +136,8 @@ export function DepositModal({ onClose }: { onClose: () => void }) {
       if (depositRes.status === 'fulfilled' && depositRes.value.ok) {
         setDeposits(await depositRes.value.json());
       }
+      // Set on failure too: an unknown history is treated as a first deposit.
+      setDepositsLoaded(true);
     })();
 
     return () => {
@@ -228,6 +233,11 @@ export function DepositModal({ onClose }: { onClose: () => void }) {
         </div>
 
         <div className="relative space-y-5">
+          {/* Not beside "deposits are not open yet", which it would contradict. */}
+          {depositsLoaded &&
+            !summariseDeposits(deposits).hasApproved &&
+            addresses !== null &&
+            addresses.length > 0 && <DepositFirstTimeSteps />}
           {addresses === null ? (
             <p className="flex items-center gap-2 py-6 text-sm text-ds-text-muted">
               <Loader size={18} />
