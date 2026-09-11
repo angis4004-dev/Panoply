@@ -1,7 +1,7 @@
 # Operations alerts to support@ — design
 
 **Date:** 2026-09-12
-**Status:** Approved in conversation, pending spec review
+**Status:** Approved and implemented
 
 ## Problem
 
@@ -72,6 +72,10 @@ per-IP limit of **3 successful sign-ups per hour**, using the existing
 counted only after one is: a person retrying a rejected form (weak
 password, typo) must not use up the budget, and what the limit exists to
 stop is accounts being made.
+
+Confirmed after implementation: production does send `x-forwarded-for`
+(every one of the fifteen most recent admin audit records carries a real
+address), so the limit is active rather than skipped.
 
 **Skipped when the client IP is unknown.** `getClientIp` returns the
 literal `'unknown'` when the proxy sends no `x-forwarded-for`, and every

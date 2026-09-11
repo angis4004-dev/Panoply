@@ -41,7 +41,7 @@ describe('subjects', () => {
     expect(renderOpsAlert(signup, env).subject).toBe('[Panoply] New sign-up: Jane Doe');
     expect(renderOpsAlert(kyc, env).subject).toBe('[Panoply] KYC submitted: Jane Doe');
     expect(renderOpsAlert(deposit, env).subject).toBe(
-      '[Panoply] Deposit submitted: 450 USDT (TRC20)'
+      '[Panoply] Deposit submitted: 450 USDT on TRC20'
     );
     expect(renderOpsAlert(withdrawal, env).subject).toBe('[Panoply] Withdrawal requested: $300.00');
   });
@@ -97,6 +97,16 @@ describe('what an alert may carry', () => {
     const keys = Object.keys(kyc);
     expect(keys).not.toContain('idNumber');
     expect(keys).not.toContain('dateOfBirth');
+  });
+});
+
+describe('long values', () => {
+  it('lets a transaction reference wrap rather than widen the email', () => {
+    // A 64-character hash in an ordinary paragraph cannot break, so it sets the
+    // width of the table and pushes the card past a phone screen.
+    const html = renderOpsAlert({ ...deposit, txReference: 'a'.repeat(64) } as OpsEvent, env).html;
+    expect(html).toContain('word-break:break-all');
+    expect(html).toContain('a'.repeat(64));
   });
 });
 
