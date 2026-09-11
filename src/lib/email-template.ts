@@ -69,6 +69,32 @@ const FONT = "Arial, 'Helvetica Neue', Helvetica, sans-serif";
  */
 const DISPLAY_FONT = "Georgia, 'Times New Roman', Times, serif";
 
+/**
+ * The tokens, for callers building `blocks`.
+ *
+ * Exported so a section rendered elsewhere uses the same ink, the same greys
+ * and the same fonts as the card it sits in, rather than approximating them -
+ * which is how the portfolio report ended up looking like a different
+ * company's email.
+ */
+export const EMAIL_STYLE = {
+  font: FONT,
+  displayFont: DISPLAY_FONT,
+  ink: INK,
+  bodyText: BODY_TEXT,
+  muted: MUTED,
+  hairline: HAIRLINE,
+  canvas: CANVAS,
+} as const;
+
+/**
+ * A section heading inside the card. Sans and small, so it reads as a label
+ * under the serif headline rather than competing with it.
+ */
+export function renderEmailHeading(text: string): string {
+  return `<p style="margin:30px 0 12px;font-family:${FONT};font-size:12px;line-height:16px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:${INK};">${escapeHtml(text)}</p>`;
+}
+
 export interface EmailAction {
   label: string;
   url: string;
@@ -105,14 +131,28 @@ export interface EmailOptions {
    * box. If everything shouts, nothing is heard. Reassurance is `footnote`.
    */
   alert?: string;
+  /**
+   * Richer sections placed after the paragraphs and before the button:
+   * tables, charts, anything more than prose.
+   *
+   * **Trusted markup.** Unlike every other field, these are inserted as-is,
+   * because a table cannot be expressed as escaped text. The caller owns the
+   * escaping - build them from `escapeHtml` and the `EMAIL_STYLE` tokens
+   * below, and never interpolate user input without passing it through
+   * `escapeHtml` first.
+   */
+  blocks?: string[];
   /** A quiet closing line. Reassurance, caveats - anything that is not urgent. */
   footnote?: string;
   /** Fallback text for the plain-text part, when the caller has better wording. */
   plainTextIntro?: string;
 }
 
-/** Text into HTML. Everything interpolated below is either literal or a URL. */
-function escapeHtml(value: string): string {
+/**
+ * Text into HTML. Exported for callers building `blocks`, which is the only
+ * place user input can reach this markup without going through it here.
+ */
+export function escapeHtml(value: string): string {
   return value
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -134,7 +174,8 @@ function renderCopy(text: string): string {
 }
 
 export function renderEmail(options: EmailOptions): string {
-  const { eyebrow, title, preheader, paragraphs, action, actionNote, alert, footnote } = options;
+  const { eyebrow, title, preheader, paragraphs, action, actionNote, alert, blocks, footnote } =
+    options;
 
   const body = paragraphs
     .map(
@@ -262,6 +303,7 @@ export function renderEmail(options: EmailOptions): string {
                 ${escapeHtml(title)}
               </h1>
               ${body}
+              ${(blocks ?? []).join('')}
               ${button}
               ${noteBlock}
               ${fallbackLink}
