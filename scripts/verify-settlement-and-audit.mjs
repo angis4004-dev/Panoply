@@ -23,9 +23,38 @@ import mongoose from 'mongoose';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const BASE = process.env.VERIFY_BASE_URL || 'http://localhost:4028';
 
-// Seeded development credentials from src/lib/auth-store.ts - not secrets.
-const TRADER = { email: 'alex.thornton@cryptotradeai.io', password: 'TraderBot#2024' };
-const ADMIN = { email: 'admin@cryptotradeai.io', password: 'AdminAI#Secure99' };
+/*
+ * Credentials come from the environment, never from this file.
+ *
+ * They used to be literals here, described as "seeded development
+ * credentials - not secrets". They were the passwords of two accounts that
+ * auth-store.ts inserted into whatever database it found, production
+ * included, one of them an Admin - and this repository is public. Set these
+ * in .env (read below) or the shell, pointing at throwaway accounts on a
+ * development database.
+ */
+let TRADER;
+let ADMIN;
+
+function requireEnv(name) {
+  const value = process.env[name];
+  if (!value) {
+    console.error(`Missing ${name}. Set it in .env or the environment before running this script.`);
+    process.exit(1);
+  }
+  return value;
+}
+
+function loadCredentials() {
+  TRADER = {
+    email: requireEnv('VERIFY_TRADER_EMAIL'),
+    password: requireEnv('VERIFY_TRADER_PASSWORD'),
+  };
+  ADMIN = {
+    email: requireEnv('VERIFY_ADMIN_EMAIL'),
+    password: requireEnv('VERIFY_ADMIN_PASSWORD'),
+  };
+}
 
 function loadEnv() {
   let raw;
@@ -137,6 +166,7 @@ const balance = (cookie) =>
 
 async function main() {
   loadEnv();
+  loadCredentials();
   await mongoose.connect(process.env.MONGODB_URI, {
     dbName: process.env.MONGODB_DB || 'aegis',
   });

@@ -50,6 +50,21 @@ function verifyPassword(password: string, storedHash: string) {
   return derivedKey === storedKey;
 }
 
+/**
+ * Something to verify against when the email has no account.
+ *
+ * A sign-in for an unknown address used to return without deriving a key at
+ * all, while one for a real address spent ~100ms in PBKDF2 before failing.
+ * That difference alone answers "does this email have an account" for anyone
+ * who times the responses. Verifying against a throwaway hash costs the same
+ * as a real check and can never match: its secret is random and discarded.
+ */
+let dummyHash: string | null = null;
+function spendVerificationTime(password: string) {
+  dummyHash ??= hashPassword(crypto.randomBytes(32).toString('hex'));
+  verifyPassword(password, dummyHash);
+}
+
 function normalizeEmail(email: string) {
   return email.toLowerCase().trim();
 }
@@ -63,67 +78,6 @@ function createUserRecord(payload: RegisterPayload, role: 'Admin' | 'Trader' = '
     role,
     createdAt: now,
   };
-}
-
-export async function seedStarterUsers() {
-  const model = await getUserModel();
-  if (model) {
-    const existing = await model.findOne({
-      email: normalizeEmail('alex.thornton@cryptotradeai.io'),
-    });
-    if (existing) {
-      return (await model.find({}).lean()) as unknown as PersistedUser[];
-    }
-
-    const starterUsers: PersistedUser[] = [
-      {
-        id: crypto.randomUUID(),
-        email: 'alex.thornton@cryptotradeai.io',
-        name: 'Alex Thornton',
-        role: 'Trader',
-        createdAt: new Date().toISOString(),
-        passwordHash: hashPassword('TraderBot#2024'),
-      },
-      {
-        id: crypto.randomUUID(),
-        email: 'admin@cryptotradeai.io',
-        name: 'Admin',
-        role: 'Admin',
-        createdAt: new Date().toISOString(),
-        passwordHash: hashPassword('AdminAI#Secure99'),
-      },
-    ];
-
-    await model.insertMany(starterUsers);
-    return (await model.find({}).lean()) as unknown as PersistedUser[];
-  }
-
-  const users = readUsers();
-  const existing = users.some((user) => user.email === 'alex.thornton@cryptotradeai.io');
-  if (existing) return users;
-
-  const starterUsers: PersistedUser[] = [
-    {
-      id: crypto.randomUUID(),
-      email: 'alex.thornton@cryptotradeai.io',
-      name: 'Alex Thornton',
-      role: 'Trader',
-      createdAt: new Date().toISOString(),
-      passwordHash: hashPassword('TraderBot#2024'),
-    },
-    {
-      id: crypto.randomUUID(),
-      email: 'admin@cryptotradeai.io',
-      name: 'Admin',
-      role: 'Admin',
-      createdAt: new Date().toISOString(),
-      passwordHash: hashPassword('AdminAI#Secure99'),
-    },
-  ];
-
-  const seededUsers = [...users, ...starterUsers];
-  writeUsers(seededUsers);
-  return seededUsers;
 }
 
 export async function registerUser(payload: RegisterPayload) {
@@ -156,7 +110,7 @@ export async function registerUser(payload: RegisterPayload) {
     };
   }
 
-  const users = await seedStarterUsers();
+  const users = readUsers();
   const normalizedEmail = normalizeEmail(payload.email);
 
   if (users.some((user) => user.email === normalizedEmail)) {
@@ -188,8 +142,17 @@ export async function signInUser(payload: LoginPayload) {
     const userRecord = await model.findOne({ email: normalizedEmail });
 
     if (!userRecord) {
-      // fall through to JSON fallback by setting model to null
-      // (we'll just let the code continue after this if block)
+      /*
+       * Fail here. This used to fall through to the JSON-file fallback,
+       * which called a seeding routine that inserted two accounts with
+       * passwords written into this file - one of them an Admin - whenever
+       * they were missing, and then loaded every user in the collection to
+       * search it. So any mistyped email re-created a known-password Admin
+       * in production. The file fallback is for running with no database
+       * at all, and a database that answered "no such user" has answered.
+       */
+      spendVerificationTime(payload.password);
+      throw new Error('Invalid credentials.');
     } else {
       if (!userRecord.passwordHash) {
         throw new Error('Invalid credentials.');
@@ -219,7 +182,7 @@ export async function signInUser(payload: LoginPayload) {
     }
   }
 
-  const users = await seedStarterUsers();
+  const users = readUsers();
   const normalizedEmail = normalizeEmail(payload.email);
   const userRecord = users.find((user) => user.email === normalizedEmail) as
     PersistedUser | undefined;

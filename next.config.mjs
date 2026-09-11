@@ -4,7 +4,12 @@ import { imageHosts } from './image-hosts.config.mjs';
 const nextConfig = {
   output: 'standalone',
   outputFileTracingRoot: import.meta.dirname,
-  productionBrowserSourceMaps: true,
+  // Off. With this on, every visitor could download the .map files and read
+  // the original front-end source, comments included - which is how a
+  // password left in client code stops being merely bad practice and becomes
+  // something anyone can look up. Stack traces in production lose readable
+  // names; that is the whole cost.
+  productionBrowserSourceMaps: false,
   experimental: {
     cpus: 1,
     memoryBasedWorkersCount: true,

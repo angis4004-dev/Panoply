@@ -2764,7 +2764,7 @@ Navigate to `/dashboard/achievements`. Confirm the "Welcome to AEGIS" card shows
 
 - [ ] **Step 3: Verify KYC submission and approval flow**
 
-Submit KYC as the test user (`/dashboard/kyc`). As the seeded admin (`admin@cryptotradeai.io` / `AdminAI#Secure99`), approve it from the admin panel. Confirm: the test user's tier becomes `novice` (check `/api/achievements` response via `javascript_tool`: `fetch('/api/achievements').then(r => r.json())`), and "Verified Identity" shows as earned.
+Submit KYC as the test user (`/dashboard/kyc`). As the seeded admin (`admin@cryptotradeai.io` / `$VERIFY_ADMIN_PASSWORD`), approve it from the admin panel. Confirm: the test user's tier becomes `novice` (check `/api/achievements` response via `javascript_tool`: `fetch('/api/achievements').then(r => r.json())`), and "Verified Identity" shows as earned.
 
 - [ ] **Step 4: Verify deposit → tier-up**
 

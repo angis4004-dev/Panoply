@@ -29,16 +29,11 @@ export function useAuth() {
     return result;
   };
 
-  const signInDemo = async () => {
-    return signIn('alex.thornton@cryptotradeai.io', 'TraderBot#2024');
-  };
-
   return {
     user,
     setUser,
     loading,
     logout: context.logout,
     signIn,
-    signInDemo,
   };
 }
