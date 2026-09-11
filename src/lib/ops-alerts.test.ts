@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { adminUrl, renderOpsAlert, shortenAddress, type OpsEvent } from '@/lib/ops-alerts';
 
-const env = { ADMIN_APP_URL: 'https://admin.panoply.finance/' } as NodeJS.ProcessEnv;
+const env = { ADMIN_APP_URL: 'https://admin.panoply.finance/' } as unknown as NodeJS.ProcessEnv;
 
 const signup: OpsEvent = {
   type: 'signup',
@@ -68,10 +68,12 @@ describe('links', () => {
 
   it('falls back to ADMIN_HOST, then to no link at all', () => {
     expect(
-      adminUrl('/admin/kyc', { ADMIN_HOST: 'admin.panoply.finance' } as NodeJS.ProcessEnv)
+      adminUrl('/admin/kyc', {
+        ADMIN_HOST: 'admin.panoply.finance',
+      } as unknown as NodeJS.ProcessEnv)
     ).toBe('https://admin.panoply.finance/admin/kyc');
-    expect(adminUrl('/admin/kyc', {} as NodeJS.ProcessEnv)).toBeNull();
-    const html = renderOpsAlert(kyc, {} as NodeJS.ProcessEnv).html;
+    expect(adminUrl('/admin/kyc', {} as unknown as NodeJS.ProcessEnv)).toBeNull();
+    const html = renderOpsAlert(kyc, {} as unknown as NodeJS.ProcessEnv).html;
     expect(html).toContain('/admin/kyc');
     expect(html).not.toContain('href="/admin');
   });
