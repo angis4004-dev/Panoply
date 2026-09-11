@@ -34,14 +34,13 @@ import { formatRetryAfter } from '@/lib/rate-limit';
  * speed bump that costs an attacker the effort of rotating addresses, and it
  * catches the unsophisticated case - which is most of them.
  *
- * One thing to confirm against the live host rather than assume: if the proxy
- * in front of the app does not set `x-forwarded-for`, `getClientIp` returns
- * the literal string 'unknown' and every caller shares one bucket - at which
- * point ten failed guesses from anybody blocks redemption for everybody for
- * fifteen minutes. `admin-login-ip:` in the admin console has the same
- * exposure and predates this file, so the answer covers both. The `ip` column
- * on an admin audit record is what the application actually saw, and is the
- * cheapest place to read the answer off once real traffic has arrived.
+ * Confirmed against the live host on 2026-09-11: it does set
+ * `x-forwarded-for`. Every one of the fifteen most recent admin audit records
+ * carries a real client address, so these keys separate callers as intended.
+ * Had they read 'unknown', every caller would have shared one bucket and ten
+ * failed guesses from anybody would have blocked redemption for everybody -
+ * which is why the audit log's `ip` column was worth checking rather than
+ * assuming. `admin-login-ip:` in the admin console rests on the same answer
  */
 
 /** Recovery emails one address will accept before we stop sending. */
