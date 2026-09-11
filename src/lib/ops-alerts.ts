@@ -1,6 +1,7 @@
 import { sendEmail } from '@/lib/email';
 import { EMAIL_STYLE, escapeHtml, renderEmail } from '@/lib/email-template';
 import { SUPPORT_EMAIL } from '@/lib/contact';
+import { kycAlertRecipients } from '@/lib/admin/kyc-reviewers';
 
 /**
  * Emails the team when something happens that a person has to act on.
@@ -167,15 +168,26 @@ export function renderOpsAlert(
   return { subject: `[Panoply] ${oneLine(d.subject)}`, html };
 }
 
+/**
+ * A KYC submission also goes to the admins who can approve it; everything
+ * else goes to the operations inbox alone. See admin/kyc-reviewers.ts.
+ */
+async function recipientsFor(event: OpsEvent): Promise<string[]> {
+  if (event.type === 'kyc') return kycAlertRecipients();
+  return [process.env.OPS_ALERT_EMAIL?.trim() || SUPPORT_EMAIL];
+}
+
 export async function alertOps(event: OpsEvent): Promise<void> {
   try {
     const { subject, html } = renderOpsAlert(event);
-    const sent = await sendEmail({
-      to: process.env.OPS_ALERT_EMAIL?.trim() || SUPPORT_EMAIL,
-      subject,
-      html,
-    });
-    if (!sent) console.error(`Ops alert not delivered: ${subject}`);
+    // One message each rather than several addresses on one, so no recipient
+    // learns who else was told - and one bad address cannot take the rest
+    // down with it.
+    const recipients = await recipientsFor(event);
+    for (const to of recipients) {
+      const sent = await sendEmail({ to, subject, html });
+      if (!sent) console.error(`Ops alert not delivered to ${to}: ${subject}`);
+    }
   } catch (error) {
     console.error('Ops alert failed:', event.type, error);
   }
