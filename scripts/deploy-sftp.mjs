@@ -24,6 +24,7 @@
 import { readdir, stat, readFile } from 'node:fs/promises';
 import { join, posix, relative, sep } from 'node:path';
 import SftpClient from 'ssh2-sftp-client';
+import { pruneStaleStatic } from './lib/prune-static.mjs';
 
 const LOCAL_ROOT = process.env.DEPLOY_LOCAL_DIR || 'deploy';
 const REMOTE_ROOT = required('DEPLOY_REMOTE_DIR');
@@ -244,6 +245,37 @@ async function main() {
   console.log(
     `Uploaded ${done} files. Verified ${sample.length} by size, including all ${bracketed.length} bracketed paths.`
   );
+
+  /*
+   * Only after the new release is fully up and verified: until then the old
+   * files are what the site is running on. See scripts/lib/prune-static.mjs
+   * for why stale static files get an hour rather than forever.
+   *
+   * A failure here is a warning, not a failed deploy. The release is live and
+   * correct by this point; what did not happen is housekeeping, and the next
+   * deploy will try again.
+   */
+  if (process.env.DEPLOY_PRUNE === 'false') return;
+  const graceMinutes = Number(process.env.DEPLOY_PRUNE_GRACE_MINUTES || 60);
+  const pruner = new SftpClient('prune');
+  try {
+    await pruner.connect(connect);
+    const pruned = await pruneStaleStatic(pruner, REMOTE_ROOT, new Set(files), {
+      graceMs: graceMinutes * 60 * 1000,
+      log: (line) => console.log(line),
+    });
+    console.log(
+      `Pruned ${pruned.deleted.length} stale static file(s); kept ${pruned.kept} of ${pruned.scanned}.`
+    );
+    if (pruned.failed.length > 0) {
+      console.log(`::warning::${pruned.failed.length} stale file(s) could not be removed.`);
+      for (const f of pruned.failed.slice(0, 10)) console.log(`  ${f}`);
+    }
+  } catch (error) {
+    console.log(`::warning::Pruning stale static files failed: ${error.message || error}`);
+  } finally {
+    await pruner.end().catch(() => {});
+  }
 }
 
 main().catch((error) => {

@@ -129,11 +129,15 @@ jobs:
       # every request to /api/auth/session returned 500. The script counts what
       # actually landed and fails if anything is missing - see its header.
       #
-      # Nothing is deleted first, deliberately. Next names every chunk after
-      # its content, so keeping the previous release's files in .next/static is
-      # what stops a browser that loaded a page seconds before the deploy from
-      # 404ing on scripts it was promised. Routing comes from the manifests,
-      # which are overwritten, so nothing stale is ever served.
+      # Nothing is deleted before the upload, deliberately. Next names every
+      # chunk after its content, so the previous release's files in .next/static
+      # are what a browser that loaded a page seconds before the deploy asks for
+      # next. But they are not kept forever: once the new release is up and
+      # verified, the script deletes static files that are not part of it and
+      # are over an hour old (DEPLOY_PRUNE_GRACE_MINUTES). "Nothing stale is
+      # served" was true of routing only - every old chunk and source map stayed
+      # downloadable at its old URL, which is how a password removed from the
+      # code was still online. See scripts/lib/prune-static.mjs.
       - name: Upload the release over SFTP
         env:
           DEPLOY_HOST: ${{ secrets.CPANEL_HOST }}
