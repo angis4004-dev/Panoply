@@ -1,83 +1,92 @@
 'use client';
 
 import Link from 'next/link';
-import { Check, Fingerprint, ShieldCheck, UserRoundCheck } from 'lucide-react';
-import { useAuth } from '@/hooks/use-auth';
+import {
+  ArrowDownToLine,
+  Check,
+  Clock,
+  Fingerprint,
+  Lock,
+  ShieldCheck,
+  UserRoundCheck,
+  Waypoints,
+  type LucideIcon,
+} from 'lucide-react';
+import {
+  activeStepKey,
+  isJourneyComplete,
+  type JourneyStep,
+  type StepKey,
+} from '@/lib/onboarding-journey';
 
 /**
- * Ordered setup checklist for a new account.
+ * The new-trader journey, drawn.
  *
- * Replaces two separate, unordered nags: a "no sign-in PIN" banner and an
- * inline "complete identity verification" line, which could both be on screen
- * at once with nothing saying which to do first or how much was left. This
- * states the whole sequence and marks progress through it.
+ * It used to stop at identity verification and then remove itself - at the
+ * exact moment the user became allowed to deposit, which is the step people
+ * most often cannot find. It now runs through the first deposit and the
+ * first signal flow, and goes away only when the last of those is done.
  *
- * Three deliberate choices:
+ * Presentational: the Overview computes the steps (src/lib/onboarding-journey)
+ * so that this panel and the hero's button styling read the same answer.
  *
- * - Account creation is listed, already ticked. It costs a row and turns the
- *   panel from a list of demands into something already underway.
- * - Only the first outstanding step gets a solid button. Later steps stay
- *   visible but subdued, so the path is legible without asking for three
- *   things at once.
- * - There is no dismiss control. Both remaining steps gate real capability -
- *   the PIN is the account's second factor, and KYC gates every deposit -
- *   so the panel goes away by being completed, not by being hidden.
+ * Carried over from the version before, deliberately:
+ * - Account creation is listed, already ticked, so the panel reads as
+ *   something underway rather than a list of demands.
+ * - Only the first actionable step gets a solid button.
+ * - There is no dismiss control. Every remaining step gates something real.
  */
-export function OnboardingChecklist() {
-  const { user } = useAuth();
 
-  // `user` is undefined on the first render while the session request is in
-  // flight. Rendering then would flash a full checklist at someone who has
-  // already finished it, so nothing is shown until the answer arrives.
-  if (!user) return null;
+const ICONS: Record<StepKey, LucideIcon> = {
+  account: UserRoundCheck,
+  pin: Fingerprint,
+  kyc: ShieldCheck,
+  deposit: ArrowDownToLine,
+  flow: Waypoints,
+};
 
-  const hasPin = user.hasPin === true;
-  const kycStatus = user.kycStatus ?? 'unverified';
-  const kycDone = kycStatus === 'verified';
-  // Submitted and awaiting review is not "done", but it is not actionable
-  // either - there is nothing for the user to do but wait.
-  const kycPending = kycStatus === 'pending';
+/** Where each step's button goes. Deposit opens a window instead. */
+const HREFS: Partial<Record<StepKey, string>> = {
+  pin: '/dashboard/settings#pin',
+  kyc: '/dashboard/kyc',
+  flow: '/dashboard/bots',
+};
 
-  if (hasPin && kycDone) return null;
+const BUTTON_BASE =
+  'inline-flex min-h-[44px] shrink-0 items-center justify-center rounded-lg px-4 py-2 text-xs font-semibold transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface-raised';
+const BUTTON_SOLID = `${BUTTON_BASE} bg-primary text-primary-foreground hover:bg-primary/90`;
+const BUTTON_OUTLINE = `${BUTTON_BASE} border border-primary/40 text-primary hover:bg-primary/10`;
 
-  const steps = [
-    {
-      key: 'account',
-      icon: UserRoundCheck,
-      title: 'Create your account',
-      body: 'Done. Welcome to Panoply.',
-      done: true,
-      href: null,
-      cta: null,
-    },
-    {
-      key: 'pin',
-      icon: Fingerprint,
-      title: 'Set a sign-in PIN',
-      body: 'A 6-digit PIN asked for after your password, so a stolen password is not enough on its own.',
-      done: hasPin,
-      href: '/dashboard/settings#pin',
-      cta: 'Set a PIN',
-    },
-    {
-      key: 'kyc',
-      icon: ShieldCheck,
-      title: 'Verify your identity',
-      body: kycPending
-        ? 'Submitted. We are reviewing your documents and will update you here.'
-        : kycStatus === 'rejected'
-          ? 'Your last submission could not be verified. Check the details and try again.'
-          : 'Required before you can deposit funds or allocate capital to a signal flow.',
-      done: kycDone,
-      href: kycPending ? null : '/dashboard/kyc',
-      cta: kycStatus === 'rejected' ? 'Try again' : 'Verify identity',
-    },
-  ];
+function StepMarker({ step }: { step: JourneyStep }) {
+  const Icon = ICONS[step.key];
+  if (step.state === 'done') {
+    return (
+      <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+        <Check className="h-4 w-4" aria-hidden />
+      </span>
+    );
+  }
+  // Waiting and locked get their own marks so a glance tells "nothing to do
+  // yet" apart from "your turn", without reading the sentence.
+  const Mark = step.state === 'waiting' ? Clock : step.state === 'locked' ? Lock : Icon;
+  return (
+    <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-ds-border text-ds-text-muted">
+      <Mark className="h-4 w-4" aria-hidden />
+    </span>
+  );
+}
 
-  const completed = steps.filter((s) => s.done).length;
-  // The one step that gets the solid button: first outstanding, and not one
-  // that is merely waiting on us.
-  const activeKey = steps.find((s) => !s.done && s.href)?.key;
+export function OnboardingChecklist({
+  steps,
+  onDeposit,
+}: {
+  steps: JourneyStep[];
+  onDeposit: () => void;
+}) {
+  if (isJourneyComplete(steps)) return null;
+
+  const completed = steps.filter((s) => s.state === 'done').length;
+  const activeKey = activeStepKey(steps);
 
   return (
     <section
@@ -107,31 +116,22 @@ export function OnboardingChecklist() {
 
       <ol className="space-y-3">
         {steps.map((step) => {
-          const Icon = step.icon;
-          const isActive = step.key === activeKey;
+          const actionable = step.state === 'todo' || step.state === 'retry';
+          const className = step.key === activeKey ? BUTTON_SOLID : BUTTON_OUTLINE;
+          const href = HREFS[step.key];
           return (
             <li
               key={step.key}
-              className="flex flex-col gap-3 rounded-lg border border-ds-border/60 bg-ds-surface/40 p-3 sm:flex-row sm:items-center sm:justify-between"
+              className={`flex flex-col gap-3 rounded-lg border border-ds-border/60 bg-ds-surface/40 p-3 sm:flex-row sm:items-center sm:justify-between ${
+                step.state === 'locked' ? 'opacity-60' : ''
+              }`}
             >
               <div className="flex items-start gap-3">
-                <span
-                  className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
-                    step.done
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-ds-border text-ds-text-muted'
-                  }`}
-                >
-                  {step.done ? (
-                    <Check className="h-4 w-4" aria-hidden />
-                  ) : (
-                    <Icon className="h-4 w-4" aria-hidden />
-                  )}
-                </span>
+                <StepMarker step={step} />
                 <div>
                   <p
                     className={`text-sm font-semibold ${
-                      step.done ? 'text-ds-text-muted line-through' : 'text-ds-text'
+                      step.state === 'done' ? 'text-ds-text-muted line-through' : 'text-ds-text'
                     }`}
                   >
                     {step.title}
@@ -140,18 +140,17 @@ export function OnboardingChecklist() {
                 </div>
               </div>
 
-              {!step.done && step.href && (
-                <Link
-                  href={step.href}
-                  className={`inline-flex min-h-[44px] shrink-0 items-center justify-center rounded-lg px-4 py-2 text-xs font-semibold transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface-raised ${
-                    isActive
-                      ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-                      : 'border border-primary/40 text-primary hover:bg-primary/10'
-                  }`}
-                >
-                  {step.cta}
-                </Link>
-              )}
+              {actionable &&
+                step.cta &&
+                (step.key === 'deposit' ? (
+                  <button type="button" onClick={onDeposit} className={className}>
+                    {step.cta}
+                  </button>
+                ) : href ? (
+                  <Link href={href} className={className}>
+                    {step.cta}
+                  </Link>
+                ) : null)}
             </li>
           );
         })}
