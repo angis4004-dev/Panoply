@@ -5,6 +5,7 @@ import { Navbar } from '@/components/homepage/navbar';
 import { Footer } from '@/components/homepage/Footer';
 import { PageBackground } from '@/components/backgrounds/PageBackground';
 import { Reveal } from '@/components/ui/Reveal';
+import { SECURITY_EMAIL } from '@/lib/contact';
 import {
   AUDIT,
   AUDITOR_INTRO,
@@ -333,6 +334,35 @@ export default function SecurityReviewPage() {
               This page summarizes the assessment reported by {AUDIT.auditor} for the review period
               ending {AUDIT.reviewDate}. It is one component of a broader, continuous security
               program and is not a guarantee against loss.
+            </p>
+          </div>
+
+          {/*
+            The one thing on this page a reader can act on besides signing up.
+
+            A page that says "security is not a one-time event" and gives an
+            outside researcher nowhere to send a finding is making a claim it
+            has left no way to test. Somebody who finds a hole and cannot find
+            an address does one of two things: gives up, or publishes. Neither
+            gets it fixed.
+
+            Placed here, under the audit's own limits, because that is where
+            the argument for it is made: an assessment covers a period, and
+            this is how the time after it gets covered.
+          */}
+          <div className="mt-6 rounded-xl border border-ds-border bg-ds-surface-raised/50 p-6">
+            <h3 className="text-sm font-semibold text-white mb-3">Report a vulnerability</h3>
+            <p className="text-sm text-ds-text-muted leading-relaxed">
+              Found something that looks exploitable? Write to{' '}
+              <a
+                href={`mailto:${SECURITY_EMAIL}`}
+                className="text-primary underline underline-offset-2 hover:text-brand-cyan focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded"
+              >
+                {SECURITY_EMAIL}
+              </a>{' '}
+              with the steps to reproduce it. Please give us a reasonable chance to fix it before
+              you share it anywhere else, and do not access or change any account that is not your
+              own while testing.
             </p>
           </div>
         </div>
