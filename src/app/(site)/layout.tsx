@@ -12,6 +12,7 @@ import {
   Schibsted_Grotesk,
 } from 'next/font/google';
 import { cn } from '@/lib/utils';
+import { SUPPORT_EMAIL } from '@/lib/contact';
 
 /*
  * Typefaces are loaded here but not assigned here.
@@ -110,10 +111,50 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://panoply.finance';
+const TITLE = 'Panoply | Quantitative Intelligence for Decentralized Finance';
+const DESCRIPTION =
+  'Panoply is a quantitative DeFi automation platform combining signal generation, automated execution, and risk management across secure sign-in, portfolio insights, vault discovery, and yield analysis.';
+
+/**
+ * What a pasted link turns into.
+ *
+ * WhatsApp, X, LinkedIn, iMessage and Slack all read these tags and draw a
+ * card from them. Without og:image and og:title the site had only a
+ * description, so a shared link rendered as a bare blue URL - which for a
+ * platform asking people to deposit money is the first impression it makes.
+ *
+ * The image itself is src/app/(site)/opengraph-image.png, picked up by Next
+ * from its filename; twitter-image.png is the same picture under the name X
+ * looks for. Both are generated from the one logo definition by
+ * scripts/generate-brand-assets.mjs.
+ *
+ * `metadataBase` is what turns those into absolute URLs. Without it Next
+ * emits a relative path, and a relative og:image is ignored by every client
+ * that fetches the page from outside the browser - which is all of them.
+ */
 export const metadata: Metadata = {
-  title: 'Panoply | Quantitative Intelligence for Decentralized Finance',
-  description:
-    'Panoply is a quantitative DeFi automation platform combining signal generation, automated execution, and risk management across secure sign-in, portfolio insights, vault discovery, and yield analysis.',
+  metadataBase: new URL(SITE_URL),
+  // No title template: the pages that have their own titles already end in
+  // "| Panoply", and a template would make that "Privacy Policy | Panoply |
+  // Panoply" on every one of them.
+  title: TITLE,
+  description: DESCRIPTION,
+  applicationName: 'Panoply',
+  alternates: { canonical: '/' },
+  openGraph: {
+    type: 'website',
+    siteName: 'Panoply',
+    url: SITE_URL,
+    title: TITLE,
+    description: DESCRIPTION,
+    locale: 'en_US',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: TITLE,
+    description: DESCRIPTION,
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -144,6 +185,35 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       )}
     >
       <body className="bg-[#0A0E13] text-[#E7ECF2] antialiased">
+        {/*
+          Structured data, for the search engines that read it.
+          What Google does with an Organization block is show the mark beside
+          the site in results and in its knowledge panel - the same picture a
+          pasted link gets from og:image, in the other place people meet the
+          name. Every field here is stated elsewhere on the site: nothing is
+          claimed to a crawler that a reader cannot check.
+          public/logo.png is used rather than the app's own icons, whose URLs
+          carry a build hash and change under a crawler's feet.
+        */}
+        <script
+          type="application/ld+json"
+          // The content is built here from constants, not from user input.
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Organization',
+              name: 'Panoply',
+              url: SITE_URL,
+              logo: `${SITE_URL}/logo.png`,
+              description: DESCRIPTION,
+              contactPoint: {
+                '@type': 'ContactPoint',
+                contactType: 'customer support',
+                email: SUPPORT_EMAIL,
+              },
+            }),
+          }}
+        />
         {/* WCAG 2.4.1 (Bypass Blocks). Every page mounts a fixed navbar plus
             several nav landmarks, so without this a keyboard or screen-reader
             user tabs through the entire header on every navigation before

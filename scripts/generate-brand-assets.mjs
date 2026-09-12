@@ -116,6 +116,51 @@ function markPaths(size) {
   return `<g fill="none" stroke="${CREAM}" stroke-width="${stroke}">\n    ${circles}\n  </g>`;
 }
 
+/**
+ * The card a pasted link turns into.
+ *
+ * WhatsApp, X, LinkedIn, iMessage and Slack all fetch og:image and draw it
+ * above the title. Without one they show a bare blue link, which for a
+ * platform asking people to deposit money reads as an unfinished site.
+ *
+ * 1200x630 is the size every one of them crops to. The mark and the wordmark
+ * sit left of centre so the right third can carry the line about what this
+ * is, and nothing important comes within 60px of an edge - Slack and X both
+ * round the corners.
+ *
+ * Text is real text here rather than paths, so this PNG depends on the fonts
+ * of whatever machine renders it. That is why it is excluded from --check:
+ * a teammate on another OS would otherwise be told the asset is stale when
+ * only the hinting differs. The committed file is what ships.
+ */
+function ogCard() {
+  const W = 1200;
+  const H = 630;
+  const NEWLINE = String.fromCharCode(10);
+  const sans = "Arial, 'Helvetica Neue', Helvetica, sans-serif";
+  const serif = "Georgia, 'Times New Roman', Times, serif";
+  return [
+    `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`,
+    `  <rect width="${W}" height="${H}" fill="${SURFACE}"/>`,
+    // A navy field behind the mark, so the cream has something to sit on and
+    // the card does not read as a black rectangle in a dark-themed client.
+    `  <rect width="${W}" height="${H}" fill="url(#glow)"/>`,
+    '  <defs>',
+    '    <radialGradient id="glow" cx="28%" cy="38%" r="62%">',
+    `      <stop offset="0%" stop-color="#243B8F" stop-opacity="0.55"/>`,
+    `      <stop offset="100%" stop-color="${SURFACE}" stop-opacity="0"/>`,
+    '    </radialGradient>',
+    '  </defs>',
+    `  <svg x="90" y="150" width="150" height="150" viewBox="0 0 100 100">${markPaths(150)}</svg>`,
+    `  <text x="270" y="250" font-family="${sans}" font-size="58" font-weight="700" letter-spacing="14" fill="${CREAM}">PANOPLY</text>`,
+    `  <text x="92" y="380" font-family="${serif}" font-size="52" fill="#F2F5FA">Quantitative intelligence for</text>`,
+    `  <text x="92" y="444" font-family="${serif}" font-size="52" fill="#F2F5FA">decentralized finance</text>`,
+    `  <text x="94" y="512" font-family="${sans}" font-size="26" letter-spacing="3" fill="#8B95A5">SIGNAL FLOWS &#183; VAULTS &#183; YIELD</text>`,
+    `  <rect x="0" y="${H - 10}" width="${W}" height="10" fill="#00D4FF"/>`,
+    '</svg>',
+  ].join(NEWLINE);
+}
+
 /** Rounded dark tile behind a cream mark. For app icons. */
 function boxed(size) {
   return [
@@ -222,6 +267,30 @@ async function main() {
     sizes.map(async (size) => ({ size, data: await png(boxed(size), size) }))
   );
   outputs.push(['src/app/favicon.ico', ico(entries)]);
+
+  /*
+   * Both files, because Next reads them by name: opengraph-image.png feeds
+   * og:image, twitter-image.png feeds twitter:image, and X ignores og:image
+   * when a card is declared. Same picture; two names is cheaper than a
+   * missing preview on one network.
+   */
+  if (!CHECK_ONLY) {
+    const card = await sharp(Buffer.from(ogCard()), { density: 300 })
+      .resize(1200, 630)
+      .png()
+      .toBuffer();
+    outputs.push(['src/app/(site)/opengraph-image.png', card]);
+    outputs.push(['src/app/(site)/twitter-image.png', card]);
+  }
+
+  /*
+   * A logo at a URL that does not move.
+   *
+   * The icons Next serves from src/app carry a content hash in their path, so
+   * they cannot be named in structured data that search engines re-fetch on
+   * their own schedule. public/logo.png is the stable one.
+   */
+  outputs.push(['public/logo.png', await png(boxed(512), 512)]);
 
   const emailPng = await png(bare(200), 200);
   outputs.push(['src/lib/email-logo.ts', Buffer.from(emailModule(emailPng.toString('base64')))]);
