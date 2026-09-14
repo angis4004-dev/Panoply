@@ -2,8 +2,11 @@
    @layer before it). These sat below the @tailwind directives, which expand
    into thousands of rules - webpack tolerated it silently, Turbopack rejects
    it outright, reporting the failure at the post-expansion line 2609. */
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
-/* Two @import lines were removed here, both verified dead:
+/* A DM Sans @import from Google Fonts used to sit here. Nothing rendered in
+   it - the `font-sans` class on <html> outranks the bare `html` rule below -
+   yet every page still made a blocking request for it. Removed with the move
+   to Geist.
+   Two @import lines were removed here, both verified dead:
    - 'shadcn/tailwind.css' - no such file exists in the shadcn package.
    - 'tw-animate-css' - the only utility the project uses from that family is
      animate-fade-in, and both its keyframes and its animation are declared
@@ -27,10 +30,11 @@
  * inside a subtree re-types everything in it without touching a single
  * component - which is what .type-dashboard below does.
  *
- * Tahoma leads the body role by request. It is a system font, present on
- * Windows and macOS and absent on Linux, iOS and Android, so IBM Plex Sans
- * sits directly behind it: anyone without Tahoma still gets a face this
- * project chose rather than an OS default.
+ * Body is Geist and headlines are Cormorant Garamond (upright only), both
+ * loaded by next/font, so every device renders the same faces. Tahoma led
+ * the body role before and is a system font absent on iOS and Android -
+ * phones were being shown a different typeface from the one the site was
+ * designed in.
  * ------------------------------------------------------------------ */
 /* ------------------------------------------------------------------
  * Arabic sits in the base stack, unconditionally.
@@ -52,30 +56,36 @@
  * translated into and picks the matching regional face; measured against
  * Yu Gothic, PingFang and Malgun, its fallback does this correctly.
  * ------------------------------------------------------------------ */
-:root {
-  --font-sans: Tahoma, var(--font-plex-sans), var(--font-arabic), Verdana, system-ui, sans-serif;
-  --font-display: var(--font-instrument), var(--font-arabic), Georgia, serif;
+/* A default for every family variable the role stacks name, on `html` (a
+   type selector, so the next/font class on the same element always wins
+   when it does load the face).
+
+   Without it, a layout that does not load one of them breaks everything: a
+   var() with no value makes the whole declaration invalid at computed-value
+   time, so `--font-sans` came out empty and the page fell back to Times New
+   Roman. That was the admin console, which never loads the Arabic face - its
+   body and headings were rendering in Times because `--font-arabic` was
+   undefined there. */
+html {
+  --font-geist: system-ui;
+  --font-serif: Georgia;
+  --font-arabic: system-ui;
 }
 
-/* The application runs a different face from the marketing pages: Archivo
-   for everything. A dashboard is read at a glance and in quantity, and
-   Archivo's larger x-height and narrower set width suit dense figures
-   better than Tahoma does.
+:root {
+  --font-sans: var(--font-geist), var(--font-arabic), system-ui, sans-serif;
+  --font-display: var(--font-serif), var(--font-arabic), Georgia, serif;
+}
 
-   Both roles point at the same family on purpose. The marketing pages earn
-   a display serif because they are read once, slowly; a trading interface
-   is read continuously, and a second typeface competing for attention in
-   that context is decoration. Headings separate themselves by size, weight
-   and tracking instead - which is what the display role now carries.
-
-   Applied by DashboardLayout, so it covers every /dashboard route and
-   nothing else. */
+/* The dashboard and the admin console use the same pairing as the marketing
+   pages: serif headlines, Geist for everything else - body copy, tables and
+   every figure stay in the sans (and font-mono), so only titles change. Both
+   layouts apply this class; it remains the one place to give the app its own
+   faces again. The admin root layout loads Cormorant itself, since it shares
+   no tree with (site)/layout.tsx. */
 .type-dashboard {
-  /* Arabic carried through here too, for the same reason as the base stack
-     above: a translated dashboard has to find a face for those glyphs, and
-     Archivo has none. */
-  --font-sans: var(--font-archivo), var(--font-arabic), system-ui, sans-serif;
-  --font-display: var(--font-archivo), var(--font-arabic), system-ui, sans-serif;
+  --font-sans: var(--font-geist), var(--font-arabic), system-ui, sans-serif;
+  --font-display: var(--font-serif), var(--font-arabic), Georgia, serif;
 }
 
 :root {
@@ -100,7 +110,7 @@
 }
 
 html {
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font-sans);
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
   -webkit-font-smoothing: antialiased;
@@ -530,39 +540,459 @@ body {
   border-radius: 999px;
 }
 
-/* Signal Field - the trace that runs the width of a card on activation.
+/* Signal Field - soft glow behind the top of a card, light along its sides.
  *
- * One pass, then it holds at full length. A looping trace would be idle
- * animation on every card on the page, which is exactly what this system is
- * meant to avoid; the point is that something happened when you arrived, not
- * that the card is permanently busy.
+ * Brand cream (#FFF0C9 = 255 240 201). Both layers sit at z-index -1 inside
+ * the field's own stacking context (`isolate`), so they paint above the card
+ * surface and below every word. Neither is ever drawn across the text: the
+ * core sits behind the icon or headline at the top, and the side light fades
+ * out well before the content column.
  *
- * The path carries pathLength="1" so the dash maths below is in fractions of
- * the line: its real length changes as the contour bends, and without the
- * normalisation the dash offset would drift mid-animation. */
-.signal-trace {
-  stroke-dasharray: 0.35 1;
-  animation: signal-trace-run var(--ds-dur-slow, 380ms)
-    var(--ds-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) 1 both;
+ * The core and the sides breathe on the same 5.5s period but half a cycle
+ * apart, so the card never pulses as a whole - which is what separates
+ * "lit" from "blinking". Hover and focus lift the resting level instead of
+ * starting motion, so the response is immediate.
+ *
+ * Brightness is a registered custom property multiplying each colour's alpha,
+ * not `opacity`: a running animation owns `opacity`, and a hover rule setting
+ * it would lose to the keyframes. A registered <number> transitions smoothly,
+ * and the breathing carries on underneath at the new level. */
+@property --signal-level {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 1;
 }
-@keyframes signal-trace-run {
-  from {
-    stroke-dashoffset: 1.35;
-    opacity: 0;
+.signal-field__core,
+.signal-field__sides {
+  --signal-level: 1;
+  pointer-events: none;
+  position: absolute;
+  z-index: -1;
+  transition: --signal-level 240ms var(--ds-ease-out, cubic-bezier(0.16, 1, 0.3, 1));
+}
+.signal-field__core {
+  left: 50%;
+  top: -10%;
+  width: min(22rem, 90%);
+  height: 11rem;
+  translate: -50% 0;
+  background: radial-gradient(
+    closest-side,
+    rgb(255 240 201 / calc(0.13 * var(--signal-level))),
+    transparent
+  );
+  animation: signal-breathe 5.5s ease-in-out infinite;
+}
+.signal-field__sides {
+  inset: 0;
+  border-radius: inherit;
+  background:
+    radial-gradient(
+      38% 60% at 0% 50%,
+      rgb(255 240 201 / calc(0.09 * var(--signal-level))),
+      transparent 70%
+    ),
+    radial-gradient(
+      38% 60% at 100% 50%,
+      rgb(255 240 201 / calc(0.09 * var(--signal-level))),
+      transparent 70%
+    );
+  box-shadow:
+    inset 1px 0 0 rgb(255 240 201 / calc(0.16 * var(--signal-level))),
+    inset -1px 0 0 rgb(255 240 201 / calc(0.16 * var(--signal-level)));
+  animation: signal-sides 5.5s ease-in-out -2.75s infinite;
+}
+/* No surface or border of its own behind CTA buttons: sides only, dimmer. */
+.signal-field[data-variant='cta'] .signal-field__core {
+  display: none;
+}
+.signal-field[data-variant='cta'] .signal-field__sides {
+  --signal-level: 0.7;
+  box-shadow: none;
+}
+.signal-field:hover .signal-field__core,
+.signal-field:focus-within .signal-field__core,
+.signal-field:hover .signal-field__sides,
+.signal-field:focus-within .signal-field__sides {
+  --signal-level: 1.7;
+}
+@keyframes signal-breathe {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(0.94);
   }
-  25% {
+  50% {
     opacity: 1;
+    transform: scale(1.04);
   }
-  to {
-    stroke-dashoffset: -0.35;
-    opacity: 0.9;
+}
+@keyframes signal-sides {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .signal-trace {
+  .signal-field__core,
+  .signal-field__sides {
     animation: none;
-    stroke-dasharray: none;
-    opacity: 0.6;
+    opacity: 0.8;
+  }
+}
+
+/* Hero copy entrance: once, on load, then never again. Rises out of a light
+ * blur on a strong ease-out, so it lands quickly and settles. `both` holds the
+ * start frame only for the 60ms delay. */
+.hero-enter {
+  animation: hero-enter 900ms cubic-bezier(0.23, 1, 0.32, 1) 60ms both;
+}
+@keyframes hero-enter {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-enter {
+    animation: none;
+  }
+}
+
+/* ------------------------------------------------------------------
+ * Hero flow - one 12s cycle, built step by step, held, cleared, repeated.
+ * Markup: components/homepage/HeroFlow.tsx. 1s of the cycle = 8.33%.
+ *
+ *   0-1s    deposit line draws           hf-line-0
+ *   1-2.4s  Panoply block rises in       hf-block
+ *   2.8-3.6 branch 1 draws, card, words  hf-line-1  hf-card-1  hf-text-1
+ *   4.4-5.2 branch 2 ...                 hf-line-2  hf-card-2  hf-text-2
+ *   6-6.8   branch 3 ...                 hf-line-3  hf-card-3  hf-text-3
+ *   8.2-9.6 hold, complete
+ *   9.6-11.4 words, then cards, lines, block fade out; the deposit stays
+ *
+ * Every step shares one duration and one start, so the sequence cannot drift
+ * out of step on later loops the way per-element delays would. Lines use
+ * pathLength="1", so dash offsets are fractions of the line.
+ * ------------------------------------------------------------------ */
+.hf-line,
+.hf-block,
+.hf-card,
+.hf-text {
+  animation-duration: 12s;
+  animation-iteration-count: infinite;
+  animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+  animation-fill-mode: both;
+}
+.hf-line path {
+  stroke-dasharray: 1;
+  animation-duration: 12s;
+  animation-iteration-count: infinite;
+  animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
+  animation-fill-mode: both;
+}
+.hf-line-0 path {
+  animation-name: hf-line-0;
+}
+.hf-line-1 path {
+  animation-name: hf-line-1;
+}
+.hf-line-2 path {
+  animation-name: hf-line-2;
+}
+.hf-line-3 path {
+  animation-name: hf-line-3;
+}
+.hf-line {
+  animation-name: hf-lines-out;
+}
+.hf-block {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation-name: hf-block;
+}
+/* Cards rise 4px out of 96% as their glow blooms; scaled from their own
+   centre, which is where the glow behind them sits. */
+.hf-card {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* The light behind the Panoply block breathes on a 6s cycle - slower than
+   the build, so it reads as ambient rather than as another step. */
+.hf-breathe {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: hf-breathe 6s ease-in-out infinite;
+}
+@keyframes hf-breathe {
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: scale(0.94);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+.hf-card-1 {
+  animation-name: hf-card-1;
+}
+.hf-card-2 {
+  animation-name: hf-card-2;
+}
+.hf-card-3 {
+  animation-name: hf-card-3;
+}
+.hf-text-1 {
+  animation-name: hf-text-1;
+}
+.hf-text-2 {
+  animation-name: hf-text-2;
+}
+.hf-text-3 {
+  animation-name: hf-text-3;
+}
+
+/* The rosette turns once a minute - noticed only if you look for it. */
+.hf-spin {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: hf-spin 60s linear infinite;
+}
+@keyframes hf-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes hf-lines-out {
+  0%,
+  82% {
+    opacity: 1;
+  }
+  90%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes hf-line-0 {
+  0% {
+    stroke-dashoffset: 1;
+  }
+  8%,
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes hf-line-1 {
+  0%,
+  23% {
+    stroke-dashoffset: 1;
+  }
+  30%,
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes hf-line-2 {
+  0%,
+  36% {
+    stroke-dashoffset: 1;
+  }
+  43%,
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes hf-line-3 {
+  0%,
+  49% {
+    stroke-dashoffset: 1;
+  }
+  56%,
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes hf-block {
+  0%,
+  8% {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  20% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  84% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  95%,
+  100% {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+@keyframes hf-card-1 {
+  0%,
+  29% {
+    opacity: 0;
+    transform: translateY(4px) scale(0.96);
+  }
+  35% {
+    opacity: 1;
+    transform: none;
+  }
+  82% {
+    opacity: 1;
+    transform: none;
+  }
+  89%,
+  100% {
+    opacity: 0;
+    transform: none;
+  }
+}
+@keyframes hf-card-2 {
+  0%,
+  42% {
+    opacity: 0;
+    transform: translateY(4px) scale(0.96);
+  }
+  48% {
+    opacity: 1;
+    transform: none;
+  }
+  82% {
+    opacity: 1;
+    transform: none;
+  }
+  89%,
+  100% {
+    opacity: 0;
+    transform: none;
+  }
+}
+@keyframes hf-card-3 {
+  0%,
+  55% {
+    opacity: 0;
+    transform: translateY(4px) scale(0.96);
+  }
+  61% {
+    opacity: 1;
+    transform: none;
+  }
+  82% {
+    opacity: 1;
+    transform: none;
+  }
+  89%,
+  100% {
+    opacity: 0;
+    transform: none;
+  }
+}
+@keyframes hf-text-1 {
+  0%,
+  32% {
+    opacity: 0;
+  }
+  38% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  85%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes hf-text-2 {
+  0%,
+  45% {
+    opacity: 0;
+  }
+  51% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  85%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes hf-text-3 {
+  0%,
+  58% {
+    opacity: 0;
+  }
+  64% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  85%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Chart line that draws itself when its card comes into view. The card adds
+ * .is-drawn via IntersectionObserver; the fill fades in behind the line. */
+.chart-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 1400ms cubic-bezier(0.65, 0, 0.35, 1);
+}
+.chart-fill {
+  opacity: 0;
+  transition: opacity 900ms ease-out 500ms;
+}
+.is-drawn .chart-draw {
+  stroke-dashoffset: 0;
+}
+.is-drawn .chart-fill {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  /* The finished diagram, still. */
+  .hf-line,
+  .hf-line path,
+  .hf-block,
+  .hf-card,
+  .hf-text,
+  .hf-spin,
+  .hf-breathe {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+    stroke-dashoffset: 0;
+  }
+  .chart-draw {
+    animation: none;
+    transition: none;
+    stroke-dashoffset: 0;
+  }
+  .chart-fill {
+    transition: none;
+    opacity: 1;
   }
 }
 

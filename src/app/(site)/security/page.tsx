@@ -58,7 +58,7 @@ export default function SecurityReviewPage() {
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <Reveal>
             <SectionEyebrow>Independent assessment</SectionEyebrow>
-            <h1 className="font-display font-normal text-[2.75rem] sm:text-[4rem] leading-[1.05] tracking-[-0.015em] text-white mb-6">
+            <h1 className="font-display font-medium text-[2.9rem] sm:text-[4.5rem] leading-[1.05] tracking-[-0.01em] text-white mb-6">
               {AUDIT.title}
             </h1>
             <p className="text-ds-text-muted text-base sm:text-lg leading-relaxed max-w-2xl mx-auto mb-8">
@@ -95,7 +95,7 @@ export default function SecurityReviewPage() {
                   <FileCheck className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <h2 className="font-display font-normal text-xl text-white mb-2">
+                  <h2 className="font-display font-medium text-2xl text-white mb-2">
                     Assessment outcome
                   </h2>
                   <p className="text-sm text-ds-text-muted leading-relaxed mb-3">
@@ -118,7 +118,7 @@ export default function SecurityReviewPage() {
       <section className="py-16 border-t border-ds-border">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionEyebrow>The auditor</SectionEyebrow>
-          <h2 className="font-display font-normal text-[2rem] sm:text-[2.75rem] leading-[1.1] tracking-[-0.01em] text-white mb-6">
+          <h2 className="font-display font-medium text-[2.3rem] sm:text-[2.75rem] leading-[1.1] tracking-[-0.01em] text-white mb-6">
             About {AUDIT.auditor}
           </h2>
           <div className="space-y-4">
@@ -134,7 +134,7 @@ export default function SecurityReviewPage() {
       <section className="py-16 border-t border-ds-border bg-[#0D1219]">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionEyebrow>Objective</SectionEyebrow>
-          <h2 className="font-display font-normal text-[2rem] sm:text-[2.75rem] leading-[1.1] tracking-[-0.01em] text-white mb-4">
+          <h2 className="font-display font-medium text-[2.3rem] sm:text-[2.75rem] leading-[1.1] tracking-[-0.01em] text-white mb-4">
             What was assessed for
           </h2>
           <p className="text-sm text-ds-text-muted leading-relaxed mb-8">
@@ -155,7 +155,7 @@ export default function SecurityReviewPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mb-12">
             <SectionEyebrow>Coverage</SectionEyebrow>
-            <h2 className="font-display font-normal text-[2rem] sm:text-[2.75rem] leading-[1.1] tracking-[-0.01em] text-white mb-4">
+            <h2 className="font-display font-medium text-[2.3rem] sm:text-[2.75rem] leading-[1.1] tracking-[-0.01em] text-white mb-4">
               Audit scope
             </h2>
             <p className="text-sm text-ds-text-muted leading-relaxed">
@@ -186,7 +186,7 @@ export default function SecurityReviewPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mb-12">
             <SectionEyebrow>How it was done</SectionEyebrow>
-            <h2 className="text-2xl sm:font-display font-normal text-[2rem] sm:text-[2.5rem] leading-[1.1] tracking-[-0.01em] text-white">
+            <h2 className="text-2xl sm:font-display font-medium text-[2.3rem] sm:text-[2.5rem] leading-[1.1] tracking-[-0.01em] text-white">
               Review methodology
             </h2>
           </div>
@@ -207,7 +207,7 @@ export default function SecurityReviewPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mb-10">
             <SectionEyebrow>Classification</SectionEyebrow>
-            <h2 className="font-display font-normal text-[2rem] sm:text-[2.75rem] leading-[1.1] tracking-[-0.01em] text-white mb-4">
+            <h2 className="font-display font-medium text-[2.3rem] sm:text-[2.75rem] leading-[1.1] tracking-[-0.01em] text-white mb-4">
               Severity levels
             </h2>
             <p className="text-sm text-ds-text-muted leading-relaxed">
@@ -260,7 +260,7 @@ export default function SecurityReviewPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid gap-10 lg:grid-cols-2">
           <div>
             <SectionEyebrow>Findings</SectionEyebrow>
-            <h2 className="font-display font-normal text-[2rem] sm:text-[2.75rem] leading-[1.1] tracking-[-0.01em] text-white mb-4">
+            <h2 className="font-display font-medium text-[2.3rem] sm:text-[2.75rem] leading-[1.1] tracking-[-0.01em] text-white mb-4">
               Recommendations made
             </h2>
             <p className="text-sm text-ds-text-muted leading-relaxed mb-6">
@@ -280,7 +280,7 @@ export default function SecurityReviewPage() {
           </div>
           <div>
             <SectionEyebrow>Observed</SectionEyebrow>
-            <h2 className="font-display font-normal text-[2rem] sm:text-[2.75rem] leading-[1.1] tracking-[-0.01em] text-white mb-4">
+            <h2 className="font-display font-medium text-[2.3rem] sm:text-[2.75rem] leading-[1.1] tracking-[-0.01em] text-white mb-4">
               During the engagement
             </h2>
             <ul className="space-y-2.5 mb-8">
@@ -309,7 +309,7 @@ export default function SecurityReviewPage() {
       <section className="py-16 border-t border-ds-border">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionEyebrow>Ongoing</SectionEyebrow>
-          <h2 className="font-display font-normal text-[2rem] sm:text-[2.75rem] leading-[1.1] tracking-[-0.01em] text-white mb-4">
+          <h2 className="font-display font-medium text-[2.3rem] sm:text-[2.75rem] leading-[1.1] tracking-[-0.01em] text-white mb-4">
             Security is not a one-time event
           </h2>
           <p className="text-sm text-ds-text-muted leading-relaxed mb-6">
@@ -377,7 +377,7 @@ export default function SecurityReviewPage() {
                 className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(30,99,255,0.08),transparent_70%)]"
               />
               <div className="relative">
-                <h2 className="font-display font-normal text-[2rem] sm:text-[2.75rem] leading-[1.1] tracking-[-0.01em] text-white mb-4">
+                <h2 className="font-display font-medium text-[2.3rem] sm:text-[2.75rem] leading-[1.1] tracking-[-0.01em] text-white mb-4">
                   Your keys, your crypto.
                 </h2>
                 <p className="text-ds-text-muted mb-8 max-w-xl mx-auto leading-relaxed">

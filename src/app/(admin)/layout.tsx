@@ -2,7 +2,7 @@ import React from 'react';
 import type { Metadata, Viewport } from 'next';
 import '../../styles/tailwind.css';
 import { Toaster } from 'sonner';
-import { Archivo, IBM_Plex_Mono, Schibsted_Grotesk } from 'next/font/google';
+import { Cormorant_Garamond, Geist, Geist_Mono, Schibsted_Grotesk } from 'next/font/google';
 
 /**
  * The admin console's own root layout.
@@ -16,30 +16,36 @@ import { Archivo, IBM_Plex_Mono, Schibsted_Grotesk } from 'next/font/google';
  * failing quietly.
  *
  * What it does share is the design system. The console runs the same ds-*
- * tokens and the same Archivo face as /dashboard, for the same reason the
- * dashboard does: both are dense screens full of figures that someone reads
- * for hours. Two products that clearly belong to one company, distinguished
- * by what they say rather than by an unrelated palette.
+ * tokens and the same Geist face as the rest of the site. Two products that
+ * clearly belong to one company, distinguished by what they say rather than
+ * by an unrelated palette. Loaded again here because this root layout shares
+ * no tree with (site)/layout.tsx.
  */
 
-const archivo = Archivo({
+const geist = Geist({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-archivo',
+  variable: '--font-geist',
+});
+
+// Headlines, upright only - the same serif as the trader application.
+const cormorant = Cormorant_Garamond({
+  subsets: ['latin'],
+  weight: ['500', '600', '700'],
+  style: ['normal'],
+  variable: '--font-serif',
 });
 
 // Hashes, addresses, amounts and timestamps. Tabular figures stop columns
 // jittering as values change, which on a queue that refreshes is the
 // difference between scannable and seasick.
-const plexMono = IBM_Plex_Mono({
+const geistMono = Geist_Mono({
   subsets: ['latin'],
-  weight: ['400', '500', '600'],
   variable: '--font-mono',
 });
 
 // The wordmark face, matching the trader application. See the longer note in
 // (site)/layout.tsx: Schibsted Grotesk drives the Panoply lockup only, never
-// body copy, which stays Archivo throughout the console.
+// body copy, which is Geist throughout the console.
 const schibsted = Schibsted_Grotesk({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
@@ -63,11 +69,9 @@ export default function AdminRootLayout({ children }: Readonly<{ children: React
   return (
     <html
       lang="en"
-      // type-dashboard repoints --font-sans and --font-display at Archivo for
-      // this whole tree, so every font-sans utility below re-resolves through
-      // it without a single component naming a family. Same mechanism the
-      // dashboard uses; see the role block in styles/tailwind.css.
-      className={`type-dashboard font-sans ${archivo.variable} ${plexMono.variable} ${schibsted.variable}`}
+      // type-dashboard resolves --font-sans and --font-display for this whole
+      // tree; see the role block in styles/tailwind.css.
+      className={`type-dashboard font-sans ${geist.variable} ${geistMono.variable} ${cormorant.variable} ${schibsted.variable}`}
     >
       <body className="min-h-screen bg-ds-surface text-ds-text antialiased">
         <a href="#admin-main" className="skip-link">

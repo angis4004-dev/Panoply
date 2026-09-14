@@ -56,7 +56,7 @@ export default function ChartsPage() {
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <Reveal>
             <SectionEyebrow>Market data</SectionEyebrow>
-            <h1 className="font-display font-normal text-[2.75rem] sm:text-[4rem] leading-[1.05] tracking-[-0.015em] text-white mb-6">
+            <h1 className="font-display font-medium text-[2.9rem] sm:text-[4.5rem] leading-[1.05] tracking-[-0.01em] text-white mb-6">
               Charts
             </h1>
             <p className="text-ds-text-muted text-lg leading-relaxed max-w-2xl mx-auto">
@@ -100,7 +100,7 @@ export default function ChartsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-8 max-w-xl">
             <SectionEyebrow>Network breakdown</SectionEyebrow>
-            <h2 className="font-display font-normal text-[2rem] sm:text-[2.5rem] leading-[1.1] tracking-[-0.01em] text-white mb-4">
+            <h2 className="font-display font-medium text-[2.3rem] sm:text-[2.5rem] leading-[1.1] tracking-[-0.01em] text-white mb-4">
               Protocol Overview
             </h2>
             <p className="text-ds-text-muted leading-relaxed">
@@ -122,7 +122,7 @@ export default function ChartsPage() {
                 className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(30,99,255,0.08),transparent_70%)]"
               />
               <div className="relative">
-                <h2 className="font-display font-normal text-[2rem] sm:text-[2.75rem] leading-[1.1] tracking-[-0.01em] text-white mb-4">
+                <h2 className="font-display font-medium text-[2.3rem] sm:text-[2.75rem] leading-[1.1] tracking-[-0.01em] text-white mb-4">
                   See your portfolio against the market.
                 </h2>
                 <p className="text-ds-text-muted mb-8 max-w-xl mx-auto leading-relaxed">

@@ -10,14 +10,12 @@ export function PageHeader({ title, description, action }: PageHeaderProps) {
       {/* Every dashboard page titles itself through here, so this is the one
           place the app's heading treatment is defined.
 
-          The display role resolves to the same family as body text, so the
-          separation has to come from weight and tracking instead. 700 is the
-          top of Archivo's loaded range, and the negative tracking is doing
-          real work: grotesques set at 2.5rem with default spacing read loose
-          and unfinished, because the sidebearings were drawn for text sizes
-          and do not scale down with the optical size. */}
+          The display role is the upright serif, as on the marketing pages.
+          Set a step larger than a sans title would be, because the serif's
+          x-height is small, and at 500 with near-default tracking: a serif
+          pulled as tight as a grotesque starts touching at the serifs. */}
       <div>
-        <h1 className="font-display text-[2rem] font-bold leading-[1.1] tracking-[-0.03em] text-ds-text sm:text-[2.5rem]">
+        <h1 className="font-display text-[2.3rem] font-medium leading-[1.05] tracking-[-0.01em] text-ds-text sm:text-[2.85rem]">
           {title}
         </h1>
         {description && (

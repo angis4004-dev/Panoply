@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Reveal } from '@/components/ui/Reveal';
 import { SignalField } from '@/components/ui/signal-field';
 import { CountUpOnView } from '@/components/ui/RollingNumber';
+import { StrategyCard } from '@/components/homepage/StrategyCard';
 
 /**
  * Alternating two-column feature rows (text + a small UI mockup card,
@@ -18,7 +19,7 @@ function SignalFlowMockup() {
         Open a grid signal flow on BTC/USDT
       </div>
       <div className="rounded-lg bg-[#0D1219] border border-primary/20 p-4">
-        <p className="text-ds-caption uppercase tracking-[0.2em] text-primary mb-3">Executing</p>
+        <p className="text-ds-caption uppercase tracking-[0.12em] text-primary mb-3">Executing</p>
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-semibold text-white">Grid · BTC/USDT</p>
@@ -33,38 +34,6 @@ function SignalFlowMockup() {
   );
 }
 
-function VaultStatMockup() {
-  return (
-    <SignalField className="h-full p-6" readout="TVL 28.07M">
-      <div className="flex items-center gap-4 mb-4 text-xs text-ds-text-muted">
-        <span>
-          <CountUpOnView value={28.07} format={(n) => `$${n.toFixed(2)}M TVL`} />
-        </span>
-        <span className="text-ds-value-positive">
-          <CountUpOnView value={38.42} format={(n) => `${n.toFixed(2)}% (3M)`} />
-        </span>
-      </div>
-      <svg viewBox="0 0 200 60" className="w-full h-16 mb-4" preserveAspectRatio="none">
-        <path
-          d="M0 40 C 20 20, 40 50, 60 35 S 100 15, 120 30 S 160 45, 200 20"
-          fill="none"
-          stroke="#00D4AA"
-          strokeWidth="2"
-        />
-      </svg>
-      <div className="flex items-center gap-3">
-        <div className="h-9 w-9 rounded-full bg-primary/15 flex items-center justify-center text-primary text-sm font-bold">
-          V
-        </div>
-        <div>
-          <p className="text-sm font-semibold text-white">Momentum Vault</p>
-          <p className="text-xs text-ds-text-muted">Risk score 5/10</p>
-        </div>
-      </div>
-    </SignalField>
-  );
-}
-
 function YieldMockup() {
   const rows = [
     { label: 'Ethereum', sub: 'ETH', on: true },
@@ -73,7 +42,7 @@ function YieldMockup() {
   ];
   return (
     <SignalField className="h-full p-6" readout="3 CHAINS">
-      <p className="text-ds-caption uppercase tracking-[0.2em] text-ds-text-muted mb-4">
+      <p className="text-ds-caption uppercase tracking-[0.12em] text-ds-text-muted mb-4">
         Chains enabled for yield routing
       </p>
       <div className="space-y-3">
@@ -140,7 +109,7 @@ const rows = [
     title: 'Risk-Managed Vaults',
     desc: 'Transparent performance tracking and dynamic risk controls, with every position visible on-chain.',
     href: '/dashboard/vaults',
-    mockup: VaultStatMockup,
+    mockup: StrategyCard,
   },
   {
     eyebrow: 'Cross-chain',
@@ -171,10 +140,10 @@ export function FeaturesGrid() {
             measure so the break looks intentional rather than stray. */}
         <div className="mb-16 sm:mb-20 grid gap-x-10 gap-y-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
           <div>
-            <p className="text-ds-caption font-semibold uppercase tracking-[0.35em] text-primary mb-3">
+            <p className="text-ds-caption font-semibold uppercase tracking-[0.12em] text-primary mb-3">
               Automated strategies, or build your own
             </p>
-            <h2 className="font-display font-normal text-[2rem] leading-[1.1] sm:text-[3rem] tracking-[-0.01em] text-white">
+            <h2 className="font-display font-medium text-[2.3rem] leading-[1.1] sm:text-[3rem] tracking-[-0.01em] text-white">
               Every position, non-custodial.
             </h2>
           </div>
@@ -194,10 +163,10 @@ export function FeaturesGrid() {
                 className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center"
               >
                 <Reveal className={reversed ? 'lg:order-2' : ''}>
-                  <p className="text-ds-caption font-semibold uppercase tracking-[0.3em] text-primary mb-3">
+                  <p className="text-ds-caption font-semibold uppercase tracking-[0.12em] text-primary mb-3">
                     {row.eyebrow}
                   </p>
-                  <h3 className="font-display font-normal text-[1.75rem] sm:text-[2.25rem] leading-[1.1] tracking-[-0.01em] text-white mb-4">
+                  <h3 className="font-display font-medium text-[1.75rem] sm:text-[2.25rem] leading-[1.1] tracking-[-0.01em] text-white mb-4">
                     {row.title}
                   </h3>
                   <p className="text-ds-text-muted leading-relaxed mb-6 max-w-md">{row.desc}</p>

@@ -2,22 +2,23 @@
 
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
-import { Reveal } from '@/components/ui/Reveal';
 import { SignalField } from '@/components/ui/signal-field';
-import { useScrollParallax } from '@/hooks/use-scroll-parallax';
+import { HeroFlow } from '@/components/homepage/HeroFlow';
+import { MOTTO } from '@/lib/about-content';
 
+/**
+ * The hero, laid out as the approved example page: no box around it, the
+ * headline, sentence and buttons in the left column, the flow diagram in its
+ * own panel on the right. On the dark ground rather than the example's paper.
+ *
+ * Measurements taken from the example: a 1120px measure, columns 1fr / 1.15fr
+ * with a 48px gap, the headline at up to 78px set solid, the sentence 18px
+ * below it at 16px / 1.6 and 40 characters wide, and the buttons 26px below
+ * that. Below `lg` the columns stack, diagram after the buttons.
+ */
 export function Hero() {
-  // Subtle parallax depth on the ambient orb as the hero scrolls out of
-  // view - drifts down and fades rather than just sitting static, the
-  // "special effect" distinguishing this from a generic dark dashboard.
-  const scrollProgress = useScrollParallax(500);
-  const orbStyle = {
-    transform: `translateY(${scrollProgress * 36}px) scale(${1 + scrollProgress * 0.12})`,
-    opacity: 1 - scrollProgress * 0.6,
-  };
-
   return (
-    <section className="relative pt-28 pb-20 overflow-hidden">
+    <section className="relative overflow-hidden pb-20 pt-28 sm:pt-32">
       {/* Dotted grid texture */}
       <div
         aria-hidden
@@ -35,69 +36,59 @@ export function Hero() {
         }}
       />
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="relative overflow-hidden grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-center rounded-2xl border border-ds-border bg-ds-surface-overlay/50 backdrop-blur-sm p-6 sm:p-10">
-          {/* Below lg there's no second column to hold the orb, so it
-              renders as an absolutely-positioned ambient layer behind the
-              text instead of its own stacked block - keeps it blended
-              rather than a floating shape with dead space around it. */}
-          <div
-            className="ds-ambient-orb lg:hidden"
-            aria-hidden
-            style={{ ...orbStyle, opacity: 0.7 - scrollProgress * 0.42 }}
-          />
-
-          <Reveal className="relative">
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/5 px-4 py-1.5 mb-6">
-              <span className="text-ds-caption font-semibold uppercase tracking-[0.35em] text-primary">
-                Quantitative Intelligence for Decentralized Finance
-              </span>
-            </div>
-            {/* Display serif at 400, not the body sans at 700. The emphasis on
-                the second clause was a cream-to-cyan-to-purple gradient clip,
-                which is the most recognisable stock-SaaS headline treatment
-                there is; it now leans on the brand cream and an italic, which
-                the serif actually has a drawn face for. */}
-            <h1 className="font-display font-normal text-[2.75rem] leading-[1.05] sm:text-[4rem] sm:leading-[1.03] tracking-[-0.015em] text-white mb-6">
-              Disciplined automation for <em className="not-italic text-primary">on-chain</em>{' '}
-              <span className="italic text-primary">portfolios.</span>
+      <div className="relative mx-auto max-w-[1120px] px-6">
+        <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-[1fr_1.15fr] lg:gap-12">
+          {/* A one-time CSS entrance, not <Reveal>. Reveal hides until an
+              IntersectionObserver fires and re-hides on the way out; for the
+              first thing anyone sees, a viewport change (a phone's URL bar
+              collapsing) could replay that and blur the headline. */}
+          <div className="hero-enter">
+            {/* Cormorant Garamond 500, upright, -0.01em, set solid, balanced
+                across however many lines the column gives it - four beside
+                the diagram on a desktop, as in the example. */}
+            <h1 className="font-display text-[clamp(2.875rem,7vw,4.875rem)] font-medium leading-none tracking-[-0.01em] text-balance text-white">
+              {/* U+2011, a non-breaking hyphen: "on-" must not end a line. */}
+              Disciplined automation for on&#8209;chain portfolios
             </h1>
-            <p className="text-ds-text-muted text-base sm:text-lg mb-8 max-w-xl leading-relaxed">
-              Panoply combines quantitative research, automated execution, and risk management in a
-              single non-custodial platform. Set your risk parameters and let disciplined,
-              continuously monitored automation handle the rest.
+            <p className="mt-[18px] max-w-[40ch] text-base leading-[1.6] text-ds-text-muted">
+              Set your risk limits once. Panoply runs the strategy and watches it around the clock,
+              and your keys never leave you.
             </p>
-            {/* The field spans the CTA row and reads in the space around and
-                between the two buttons - the cream fill is opaque, so behind
-                them there would be nothing to see. -mx-3 keeps the buttons on
-                the same optical left edge as the paragraph above despite the
-                padding the field needs. */}
-            <SignalField variant="cta" className="-mx-3 flex flex-wrap gap-4 px-3 py-3">
+            {/* 26px above the buttons: the field's own 12px padding plus 14px.
+                -mx-3 keeps the buttons on the paragraph's left edge despite
+                the padding the field needs. */}
+            <SignalField variant="cta" className="-mx-3 mt-[14px] flex flex-wrap gap-4 px-3 py-3">
               <Link
                 href="/sign-up-login-screen"
-                className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-primary-foreground bg-primary hover:bg-primary/90 rounded-lg transition duration-fast ease-ds-out active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
+                className="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition duration-fast ease-ds-out hover:bg-primary/90 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
               >
                 Put Your Portfolio on Autopilot
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <a
                 href="#features"
-                className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-[#E7ECF2] border border-ds-border hover:border-primary/50 hover:bg-ds-surface-inset rounded-lg transition duration-fast ease-ds-out active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
+                className="inline-flex min-h-[44px] items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium text-[#E7ECF2] transition duration-fast ease-ds-out hover:bg-white/5 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface"
               >
                 See How It Works
               </a>
             </SignalField>
-          </Reveal>
+          </div>
 
-          <Reveal delay={150} className="hidden lg:block">
-            <div className="relative h-[320px] lg:h-[380px]">
-              <div className="ds-ambient-orb" aria-hidden style={orbStyle} />
-            </div>
-          </Reveal>
+          {/* The diagram's panel: the example's rounded well, as the same
+              SignalField the security cards use so it keeps their cream glow.
+              28px of padding and a 24px radius, as in the example. */}
+          <SignalField
+            variant="panel"
+            className="hero-enter rounded-3xl px-2 py-6 sm:p-7"
+          >
+            <HeroFlow className="relative m-0 w-full" />
+          </SignalField>
         </div>
 
-        <div className="mt-6 flex flex-wrap items-center justify-between gap-3 text-ds-caption uppercase tracking-[0.3em] text-ds-text-muted">
-          <span>Institutional-grade infrastructure</span>
+        <div className="mt-16 flex flex-wrap items-center justify-between gap-3 text-ds-caption uppercase tracking-[0.12em] text-ds-text-muted">
+          {/* The motto, as a quiet caption under the hero rather than a pill
+              above the headline. Same constant the About page uses. */}
+          <span>{MOTTO}</span>
           <span>Non-custodial · Risk-managed · Always on</span>
         </div>
       </div>

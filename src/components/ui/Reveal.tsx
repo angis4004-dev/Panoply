@@ -50,13 +50,14 @@ export function Reveal({ children, delay = 0, className = '' }: RevealProps) {
   return (
     <div
       ref={ref}
-      // Only opacity and transform actually change here, so they are the only
-      // two properties named. `transition-all` made the browser watch every
-      // animatable property on the wrapper for 700ms, which also meant any
-      // layout-affecting change on a child - a width or colour set by
-      // something else - got dragged into the same 700ms curve.
-      className={`transition-[opacity,transform] duration-700 ease-out ${
-        visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+      // Rises 16px out of a 4px blur on a strong ease-out, so it arrives fast
+      // and settles slowly - "coming into focus" rather than "sliding up".
+      // Only opacity, transform and filter are named: `transition-all` would
+      // drag any unrelated change on a child into the same curve. The blur is
+      // dropped entirely once visible (`blur-0`), so a revealed block never
+      // keeps a filter layer alive while you read it.
+      className={`transition-[opacity,transform,filter] duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] ${
+        visible ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-4 blur-[4px]'
       } ${className}`}
       style={{ transitionDelay: visible ? `${delay}ms` : '0ms' }}
     >

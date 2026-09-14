@@ -43,7 +43,7 @@ function SecurityCard({ item }: { item: (typeof items)[number] }) {
       <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
         <Icon className="h-6 w-6 text-primary" />
       </div>
-      <h3 className={`font-display font-normal text-xl text-white mb-2 ${signalHeadline}`}>
+      <h3 className={`font-display font-medium text-2xl text-white mb-2 ${signalHeadline}`}>
         {item.title}
       </h3>
       <p className="text-sm text-ds-text-muted">{item.desc}</p>
@@ -93,10 +93,10 @@ export function SecuritySection() {
     <section id="security" className="py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-14">
-          <p className="text-ds-caption font-semibold uppercase tracking-[0.35em] text-primary mb-3">
+          <p className="text-ds-caption font-semibold uppercase tracking-[0.12em] text-primary mb-3">
             Before anything else
           </p>
-          <h2 className="font-display font-normal text-[2rem] leading-[1.1] sm:text-[2.75rem] tracking-[-0.01em] text-white mb-4">
+          <h2 className="font-display font-medium text-[2.3rem] leading-[1.1] sm:text-[2.75rem] tracking-[-0.01em] text-white mb-4">
             Your Keys. Your Crypto. Always.
           </h2>
           <p className="text-ds-text-muted max-w-2xl mx-auto">

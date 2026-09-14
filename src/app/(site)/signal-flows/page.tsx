@@ -111,7 +111,7 @@ export default function SignalFlowsPage() {
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <Reveal>
             <SectionEyebrow>Automated execution</SectionEyebrow>
-            <h1 className="font-display font-normal text-[2.75rem] sm:text-[4rem] leading-[1.05] tracking-[-0.015em] text-white mb-6">
+            <h1 className="font-display font-medium text-[2.9rem] sm:text-[4.5rem] leading-[1.05] tracking-[-0.01em] text-white mb-6">
               Signal Flows
             </h1>
             <p className="text-ds-text-muted text-lg leading-relaxed max-w-2xl mx-auto">
@@ -148,7 +148,7 @@ export default function SignalFlowsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <SectionEyebrow>Strategy types</SectionEyebrow>
-            <h2 className="font-display font-normal text-[2rem] sm:text-[2.5rem] leading-[1.1] tracking-[-0.01em] text-white">
+            <h2 className="font-display font-medium text-[2.3rem] sm:text-[2.5rem] leading-[1.1] tracking-[-0.01em] text-white">
               Four ways to run a signal flow
             </h2>
           </div>
@@ -172,7 +172,7 @@ export default function SignalFlowsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-12 max-w-xl">
             <SectionEyebrow>Live preview</SectionEyebrow>
-            <h2 className="font-display font-normal text-[2rem] sm:text-[2.5rem] leading-[1.1] tracking-[-0.01em] text-white mb-4">
+            <h2 className="font-display font-medium text-[2.3rem] sm:text-[2.5rem] leading-[1.1] tracking-[-0.01em] text-white mb-4">
               Browse the signal flow library
             </h2>
             <p className="text-ds-text-muted leading-relaxed">
@@ -245,7 +245,7 @@ export default function SignalFlowsPage() {
                 className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(30,99,255,0.08),transparent_70%)]"
               />
               <div className="relative">
-                <h2 className="font-display font-normal text-[2rem] sm:text-[2.75rem] leading-[1.1] tracking-[-0.01em] text-white mb-4">
+                <h2 className="font-display font-medium text-[2.3rem] sm:text-[2.75rem] leading-[1.1] tracking-[-0.01em] text-white mb-4">
                   Put a signal flow on autopilot.
                 </h2>
                 <p className="text-ds-text-muted mb-8 max-w-xl mx-auto leading-relaxed">

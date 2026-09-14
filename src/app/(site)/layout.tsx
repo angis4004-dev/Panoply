@@ -5,10 +5,10 @@ import '@/lib/chartSetup';
 import { Toaster } from 'sonner';
 import { AuthProvider } from '@/context/AuthContext';
 import {
-  IBM_Plex_Sans,
-  IBM_Plex_Mono,
+  Cormorant_Garamond,
+  Geist,
+  Geist_Mono,
   IBM_Plex_Sans_Arabic,
-  Instrument_Serif,
   Schibsted_Grotesk,
 } from 'next/font/google';
 import { cn } from '@/lib/utils';
@@ -17,50 +17,38 @@ import { SUPPORT_EMAIL } from '@/lib/contact';
 /*
  * Typefaces are loaded here but not assigned here.
  *
- * Each family owns a variable named after itself (--font-plex-sans,
- * --font-instrument, ...). Two role variables, --font-sans and --font-display,
- * point at whichever family fills that role, and Tailwind's `font-sans` and
- * `font-display` read only the roles. Custom properties cascade, so any
- * subtree can repoint a role and every utility inside it follows without a
- * single component changing - which is how the dashboard runs Archivo and
- * Abril Fatface while the marketing pages keep Tahoma and Instrument Serif.
- * See the role definitions in styles/tailwind.css.
+ * Each family owns a variable named after itself (--font-geist, --font-mono,
+ * ...). Two role variables, --font-sans and --font-display, point at whichever
+ * family fills that role, and Tailwind's `font-sans` and `font-display` read
+ * only the roles. See the role definitions in styles/tailwind.css.
  *
- * Previously `--font-sans` fed both `font-sans` and `font-display`, so every
- * heading on the site was the body font at a heavier weight. Weight was the
- * only thing separating an H1 from a paragraph, which is the main reason the
- * pages read as untyped rather than designed.
+ * Geist is the body face everywhere, and the whole face of the dashboard and
+ * console. It replaced Tahoma (absent on iOS and Android, so phones never
+ * showed the face a laptop did) and Archivo in the app.
  *
- * Instrument Serif ships a single 400 weight on purpose. High-contrast
- * editorial serifs hold up at display size unbolded, and asking for `font-bold`
- * on a 400-only family makes the browser synthesise a fake bold that smears the
- * thin strokes. Display headings therefore pair `font-display` with
- * `font-normal`, never `font-bold`. Abril Fatface is 400-only for the same
- * reason, so the rule carries over to the dashboard unchanged.
+ * Marketing headlines are Cormorant Garamond, upright only. It replaced
+ * Instrument Serif, whose single 400 weight read faintly on a phone and whose
+ * italic carried the hero. Cormorant has real 500-700 weights, so headings
+ * pair `font-display` with `font-semibold` instead of synthesising a bold.
+ * Only `style: 'normal'` is loaded: no italic file exists to reach for.
  */
-const plexSans = IBM_Plex_Sans({
+const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-plex-sans',
+  weight: ['500', '600', '700'],
+  style: ['normal'],
+  variable: '--font-serif',
 });
 
-/*
- * `font-mono` was pointed at 'JetBrains Mono' by bare family name with nothing
- * ever loading it, so all 55 usages (every price, P&L figure and metric) fell
- * through to the system default monospace - Courier New on Windows. Loading a
- * real face fixes numeric type across the dashboard.
- */
-const plexMono = IBM_Plex_Mono({
+const geist = Geist({
   subsets: ['latin'],
-  weight: ['400', '500', '600'],
+  variable: '--font-geist',
+});
+
+/* Figures, prices and addresses. Geist Mono shares Geist's proportions, so a
+   number sitting inside a sentence does not change the colour of the line. */
+const geistMono = Geist_Mono({
+  subsets: ['latin'],
   variable: '--font-mono',
-});
-
-const instrumentSerif = Instrument_Serif({
-  subsets: ['latin'],
-  weight: '400',
-  style: ['normal', 'italic'],
-  variable: '--font-instrument',
 });
 
 /*
@@ -69,8 +57,7 @@ const instrumentSerif = Instrument_Serif({
  * Schibsted Grotesk is what the Panoply logo is drawn in, so the lockup in the
  * navbar, the footer and the console has to be set in it or the rendered
  * wordmark stops matching the brand sheet. It deliberately does not feed
- * --font-sans: body copy stays Tahoma/IBM Plex Sans out here and Archivo in
- * the dashboard, and the display serifs are untouched.
+ * --font-sans: everything else is Geist.
  *
  * Replaces Orbitron, which was a wide squared-off techno face carrying the old
  * all-caps AEGIS lockup. Panoply is set sentence-case at normal tracking, and
@@ -98,7 +85,7 @@ const schibsted = Schibsted_Grotesk({
  * needs to be drawn. An English reader never downloads it.
  *
  * Appended to the stack in styles/tailwind.css rather than swapping it, so a
- * Latin name inside Arabic text still renders in Plex.
+ * Latin name inside Arabic text still renders in Geist.
  */
 const plexArabic = IBM_Plex_Sans_Arabic({
   subsets: ['arabic'],
@@ -177,9 +164,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       lang="en"
       className={cn(
         'font-sans',
-        plexSans.variable,
-        plexMono.variable,
-        instrumentSerif.variable,
+        geist.variable,
+        geistMono.variable,
+        cormorant.variable,
         schibsted.variable,
         plexArabic.variable
       )}

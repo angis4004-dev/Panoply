@@ -17,7 +17,7 @@ export function FinalCta() {
             />
             <div className="relative">
               <h2
-                className={`font-display font-normal text-[2rem] sm:text-[3rem] leading-[1.08] tracking-[-0.01em] text-white mb-4 ${signalHeadline}`}
+                className={`font-display font-medium text-[2.3rem] sm:text-[3rem] leading-[1.08] tracking-[-0.01em] text-white mb-4 ${signalHeadline}`}
               >
                 Bring Discipline to Your On-Chain Portfolio
               </h2>
