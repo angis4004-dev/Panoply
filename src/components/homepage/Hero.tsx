@@ -94,7 +94,15 @@ export function Hero() {
           {/* The motto, as a quiet caption under the hero rather than a pill
               above the headline. Same constant the About page uses. */}
           <span>{MOTTO}</span>
-          <span>Non-custodial · Risk-managed · Always on</span>
+          {/* Wraps only between phrases, so a phone never splits "Always on". */}
+          <span className="flex flex-wrap gap-x-2">
+            {['Non-custodial', 'Risk-managed', 'Always on'].map((phrase, i) => (
+              <span key={phrase} className="whitespace-nowrap">
+                {i > 0 && '· '}
+                {phrase}
+              </span>
+            ))}
+          </span>
         </div>
       </div>
     </section>
