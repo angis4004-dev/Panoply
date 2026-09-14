@@ -42,7 +42,15 @@ export function Hero() {
               IntersectionObserver fires and re-hides on the way out; for the
               first thing anyone sees, a viewport change (a phone's URL bar
               collapsing) could replay that and blur the headline. */}
-          <div className="hero-enter">
+          <div className="hero-enter relative isolate">
+            {/* A soft shade behind the copy. The animated colour bands run
+                straight through this column, and where the brightest band
+                crossed the sentence its grey text dropped out of legibility.
+                A radial fade rather than a box, so there is no visible edge. */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -inset-x-20 -inset-y-16 -z-10 bg-[radial-gradient(closest-side,rgba(10,14,19,0.82),rgba(10,14,19,0.5)_65%,transparent)]"
+            />
             {/* Cormorant Garamond 500, upright, -0.01em, set solid, balanced
                 across however many lines the column gives it - four beside
                 the diagram on a desktop, as in the example. */}
@@ -77,10 +85,7 @@ export function Hero() {
           {/* The diagram's panel: the example's rounded well, as the same
               SignalField the security cards use so it keeps their cream glow.
               28px of padding and a 24px radius, as in the example. */}
-          <SignalField
-            variant="panel"
-            className="hero-enter rounded-3xl px-2 py-6 sm:p-7"
-          >
+          <SignalField variant="panel" className="hero-enter rounded-3xl px-2 py-6 sm:p-7">
             <HeroFlow className="relative m-0 w-full" />
           </SignalField>
         </div>
