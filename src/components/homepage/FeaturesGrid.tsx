@@ -77,19 +77,19 @@ function ReportMockup() {
       <div className="grid grid-cols-3 gap-2 text-center">
         <div className="rounded-lg bg-[#0D1219] border border-ds-border py-3">
           <p className="text-sm font-mono text-primary">Med</p>
-          <p className="text-[10px] uppercase tracking-wide text-ds-text-muted">Risk</p>
+          <p className="text-xs uppercase tracking-wide text-ds-text-muted">Risk</p>
         </div>
         <div className="rounded-lg bg-[#0D1219] border border-ds-border py-3">
           <p className="text-sm font-mono text-primary">
             <CountUpOnView value={18} format={(n) => `${Math.round(n)}%`} />
           </p>
-          <p className="text-[10px] uppercase tracking-wide text-ds-text-muted">Est. APY</p>
+          <p className="text-xs uppercase tracking-wide text-ds-text-muted">Est. APY</p>
         </div>
         <div className="rounded-lg bg-[#0D1219] border border-ds-border py-3">
           <p className="text-sm font-mono text-primary">
             <CountUpOnView value={6} format={(n) => `${Math.round(n)}`} />
           </p>
-          <p className="text-[10px] uppercase tracking-wide text-ds-text-muted">Assets</p>
+          <p className="text-xs uppercase tracking-wide text-ds-text-muted">Assets</p>
         </div>
       </div>
     </SignalField>

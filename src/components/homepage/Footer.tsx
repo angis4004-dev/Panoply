@@ -37,8 +37,7 @@ const linkClass =
  * of the destinations. Shrinking it and spacing the letters keeps it legible
  * as a divider while letting it recede behind the links it introduces.
  */
-const headingClass =
-  'mb-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-ds-text-muted';
+const headingClass = 'mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-ds-text-muted';
 
 const navClass = 'flex flex-col gap-1 text-sm sm:gap-0.5';
 

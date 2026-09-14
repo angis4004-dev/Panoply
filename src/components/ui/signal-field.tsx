@@ -65,7 +65,7 @@ export function SignalField({
         <span
           aria-hidden
           className={cn(
-            'pointer-events-none absolute right-4 top-4 font-mono text-[0.625rem] uppercase tracking-[0.08em] text-primary/80',
+            'pointer-events-none absolute right-4 top-4 font-mono text-xs uppercase tracking-[0.08em] text-primary/80',
             'translate-y-[-4px] opacity-0 transition-[opacity,transform] duration-base ease-ds-out',
             'group-hover/signal:translate-y-0 group-hover/signal:opacity-100',
             'group-focus-within/signal:translate-y-0 group-focus-within/signal:opacity-100'
