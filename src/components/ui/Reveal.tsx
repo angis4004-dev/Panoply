@@ -27,17 +27,25 @@ interface RevealProps {
  */
 export function Reveal({ children, delay = 0, className = '' }: RevealProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
+  // Visible until the observer says otherwise. Starting hidden meant the
+  // server-rendered HTML shipped every section at opacity 0: blank until the
+  // bundle hydrated, blank in link previews and full-page captures, and blank
+  // for good if the script failed. Now the first frame always shows content,
+  // and the hide/reveal cycle only begins once JavaScript is actually running.
+  const [visible, setVisible] = useState(true);
 
   useEffect(() => {
     const node = ref.current;
     if (!node) return;
 
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      setVisible(true);
       return;
     }
 
+    // The observer's first callback reports what is on screen right now:
+    // content already in view stays put, content below the fold is hidden so
+    // it can rise in when reached. A misreported viewport height on mobile
+    // (the concern noted above) now errs toward showing content, not hiding it.
     const observer = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), {
       threshold: 0.15,
     });
