@@ -10,7 +10,6 @@ import { getWithdrawalStanding, serializeWithdrawal } from '@/lib/withdrawals';
 import { InvalidAmountError, toDollars, toPositiveMinor } from '@/lib/money';
 import { alertOps } from '@/lib/ops-alerts';
 import { parseBody, withdrawalCreateSchema } from '@/lib/validation';
-import { DEMO_BANNER, isDemoMode } from '@/lib/demo-mode';
 
 /**
  * Taking capital off the platform.
@@ -78,18 +77,7 @@ export async function GET(request: NextRequest) {
     lock: standing.lock,
   });
 
-  const demo = isDemoMode();
-
   return NextResponse.json({
-    demo,
-    /*
-     * Says which control was released, not just that this is a demo. An
-     * operator reading the screen needs to know the term was lifted and that
-     * identity checks were not.
-     */
-    demoNotice: demo
-      ? `${DEMO_BANNER} The committed-term lock is released for this demonstration; identity verification and wallet-ownership checks still apply.`
-      : null,
     horizon: standing.horizon,
     horizonLabel: standing.horizonLabel,
     horizonAssumed: standing.horizonAssumed,

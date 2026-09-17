@@ -1,7 +1,6 @@
 import mongoose from 'mongoose';
 import { UserModel } from '@/lib/models/user';
 import { WithdrawalModel } from '@/lib/models/Withdrawal';
-import { isDemoMode } from '@/lib/demo-mode';
 import {
   computeLockStatus,
   computeWithdrawableMinor,
@@ -83,29 +82,14 @@ export async function getWithdrawalStanding(
   );
 
   /*
-   * Demo mode releases the committed-term lock, and only that.
+   * The lock as computed, with no way to release it from configuration.
    *
-   * The term is a product policy - how long capital stays invested - so a
-   * demonstration of the withdrawal screen is meaningless while it says "come
-   * back in two weeks". Releasing it shows the flow.
-   *
-   * Identity verification and wallet-ownership confirmation are NOT released,
-   * in demo mode or any other. Those two decide whether money can reach the
-   * wrong person, and a flag in an environment file must not be able to switch
-   * them off - if DEMO_MODE were ever set on a real deployment, that would be
-   * the difference between an embarrassing screenshot and a payout to someone
-   * who should not have received one.
+   * A DEMO_MODE environment flag used to unlock the term here so the
+   * withdrawal screen could be demonstrated. It is gone: the term decides
+   * when real capital may leave the platform, and nothing in an env file
+   * should be able to lift it on a deployment holding real money.
    */
-  const lock: LockStatus =
-    isDemoMode() && !realLock.withdrawable
-      ? {
-          reason: 'unlocked',
-          clockStartsAt: realLock.clockStartsAt ?? now,
-          unlocksAt: realLock.unlocksAt ?? now,
-          withdrawable: true,
-          awaiting: null,
-        }
-      : realLock;
+  const lock: LockStatus = realLock;
 
   const live = await WithdrawalModel.find({
     userId,

@@ -42,8 +42,6 @@ interface WithdrawalRow {
 }
 
 interface Standing {
-  demo: boolean;
-  demoNotice: string | null;
   horizonLabel: string;
   horizonAssumed: boolean;
   lock: {
@@ -176,12 +174,6 @@ export default function WithdrawPage() {
         title="Withdraw"
         description="Take capital off the platform. Requests are reviewed by our team before any transfer is sent."
       />
-
-      {data.demoNotice && (
-        <div className="mb-6 rounded-xl border border-ds-value-warning/30 bg-ds-value-warning/[0.07] p-4 text-xs leading-relaxed text-ds-value-warning">
-          <span className="font-bold uppercase tracking-widest">Demo</span> — {data.demoNotice}
-        </div>
-      )}
 
       <div className="mb-6 grid gap-4 sm:grid-cols-3">
         <div className="rounded-xl border border-ds-border bg-ds-surface-raised/50 p-5">
