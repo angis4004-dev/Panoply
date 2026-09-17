@@ -23,12 +23,12 @@ import {
  */
 
 /**
- * The horizon used when the trader has never chosen one.
+ * The horizon recorded when the trader has never chosen one.
  *
- * Short, deliberately. The horizon decides how long someone's money is
- * committed, and defaulting an unanswered question to the twelve-month term
- * would lock capital for a year based on silence. If the platform gets this
- * wrong it should be in the direction that returns money sooner.
+ * It no longer decides anything: every trader unlocks 14 days after their
+ * investment starts. This only fills the field on the account and on the
+ * record of each request, and stays "short" so an unanswered question is
+ * never reported as a longer commitment than the trader agreed to.
  */
 const DEFAULT_HORIZON: InvestmentHorizon = 'short';
 
@@ -78,7 +78,6 @@ export async function getWithdrawalStanding(
     {
       firstDepositApprovedAt: user.firstDepositApprovedAt ?? null,
       tradingStartedAt: user.tradingStartedAt ?? null,
-      horizon,
     },
     now
   );
@@ -88,7 +87,7 @@ export async function getWithdrawalStanding(
    *
    * The term is a product policy - how long capital stays invested - so a
    * demonstration of the withdrawal screen is meaningless while it says "come
-   * back in three months". Releasing it shows the flow.
+   * back in two weeks". Releasing it shows the flow.
    *
    * Identity verification and wallet-ownership confirmation are NOT released,
    * in demo mode or any other. Those two decide whether money can reach the

@@ -11,8 +11,12 @@
  *   clockStart = the LATER of (first deposit approved, first signal flow
  *                started). Money must be in AND working before the lock
  *                begins counting.
- *   unlock     = clockStart + 3 months  (short horizon)
- *                clockStart + 12 months (long horizon)
+ *   unlock     = clockStart + 14 days, for everyone.
+ *
+ * The term used to be three or twelve months, chosen by the trader as a
+ * horizon. It is a flat fourteen days now, so the horizon no longer decides
+ * when capital is released - it stays only as the trader's stated preference
+ * and on the record of each past request.
  *
  * Both conditions are required on purpose. Starting from the deposit alone
  * would let someone deposit, never trade, and withdraw on schedule - the
@@ -21,17 +25,30 @@
  * term, then deposit and withdraw immediately.
  */
 
-/** How long capital is committed. Chosen by the trader, not derived. */
+/**
+ * How long capital stays committed: fourteen days from the moment the
+ * investment starts, for every trader.
+ *
+ * Held and added as milliseconds. A date-level comparison would have to
+ * decide what "14 days later" means for a term that started at 23:40, and
+ * every rounding answer to that releases someone's money early. Adding a
+ * fixed duration to the instant cannot.
+ */
+export const WITHDRAWAL_LOCK_DAYS = 14;
+export const WITHDRAWAL_LOCK_MS = WITHDRAWAL_LOCK_DAYS * 24 * 60 * 60 * 1000;
+
+/**
+ * The trader's stated preference for how long they mean to stay invested.
+ *
+ * No longer sets the lock - see WITHDRAWAL_LOCK_DAYS. It is still stored on
+ * the account and copied onto each withdrawal record, so the labels describe
+ * the intention and claim no particular term.
+ */
 export type InvestmentHorizon = 'short' | 'long';
 
-export const HORIZON_MONTHS: Record<InvestmentHorizon, number> = {
-  short: 3,
-  long: 12,
-};
-
 export const HORIZON_LABELS: Record<InvestmentHorizon, string> = {
-  short: 'Short term (3 months)',
-  long: 'Long term (12 months)',
+  short: 'Short term',
+  long: 'Long term',
 };
 
 export function isInvestmentHorizon(value: unknown): value is InvestmentHorizon {
@@ -43,7 +60,6 @@ export interface LockInput {
   firstDepositApprovedAt?: Date | null;
   /** When the trader's first signal flow started running. Null if none yet. */
   tradingStartedAt?: Date | null;
-  horizon: InvestmentHorizon;
 }
 
 export type LockReason =
@@ -67,31 +83,18 @@ export interface LockStatus {
 }
 
 /**
- * Adds whole months, clamping to the end of a shorter target month.
+ * When capital unlocks: exactly fourteen days after the clock starts.
  *
- * Date's own setMonth rolls over: 31 January plus one month lands on 3 March,
- * because 31 February does not exist. For a lock that decides when someone
- * gets their money back, silently granting two extra days is not acceptable
- * in either direction, so a deposit made on the 31st unlocks on the 30th (or
- * 28th) rather than sliding into the following month.
+ * Millisecond arithmetic on the instant itself, so the time of day survives
+ * and no calendar rounding can move it. A term that began at 23:40 unlocks at
+ * 23:40, not at midnight on either side of it.
  */
-export function addMonths(from: Date, months: number): Date {
-  const result = new Date(from.getTime());
-  const targetMonth = result.getMonth() + months;
-  const dayOfMonth = result.getDate();
-
-  result.setDate(1);
-  result.setMonth(targetMonth);
-
-  // Last day of the month we landed on: day 0 of the next month.
-  const lastDay = new Date(result.getFullYear(), result.getMonth() + 1, 0).getDate();
-  result.setDate(Math.min(dayOfMonth, lastDay));
-
-  return result;
+export function addLockTerm(from: Date): Date {
+  return new Date(from.getTime() + WITHDRAWAL_LOCK_MS);
 }
 
 export function computeLockStatus(input: LockInput, now: Date): LockStatus {
-  const { firstDepositApprovedAt, tradingStartedAt, horizon } = input;
+  const { firstDepositApprovedAt, tradingStartedAt } = input;
 
   const hasDeposit = firstDepositApprovedAt instanceof Date;
   const hasTrading = tradingStartedAt instanceof Date;
@@ -112,7 +115,7 @@ export function computeLockStatus(input: LockInput, now: Date): LockStatus {
       ? firstDepositApprovedAt
       : tradingStartedAt;
 
-  const unlocksAt = addMonths(clockStartsAt, HORIZON_MONTHS[horizon]);
+  const unlocksAt = addLockTerm(clockStartsAt);
 
   // Inclusive: on the unlock date itself the money is available. A trader
   // told "unlocks 14 May" who is refused on 14 May has been misled.
@@ -215,7 +218,7 @@ export function validateWithdrawalRequest(params: {
         : 'Your term begins once you have deposited and started a signal flow.';
   }
   if (lock.reason === 'locked') {
-    return 'Your capital is still within its committed term.';
+    return `Your capital is held for ${WITHDRAWAL_LOCK_DAYS} days after your investment starts.`;
   }
   if (!Number.isSafeInteger(amountMinor) || amountMinor <= 0) {
     return 'Enter a valid amount.';

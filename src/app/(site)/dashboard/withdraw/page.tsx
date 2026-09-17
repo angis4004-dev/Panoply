@@ -5,6 +5,7 @@ import { ArrowUpFromLine, Clock, Lock, ShieldCheck, Wallet } from 'lucide-react'
 import Link from 'next/link';
 import { PageHeader } from '@/components/dashboard/page-header';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { WITHDRAWAL_LOCK_DAYS } from '@/lib/withdrawal-rules';
 
 /**
  * Taking capital off the platform.
@@ -217,7 +218,7 @@ export default function WithdrawPage() {
             )}
             <span className="text-xs font-bold uppercase tracking-widest">Term</span>
           </div>
-          <p className="mt-2 text-sm font-semibold text-ds-text">{data.horizonLabel}</p>
+          <p className="mt-2 text-sm font-semibold text-ds-text">{WITHDRAWAL_LOCK_DAYS} days</p>
           <p className="mt-1 text-xs text-ds-text-muted">
             {data.lock.reason === 'unlocked'
               ? 'Unlocked'
@@ -254,13 +255,6 @@ export default function WithdrawPage() {
             )}
           </div>
         </div>
-      )}
-
-      {data.horizonAssumed && (
-        <p className="mb-6 rounded-xl border border-ds-border bg-ds-surface-raised/50 p-4 text-sm text-ds-text-muted">
-          You have not chosen an investment term, so the shorter one ({data.horizonLabel}) is being
-          applied.
-        </p>
       )}
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">

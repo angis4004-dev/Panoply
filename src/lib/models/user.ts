@@ -114,11 +114,11 @@ export interface IUser extends Document {
   /*
    * Capital commitment, for withdrawals. See src/lib/withdrawal-rules.ts.
    *
-   * The trader picks a horizon when they first deposit; it sets how long
-   * capital is committed - three months for short, twelve for long. Stored
-   * on the account rather than per deposit, so a later top-up neither
-   * restarts the term nor fragments the balance into separately maturing
-   * pieces.
+   * The trader's stated intention, picked when they first deposit. It no
+   * longer sets the term: capital unlocks 14 days after the investment
+   * starts, whichever horizon was chosen. Stored on the account rather than
+   * per deposit, so a later top-up neither restarts the term nor fragments
+   * the balance into separately maturing pieces.
    */
   investmentHorizon?: 'short' | 'long';
   /**

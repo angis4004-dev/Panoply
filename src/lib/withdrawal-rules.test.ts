@@ -1,48 +1,46 @@
 import { describe, it, expect } from 'vitest';
 import {
-  addMonths,
+  addLockTerm,
   computeLockStatus,
   computeWithdrawableMinor,
   validateWithdrawalRequest,
-  HORIZON_MONTHS,
+  WITHDRAWAL_LOCK_DAYS,
+  WITHDRAWAL_LOCK_MS,
   isInvestmentHorizon,
   type LockStatus,
 } from './withdrawal-rules';
 
 const d = (iso: string) => new Date(iso);
 
-describe('addMonths', () => {
-  it('adds whole months', () => {
-    expect(addMonths(d('2026-01-15T10:00:00Z'), 3).toISOString().slice(0, 10)).toBe('2026-04-15');
-    expect(addMonths(d('2026-01-15T10:00:00Z'), 12).toISOString().slice(0, 10)).toBe('2027-01-15');
+const MINUTE = 60 * 1000;
+const HOUR = 60 * MINUTE;
+const DAY = 24 * HOUR;
+
+describe('the 14-day term', () => {
+  it('is fourteen days, held in milliseconds', () => {
+    expect(WITHDRAWAL_LOCK_DAYS).toBe(14);
+    expect(WITHDRAWAL_LOCK_MS).toBe(14 * DAY);
   });
 
   /*
-   * The reason this function exists instead of setMonth. Date rolls 31 Jan +
-   * 1 month into 3 March, which on a capital lock would hand someone two
-   * extra days of waiting they were never told about.
+   * Millisecond arithmetic, not a date comparison, so a term that starts late
+   * in the evening unlocks at that same instant fourteen days on - never at a
+   * rounded midnight that would release the money early.
    */
-  it('clamps to the end of a shorter month instead of rolling over', () => {
-    expect(addMonths(d('2026-01-31T00:00:00Z'), 1).toISOString().slice(0, 10)).toBe('2026-02-28');
-    expect(addMonths(d('2026-03-31T00:00:00Z'), 1).toISOString().slice(0, 10)).toBe('2026-04-30');
+  it('adds exactly fourteen days and keeps the time of day', () => {
+    const start = d('2026-01-15T23:40:30.250Z');
+    expect(addLockTerm(start).toISOString()).toBe('2026-01-29T23:40:30.250Z');
   });
 
-  it('handles a leap February', () => {
-    expect(addMonths(d('2028-01-31T00:00:00Z'), 1).toISOString().slice(0, 10)).toBe('2028-02-29');
-  });
-
-  it('preserves the time of day, so unlock is not silently moved', () => {
-    const start = d('2026-01-15T13:45:30Z');
-    expect(addMonths(start, 3).toISOString().slice(11)).toBe(start.toISOString().slice(11));
+  it('crosses a month end without shifting', () => {
+    expect(addLockTerm(d('2026-01-25T09:00:00Z')).toISOString()).toBe('2026-02-08T09:00:00.000Z');
   });
 });
 
 describe('computeLockStatus - the clock needs both conditions', () => {
-  const horizon = 'short' as const;
-
   it('does not start on a deposit alone', () => {
     const status = computeLockStatus(
-      { firstDepositApprovedAt: d('2026-01-01T00:00:00Z'), tradingStartedAt: null, horizon },
+      { firstDepositApprovedAt: d('2026-01-01T00:00:00Z'), tradingStartedAt: null },
       d('2027-01-01T00:00:00Z')
     );
     expect(status.reason).toBe('not_started');
@@ -52,7 +50,7 @@ describe('computeLockStatus - the clock needs both conditions', () => {
 
   it('does not start on trading alone', () => {
     const status = computeLockStatus(
-      { firstDepositApprovedAt: null, tradingStartedAt: d('2026-01-01T00:00:00Z'), horizon },
+      { firstDepositApprovedAt: null, tradingStartedAt: d('2026-01-01T00:00:00Z') },
       d('2027-01-01T00:00:00Z')
     );
     expect(status.reason).toBe('not_started');
@@ -61,7 +59,7 @@ describe('computeLockStatus - the clock needs both conditions', () => {
 
   it('reports both when neither has happened', () => {
     const status = computeLockStatus(
-      { firstDepositApprovedAt: null, tradingStartedAt: null, horizon },
+      { firstDepositApprovedAt: null, tradingStartedAt: null },
       d('2026-01-01T00:00:00Z')
     );
     expect(status.awaiting).toBe('both');
@@ -77,12 +75,11 @@ describe('computeLockStatus - the clock needs both conditions', () => {
       {
         tradingStartedAt: d('2026-01-01T00:00:00Z'),
         firstDepositApprovedAt: d('2026-03-01T00:00:00Z'),
-        horizon,
       },
       d('2026-03-02T00:00:00Z')
     );
     expect(status.clockStartsAt?.toISOString()).toBe('2026-03-01T00:00:00.000Z');
-    expect(status.unlocksAt?.toISOString().slice(0, 10)).toBe('2026-06-01');
+    expect(status.unlocksAt?.toISOString()).toBe('2026-03-15T00:00:00.000Z');
   });
 
   it('starts from the later event when trading came second', () => {
@@ -90,60 +87,53 @@ describe('computeLockStatus - the clock needs both conditions', () => {
       {
         firstDepositApprovedAt: d('2026-01-01T00:00:00Z'),
         tradingStartedAt: d('2026-02-10T00:00:00Z'),
-        horizon,
       },
       d('2026-02-11T00:00:00Z')
     );
     expect(status.clockStartsAt?.toISOString()).toBe('2026-02-10T00:00:00.000Z');
-    expect(status.unlocksAt?.toISOString().slice(0, 10)).toBe('2026-05-10');
+    expect(status.unlocksAt?.toISOString()).toBe('2026-02-24T00:00:00.000Z');
   });
 });
 
-describe('computeLockStatus - terms and boundaries', () => {
+describe('computeLockStatus - the 14-day boundary', () => {
+  const startMs = d('2026-01-15T12:00:00Z').getTime();
   const started = {
-    firstDepositApprovedAt: d('2026-01-15T12:00:00Z'),
-    tradingStartedAt: d('2026-01-15T12:00:00Z'),
+    firstDepositApprovedAt: new Date(startMs),
+    tradingStartedAt: new Date(startMs),
   };
+  const at = (offsetMs: number) => computeLockStatus(started, new Date(startMs + offsetMs));
 
-  it('short is three months, long is twelve', () => {
-    expect(HORIZON_MONTHS.short).toBe(3);
-    expect(HORIZON_MONTHS.long).toBe(12);
-
-    expect(
-      computeLockStatus({ ...started, horizon: 'short' }, d('2026-01-16T00:00:00Z'))
-        .unlocksAt?.toISOString()
-        .slice(0, 10)
-    ).toBe('2026-04-15');
-
-    expect(
-      computeLockStatus({ ...started, horizon: 'long' }, d('2026-01-16T00:00:00Z'))
-        .unlocksAt?.toISOString()
-        .slice(0, 10)
-    ).toBe('2027-01-15');
-  });
-
-  it('is locked one millisecond before the term ends', () => {
-    const status = computeLockStatus(
-      { ...started, horizon: 'short' },
-      d('2026-04-15T11:59:59.999Z')
-    );
+  it('is locked at 13 days', () => {
+    const status = at(13 * DAY);
     expect(status.reason).toBe('locked');
     expect(status.withdrawable).toBe(false);
   });
 
-  /*
-   * Inclusive on purpose. Someone told "unlocks 15 April" and refused on
-   * 15 April has been misled, and will say so.
-   */
-  it('is unlocked exactly on the unlock instant', () => {
-    const status = computeLockStatus({ ...started, horizon: 'short' }, d('2026-04-15T12:00:00Z'));
-    expect(status.reason).toBe('unlocked');
-    expect(status.withdrawable).toBe(true);
+  it('is locked at 13 days 23 hours 59 minutes', () => {
+    const status = at(13 * DAY + 23 * HOUR + 59 * MINUTE);
+    expect(status.reason).toBe('locked');
+    expect(status.withdrawable).toBe(false);
   });
 
-  it('a long horizon is still locked after the short term would have passed', () => {
-    const status = computeLockStatus({ ...started, horizon: 'long' }, d('2026-06-15T12:00:00Z'));
-    expect(status.reason).toBe('locked');
+  it('is locked one millisecond before 14 days', () => {
+    expect(at(14 * DAY - 1).withdrawable).toBe(false);
+  });
+
+  /*
+   * Inclusive on purpose. Someone told "unlocks 29 January, 12:00" and
+   * refused at 12:00 has been misled, and will say so.
+   */
+  it('is unlocked at exactly 14 days', () => {
+    const status = at(14 * DAY);
+    expect(status.reason).toBe('unlocked');
+    expect(status.withdrawable).toBe(true);
+    expect(status.unlocksAt?.toISOString()).toBe('2026-01-29T12:00:00.000Z');
+  });
+
+  it('is unlocked at 15 days', () => {
+    const status = at(15 * DAY);
+    expect(status.reason).toBe('unlocked');
+    expect(status.withdrawable).toBe(true);
   });
 });
 
@@ -222,7 +212,7 @@ describe('validateWithdrawalRequest', () => {
 
   it('refuses while the term is running', () => {
     const locked: LockStatus = { ...unlocked, reason: 'locked', withdrawable: false };
-    expect(validateWithdrawalRequest({ ...ok, lock: locked })).toMatch(/term/i);
+    expect(validateWithdrawalRequest({ ...ok, lock: locked })).toMatch(/14 days/i);
   });
 
   it('explains which condition is outstanding', () => {
