@@ -1432,3 +1432,57 @@ body {
     transform: none;
   }
 }
+
+/* ------------------------------------------------------------------
+ * Market ticker - one line, drifting only when it has to.
+ *
+ * The prices sit beside a fixed label on the Overview. From `sm` up all three
+ * fit, so the row is static and nothing moves on a screen someone is reading.
+ * Below that they cannot fit, and wrapping is what made this a three-row card
+ * in the first place, so the track drifts instead and the duplicate pass keeps
+ * the loop seamless.
+ *
+ * Reduced motion gets a plain horizontal scroll rather than a frozen row that
+ * hides two thirds of the prices: the information stays reachable, the
+ * movement goes away. Same treatment where animations are unsupported.
+ * ------------------------------------------------------------------ */
+.ticker-window {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.ticker-window::-webkit-scrollbar {
+  display: none;
+}
+.ticker-track {
+  width: max-content;
+}
+/* The repeat exists only to fill the gap behind a drifting track. */
+.ticker-repeat {
+  display: none;
+}
+
+@media (max-width: 639px) and (prefers-reduced-motion: no-preference) {
+  .ticker-window {
+    overflow: hidden;
+  }
+  .ticker-track {
+    animation: ticker-drift 26s linear infinite;
+  }
+  .ticker-track:hover {
+    animation-play-state: paused;
+  }
+  .ticker-repeat {
+    display: flex;
+  }
+}
+
+@keyframes ticker-drift {
+  from {
+    transform: translateX(0);
+  }
+  /* Half the track is one full pass of the prices, so the loop restarts
+     exactly where the eye already is. */
+  to {
+    transform: translateX(-50%);
+  }
+}
