@@ -5,6 +5,7 @@ import { useAppStore } from '@/store/app-store';
 import { GlassCard } from '@/components/ui/glass-card';
 import { Send, Plus, X } from 'lucide-react';
 import { RiskProfile } from '@/lib/types';
+import { ProjectionPanel } from '@/components/dashboard/projection-panel';
 
 interface FormHolding {
   token: string;
@@ -37,6 +38,18 @@ export default function PortfolioBuilderTab() {
     updated[index][field] = value;
     setHoldings(updated);
   };
+
+  /*
+   * What the entered holdings are worth right now, for the scenario panel.
+   * Blank and half-typed rows contribute nothing rather than NaN, so the
+   * figure updates as the form is filled instead of flickering.
+   */
+  const enteredValue = holdings.reduce((sum, h) => {
+    const amount = Number(h.amount);
+    const price = Number(h.price);
+    if (!Number.isFinite(amount) || !Number.isFinite(price)) return sum;
+    return sum + Math.max(0, amount) * Math.max(0, price);
+  }, 0);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -382,6 +395,11 @@ export default function PortfolioBuilderTab() {
               </div>
             </div>
           </div>
+
+          {/* The scenario for what has been entered so far. Kept out of the
+              report figures above: those describe the portfolio as it is, this
+              one describes an assumption about where it could go. */}
+          <ProjectionPanel capital={enteredValue} riskProfile={risk} className="mb-8" />
 
           <div className="flex items-center gap-3 pt-4 border-t border-ds-border">
             <button
