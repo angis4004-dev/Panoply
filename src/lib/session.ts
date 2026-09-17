@@ -22,6 +22,15 @@ function getSessionSecret(): string {
 }
 
 const SESSION_COOKIE_NAME = 'auth_session';
+
+/**
+ * NextAuth's session cookie, under both names it can take.
+ *
+ * The library adds the `__Secure-` prefix whenever it is serving over
+ * HTTPS, which is every deployment and no local dev server.
+ */
+const NEXTAUTH_COOKIE = 'next-auth.session-token';
+const SECURE_NEXTAUTH_COOKIE = '__Secure-next-auth.session-token';
 const SESSION_COOKIE_OPTIONS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
@@ -164,8 +173,17 @@ export async function getSessionFromRequest(request: Request): Promise<SessionDa
     if (session) return resolveCurrentSession(session);
   }
 
-  // If not found or invalid, check for the NextAuth JWT cookie (next-auth.session-token)
-  const nextAuthToken = cookies['next-auth.session-token'];
+  /*
+   * Then the NextAuth cookie, under either name it can carry.
+   *
+   * Over HTTPS NextAuth prefixes its cookies, so the session lands in
+   * `__Secure-next-auth.session-token` in production and the bare name only
+   * on http://localhost. Reading the bare name alone meant a Google sign-in
+   * succeeded - account created, cookie set - and then every request that
+   * asked who the user was found nothing and bounced them back to the
+   * sign-in screen. It worked in development for exactly the same reason.
+   */
+  const nextAuthToken = cookies[SECURE_NEXTAUTH_COOKIE] ?? cookies[NEXTAUTH_COOKIE];
   if (nextAuthToken) {
     try {
       const { decode } = await import('next-auth/jwt');
