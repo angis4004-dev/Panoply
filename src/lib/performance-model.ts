@@ -54,10 +54,26 @@ const PROFITS_PER_CYCLE = 13;
 const TUNING_INTERVAL_MS = 6 * 60 * 60 * 1000;
 const MAGNITUDE_SCALE = SETTLEMENT_INTERVAL_MS / TUNING_INTERVAL_MS;
 
-const GAIN_MIN = 0.00025 * MAGNITUDE_SCALE; // 0.025% of capital per six hours
-const GAIN_MAX = 0.00075 * MAGNITUDE_SCALE; // 0.075% of capital per six hours
-const LOSS_MIN = 0.0004 * MAGNITUDE_SCALE; // 0.040% of capital per six hours
-const LOSS_MAX = 0.001 * MAGNITUDE_SCALE; // 0.100% of capital per six hours
+/*
+ * Tuned so a flow models 36% of its allocated capital over fourteen days -
+ * the term capital is locked for.
+ *
+ * The ratios between them are the ones asked for (wins 1.045 to 3.79, losses
+ * 0.78); the scale is what makes them land on 36% at this settlement rate.
+ * Working, per outcome as a share of capital:
+ *
+ *   net = 0.65 x average gain - 0.35 x loss
+ *       = 0.65 x 0.0166278% - 0.35 x 0.0053649%
+ *       = 0.0089304%
+ *   4,032 outcomes in fourteen days x 0.0089304% = 36.0%
+ *
+ * Losses are a single size rather than a range, so LOSS_MIN and LOSS_MAX
+ * are equal and the interpolation between them returns that one value.
+ */
+const GAIN_MIN = 0.005175 * MAGNITUDE_SCALE; // 0.5175% of capital per six hours
+const GAIN_MAX = 0.018769 * MAGNITUDE_SCALE; // 1.8769% of capital per six hours
+const LOSS_MIN = 0.003863 * MAGNITUDE_SCALE; // 0.3863% of capital per six hours
+const LOSS_MAX = 0.003863 * MAGNITUDE_SCALE; // the same: one loss size, not a range
 
 const UINT32_MAX = 0xffffffff;
 

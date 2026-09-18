@@ -21,10 +21,10 @@ const START = Date.UTC(2026, 0, 1);
  * touching these literals.
  */
 const MAGNITUDE_SCALE = SETTLEMENT_INTERVAL_MS / (6 * HOUR);
-const GAIN_MIN = 0.00025 * MAGNITUDE_SCALE;
-const GAIN_MAX = 0.00075 * MAGNITUDE_SCALE;
-const LOSS_MIN = 0.0004 * MAGNITUDE_SCALE;
-const LOSS_MAX = 0.001 * MAGNITUDE_SCALE;
+const GAIN_MIN = 0.005175 * MAGNITUDE_SCALE;
+const GAIN_MAX = 0.018769 * MAGNITUDE_SCALE;
+const LOSS_MIN = 0.003863 * MAGNITUDE_SCALE;
+const LOSS_MAX = 0.003863 * MAGNITUDE_SCALE;
 
 describe('deterministic performance model', () => {
   it('has exactly thirteen gains in each twenty-outcome cycle', () => {
@@ -61,7 +61,10 @@ describe('deterministic performance model', () => {
     };
     expect(first).not.toBe(second);
     expect(modelledPnlAt(first)).toBe(modelledPnlAt(second));
-    expect(modelledPnlAt(input)).toBeCloseTo(0.6534305502210985, 9);
+    // The exact figure the current magnitudes produce for this flow at this
+    // instant. It moves whenever those are retuned, and pinning it is the
+    // point: a change to the model should have to be stated, not slip past.
+    expect(modelledPnlAt(input)).toBeCloseTo(51.26617146405191, 9);
     expect(modelledPnlAt({ ...input, flowId: 'flow-b' })).not.toBe(modelledPnlAt(input));
     expect(modelledPnlAt({ ...input, allocatedCapital: 0 })).toBe(0);
     expect(modelledPnlAt({ ...input, at: START - HOUR })).toBe(0);
