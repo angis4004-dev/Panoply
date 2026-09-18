@@ -25,6 +25,10 @@ export interface Bot {
    * that grows with capital.
    */
   realizedPnlDollar?: number;
+  /** The same modelled figure 24 hours earlier, for the Overview's "today". */
+  pnlDollarDayAgo?: number;
+  /** The same modelled figure 7 days earlier, for the Overview's "this week". */
+  pnlDollarWeekAgo?: number;
   /** True before the flow's first modelled outcome has settled. */
   neverTraded?: boolean;
 }

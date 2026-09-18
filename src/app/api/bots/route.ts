@@ -61,6 +61,24 @@ export async function GET(request: NextRequest) {
       });
       const modelledPercent = allocated > 0 ? (modelledDollar / allocated) * 100 : 0;
 
+      /*
+       * The same figure a day and a week earlier, for the Overview's "today"
+       * and "this week". Computed here from the same model and the same
+       * instant rather than on the client, so the three numbers are one
+       * calculation and cannot drift apart - and the dashboard needs no
+       * second request for them. The model reads zero before a flow existed,
+       * so a flow younger than the window simply reports its whole P&L.
+       */
+      const modelledAt = (at: number) =>
+        modelledPnlAt({
+          flowId: String(bot._id),
+          allocatedCapital: allocated,
+          createdAt: bot.createdAt,
+          at,
+        });
+      const pnlDollarDayAgo = modelledAt(sampledAt - 24 * 60 * 60 * 1000);
+      const pnlDollarWeekAgo = modelledAt(sampledAt - 7 * 24 * 60 * 60 * 1000);
+
       return {
         id: bot._id.toString(),
         type: bot.type,
@@ -74,6 +92,8 @@ export async function GET(request: NextRequest) {
         // gain from a closed trade - it has to be, so the headline agrees
         // with the chart's latest point exactly, which is also modelled.
         realizedPnlDollar: modelledDollar,
+        pnlDollarDayAgo,
+        pnlDollarWeekAgo,
         /*
          * A computed flow holds no position, so there is nothing for an
          * unrealized side to describe and splitting the modelled figure

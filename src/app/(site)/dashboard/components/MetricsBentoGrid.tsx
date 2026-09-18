@@ -12,6 +12,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { useAppStore } from '@/store/app-store';
+import { summarizeFlows } from '@/lib/flow-summary';
 
 type DeltaDir = 'up' | 'down' | 'neutral' | 'warn';
 
@@ -36,11 +37,6 @@ function DeltaBadge({ delta, dir }: { delta: string; dir: DeltaDir }) {
       {delta}
     </span>
   );
-}
-
-function parsePnlPercent(pnl: string): number {
-  const n = parseFloat(pnl.replace('%', ''));
-  return Number.isFinite(n) ? n : 0;
 }
 
 export default function MetricsBentoGrid({
@@ -93,62 +89,37 @@ export default function MetricsBentoGrid({
   // there is no separate trade/signal log to draw on, so cards that
   // conceptually implied one (Win Rate, Last Signal, Trades 24h) are
   // reframed around what's actually trackable per flow: current P&L,
-  // confidence, allocation, and status.
-  const totalAllocated = bots.reduce((sum, b) => sum + (b.allocatedAmount || 0), 0);
-  // Sums the unrounded modelled dollar figure, not the rounded percent
-  // string, so this total agrees with the portfolio history chart exactly.
-  // realizedPnlDollar is only absent if an older API response shape slips
-  // through, in which case the percent-derived value is a safe fallback.
-  const totalPnlDollar = bots.reduce(
-    (sum, b) =>
-      sum + (b.realizedPnlDollar ?? (b.allocatedAmount || 0) * (parsePnlPercent(b.pnl) / 100)),
-    0
-  );
-  const portfolioPnlPercent = totalAllocated > 0 ? (totalPnlDollar / totalAllocated) * 100 : 0;
+  // confidence, allocation, and status. The arithmetic lives in
+  // lib/flow-summary so every card reads the same totals.
+  const summary = summarizeFlows(bots, walletBalance);
+  const {
+    totalAllocated,
+    totalPnlDollar,
+    profitableCount,
+    profitableRate,
+    avgConfidence,
+    runningCount,
+    pausedCount,
+    deployedShare,
+  } = summary;
+  const portfolioPnlPercent = summary.pnlPercent;
   const pnlDir: DeltaDir = totalPnlDollar > 0 ? 'up' : totalPnlDollar < 0 ? 'down' : 'neutral';
 
-  const profitableCount = bots.filter(
-    (b) => (b.realizedPnlDollar ?? parsePnlPercent(b.pnl)) > 0
-  ).length;
-  const profitableRate = bots.length > 0 ? (profitableCount / bots.length) * 100 : 0;
+  const topBot = summary.largest
+    ? {
+        pair: summary.largest.pair,
+        allocatedAmount: summary.largest.allocated,
+        confidence: summary.largest.confidence,
+      }
+    : null;
+  const topBotValue = summary.largest?.value ?? 0;
+  const topBotHasPosition = summary.largest?.hasPosition ?? false;
 
-  const avgConfidence =
-    bots.length > 0 ? bots.reduce((sum, b) => sum + b.confidence, 0) / bots.length : 0;
-
-  const topBot = bots.reduce<(typeof bots)[number] | null>(
-    (top, b) => (!top || (b.allocatedAmount || 0) > (top.allocatedAmount || 0) ? b : top),
-    null
-  );
-  const topBotValue = topBot
-    ? (topBot.allocatedAmount || 0) * (1 + parsePnlPercent(topBot.pnl) / 100)
-    : 0;
-  /*
-   * Whether the largest flow actually holds anything right now.
-   *
-   * Allocating capital to a flow does not open a position - the flow has to
-   * decide to buy, and the order has to fill. This card presented the two as
-   * the same thing, so a flow that had never traded still reported an "active
-   * position" with a LONG direction it had never taken.
-   */
-  const topBotHasPosition = (topBot?.marketValue ?? 0) > 0;
-
-  const runningCount = bots.filter((b) => b.status === 'running').length;
-  const pausedCount = bots.filter((b) => b.status === 'paused').length;
-
-  const worstBot = bots.reduce<(typeof bots)[number] | null>(
-    (worst, b) => (!worst || parsePnlPercent(b.pnl) < parsePnlPercent(worst.pnl) ? b : worst),
-    null
-  );
-  const drawdownAbs = worstBot ? Math.max(0, -parsePnlPercent(worstBot.pnl)) : 0;
-  const drawdownDir: DeltaDir = drawdownAbs >= 5 ? 'warn' : drawdownAbs > 0 ? 'down' : 'neutral';
+  const worstBot = summary.worst;
+  const drawdownAbs = summary.drawdownPercent;
   // Single source for the drawdown card's tone, so the border, icon, figure
   // and bar cannot drift apart from the status word.
-  const alarmed = drawdownDir === 'warn';
-
-  const deployedShare =
-    totalAllocated + walletBalance > 0
-      ? (totalAllocated / (totalAllocated + walletBalance)) * 100
-      : 0;
+  const alarmed = summary.drawdownAlarmed;
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-4 gap-4 mb-6">
