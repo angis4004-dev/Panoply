@@ -12,7 +12,6 @@ import { MarketTicker } from '@/components/dashboard/market-ticker';
 import { DepositModal } from '@/components/dashboard/deposit-modal';
 import { PortfolioHero } from '@/components/dashboard/portfolio-hero';
 import { SummaryTiles } from '@/components/dashboard/summary-tiles';
-import { ProjectionPanel } from '@/components/dashboard/projection-panel';
 import { DepositQueryOpener } from '@/components/dashboard/deposit-query-opener';
 import { useDepositSummary } from '@/hooks/use-deposit-summary';
 import { deriveJourney } from '@/lib/onboarding-journey';
@@ -126,10 +125,6 @@ export default function DashboardPage() {
         <PortfolioHero promoteDeposit={promoteDeposit} onDeposit={openDeposit} />
         <IdentityTierCard />
       </div>
-
-      {/* A modelled scenario for the balance above - never added to it. The
-          wallet card states money held; this states an assumption. */}
-      <ProjectionPanel capital={walletBalance} riskProfile="moderate" className="mt-6" />
 
       {depositOpen && (
         <DepositModal
