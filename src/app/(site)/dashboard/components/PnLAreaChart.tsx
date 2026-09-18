@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import {
   AreaChart,
   Area,
@@ -13,6 +13,9 @@ import {
 } from 'recharts';
 import { LoadingState } from '@/components/ui/loader';
 import { SETTLEMENT_INTERVAL_MS } from '@/lib/performance-model';
+import { cn } from '@/lib/utils';
+import { PnlIcon } from '@/components/ui/panoply-icons';
+import { CARD_TITLE, CardChip, OverviewCard } from '@/components/dashboard/overview-card';
 
 /*
  * Read off the model so the copy below cannot drift from what it does.
@@ -77,6 +80,68 @@ const RANGES: { label: string; days: number }[] = [
   { label: '6m', days: 180 },
   { label: '1y', days: 365 },
 ];
+
+/**
+ * The range buttons, with a cream pill that slides to the one chosen.
+ *
+ * The pill moves on the strong ease-in-out used for on-screen movement, 200ms,
+ * so a switch shows where you went from and to. It is measured from the
+ * pressed button rather than computed, so it follows the labels' real widths.
+ * Under reduced motion it jumps.
+ */
+function RangeControl({
+  selected,
+  onSelect,
+}: {
+  selected: string;
+  onSelect: (label: string) => void;
+}) {
+  const wrap = useRef<HTMLDivElement>(null);
+  const [pill, setPill] = useState<{ x: number; w: number } | null>(null);
+
+  useLayoutEffect(() => {
+    const measure = () => {
+      const el = wrap.current?.querySelector<HTMLButtonElement>('[aria-pressed="true"]');
+      if (el) setPill({ x: el.offsetLeft, w: el.offsetWidth });
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [selected]);
+
+  return (
+    <div
+      ref={wrap}
+      role="group"
+      aria-label="Chart range"
+      className="relative flex items-center gap-0.5 self-start rounded-[10px] bg-white/[0.04] p-[3px]"
+    >
+      {pill && (
+        <span
+          aria-hidden
+          className="absolute bottom-[3px] left-0 top-[3px] rounded-[7px] bg-primary transition-[transform,width] duration-200 ease-[cubic-bezier(0.77,0,0.175,1)] motion-reduce:transition-none"
+          style={{ width: pill.w, transform: 'translateX(' + pill.x + 'px)' }}
+        />
+      )}
+      {RANGES.map((r) => (
+        <button
+          key={'range-' + r.label}
+          type="button"
+          onClick={() => onSelect(r.label)}
+          aria-pressed={selected === r.label}
+          className={cn(
+            'relative z-[1] inline-flex min-h-[44px] min-w-[40px] items-center justify-center rounded-[7px] px-2.5 font-mono text-xs transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50',
+            selected === r.label
+              ? 'text-primary-foreground'
+              : 'text-ds-text-secondary hover:text-ds-text'
+          )}
+        >
+          {r.label}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
@@ -417,11 +482,14 @@ export default function PnLAreaChart() {
       : Math.max(0, Math.min(1, (yDomain[1] - baseValue) / (yDomain[1] - yDomain[0])));
 
   return (
-    <div className="bg-ds-surface-raised border border-ds-border rounded-2xl p-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
+    <OverviewCard className="mb-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-2">
         <div>
-          <div className="flex items-center gap-2">
-            <h3 className="text-sm font-semibold text-ds-text">Cumulative P&L</h3>
+          <div className="flex items-center gap-3">
+            <CardChip lit>
+              <PnlIcon />
+            </CardChip>
+            <h3 className={CARD_TITLE}>Cumulative P&amp;L</h3>
             {hasMovement && (
               <span className="inline-flex items-center gap-1.5 text-ds-caption text-ds-text-muted">
                 <span
@@ -465,23 +533,7 @@ export default function PnLAreaChart() {
             {SETTLEMENT_LABEL_SHORT}
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
-          {RANGES.map((r) => (
-            <button
-              key={`range-${r.label}`}
-              type="button"
-              onClick={() => setSelectedRange(r.label)}
-              aria-pressed={selectedRange === r.label}
-              className={`text-ds-caption inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-ds-sm px-2.5 font-medium transition-colors duration-fast ease-ds-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface-raised ${
-                selectedRange === r.label
-                  ? 'bg-primary/15 text-primary'
-                  : 'text-ds-text-secondary hover:text-ds-text'
-              }`}
-            >
-              {r.label}
-            </button>
-          ))}
-        </div>
+        <RangeControl selected={selectedRange} onSelect={setSelectedRange} />
       </div>
 
       {error && (
@@ -635,6 +687,6 @@ export default function PnLAreaChart() {
           </AreaChart>
         </ResponsiveContainer>
       )}
-    </div>
+    </OverviewCard>
   );
 }
