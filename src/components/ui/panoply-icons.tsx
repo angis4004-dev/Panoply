@@ -168,3 +168,65 @@ export function SettingsIcon(props: IconProps) {
     </Glyph>
   );
 }
+
+/*
+ * Card glyphs.
+ *
+ * The Overview's metric cards had stock chips - a dollar sign, a target, a
+ * processor, a lightning bolt, a trend arrow, a warning triangle - under a
+ * sidebar that is now drawn from the logo. These finish the job in the same
+ * grammar. Largest allocation and signal flows reuse BuilderIcon and
+ * FlowsIcon, which already mean those things.
+ */
+
+/** A return rising to a point. */
+export function PnlIcon(props: IconProps) {
+  return (
+    <Glyph {...props}>
+      <path d="M3 19c7 0 11-4 13.6-11.2" />
+      <circle cx="18.5" cy="5.5" r="2" />
+    </Glyph>
+  );
+}
+
+/** Rings closing on the aperture: flows that hit. */
+export function ProfitIcon(props: IconProps) {
+  return (
+    <Glyph {...props}>
+      <circle cx="12" cy="12" r="9" />
+      <circle cx="12" cy="12" r="5" />
+      <circle cx="12" cy="12" r="1.3" />
+    </Glyph>
+  );
+}
+
+/** A half-dial with its needle. */
+export function ConfidenceIcon(props: IconProps) {
+  return (
+    <Glyph {...props}>
+      <path d="M4 16a8 8 0 0 1 16 0" />
+      <path d="M12 16l3.6-5.4" />
+      <circle cx="12" cy="16" r="1.6" />
+    </Glyph>
+  );
+}
+
+/** Capital leaving the aperture, into work. */
+export function DeployIcon(props: IconProps) {
+  return (
+    <Glyph {...props}>
+      <circle cx="6" cy="12" r="3" />
+      <path d="M9 12h11M16.5 8.5 20 12l-3.5 3.5" />
+    </Glyph>
+  );
+}
+
+/** The P&L glyph falling instead of rising. */
+export function DrawdownIcon(props: IconProps) {
+  return (
+    <Glyph {...props}>
+      <path d="M3 5c7 0 11 4 13.6 11.2" />
+      <circle cx="18.5" cy="18.5" r="2" />
+    </Glyph>
+  );
+}
