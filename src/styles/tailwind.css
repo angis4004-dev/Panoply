@@ -610,6 +610,35 @@ body {
   --signal-level: 0.7;
   box-shadow: none;
 }
+/*
+ * Still: the dashboard's cards. The Overview stays open for long stretches and
+ * a slow pulse on a screen people watch is tiring, so the light is drawn once
+ * and only answers the pointer. Brightness levels multiply --signal-level, so
+ * the hover rule below still lifts every one of them.
+ */
+.signal-field[data-still] .signal-field__core,
+.signal-field[data-still] .signal-field__sides {
+  animation: none;
+  opacity: 1;
+}
+.signal-field[data-glow='soft'] .signal-field__core,
+.signal-field[data-glow='soft'] .signal-field__sides {
+  --signal-level: 0.7;
+}
+.signal-field[data-glow='strong'] .signal-field__core,
+.signal-field[data-glow='strong'] .signal-field__sides {
+  --signal-level: 1.15;
+}
+/* Where the P&L card's grey quarter-circle used to sit. */
+.signal-field[data-glow='corner'] .signal-field__core {
+  --signal-level: 1.2;
+  left: auto;
+  right: -18%;
+  top: -40%;
+  translate: none;
+  width: 20rem;
+  height: 14rem;
+}
 .signal-field:hover .signal-field__core,
 .signal-field:focus-within .signal-field__core,
 .signal-field:hover .signal-field__sides,

@@ -28,21 +28,41 @@ import { cn } from '@/lib/utils';
 
 export type SignalFieldVariant = 'card' | 'panel' | 'cta';
 
+/**
+ * How bright the light sits at rest, and where the top glow is placed.
+ *
+ * 'soft' is for a grid of many cards, where the homepage level on every one
+ * would light the whole page. 'strong' marks the one or two cards a page is
+ * about. 'corner' moves the glow to the top right and lifts it, for a card
+ * whose figure sits on the left.
+ */
+export type SignalFieldGlow = 'default' | 'soft' | 'strong' | 'corner';
+
 export function SignalField({
   children,
   className,
   variant = 'card',
   /** Small label revealed on hover or focus, e.g. "3 CHAINS". */
   readout,
+  /**
+   * Hold the light still instead of breathing. For screens that stay open,
+   * where a slow pulse is tiring. Hover and focus still brighten it.
+   */
+  still = false,
+  glow = 'default',
 }: {
   children: React.ReactNode;
   className?: string;
   variant?: SignalFieldVariant;
   readout?: string;
+  still?: boolean;
+  glow?: SignalFieldGlow;
 }) {
   return (
     <div
       data-variant={variant}
+      data-still={still ? '' : undefined}
+      data-glow={glow === 'default' ? undefined : glow}
       className={cn(
         'signal-field group/signal relative isolate overflow-hidden',
         'transition-[border-color,background-color] duration-base ease-ds-out',
