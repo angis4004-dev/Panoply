@@ -16,7 +16,7 @@ import {
 } from '@/components/dashboard/overview-card';
 
 const BUTTON_BASE =
-  'inline-flex min-h-[44px] items-center justify-center gap-2 rounded-[9px] px-4 py-2 text-sm font-medium transition-[transform,background-color,border-color] duration-[160ms] ease-ds-out active:scale-[0.97] motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface';
+  'inline-flex min-h-[44px] items-center justify-center gap-2 rounded-[9px] px-2 py-2 text-[13px] font-medium sm:px-4 sm:text-sm transition-[transform,background-color,border-color] duration-[160ms] ease-ds-out active:scale-[0.97] motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ds-surface';
 const SOLID = `${BUTTON_BASE} bg-primary text-primary-foreground hover:bg-primary/90`;
 const OUTLINE = `${BUTTON_BASE} border border-ds-border-strong text-ds-text hover:border-primary/40 hover:bg-white/[0.04]`;
 const GHOST = `${BUTTON_BASE} text-ds-text-secondary hover:text-ds-text`;
@@ -123,12 +123,22 @@ export function BalanceCard({
           <p className={CARD_META}>Deposit to start your first signal flow.</p>
         ))}
 
-      <div className="mt-auto flex flex-wrap gap-2 pt-1">
+      {/* One row of three on a phone, where the labels are shortened to fit;
+          a wrapping row from sm up. */}
+      <div className="mt-auto grid grid-cols-3 gap-1.5 pt-1 sm:flex sm:flex-wrap sm:gap-2">
         <button type="button" onClick={onDeposit} className={promoteDeposit ? SOLID : OUTLINE}>
-          {promoteDeposit && total === 0 ? 'Make your first deposit' : 'Deposit'}
+          {promoteDeposit && total === 0 ? (
+            <>
+              <span className="sm:hidden">Deposit</span>
+              <span className="hidden sm:inline">Make your first deposit</span>
+            </>
+          ) : (
+            'Deposit'
+          )}
         </button>
         <Link href="/dashboard/bots" className={promoteDeposit ? OUTLINE : SOLID}>
-          New signal flow
+          <span className="sm:hidden">New flow</span>
+          <span className="hidden sm:inline">New signal flow</span>
         </Link>
         <Link href="/dashboard/withdraw" className={GHOST}>
           Withdraw
