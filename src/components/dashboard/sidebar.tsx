@@ -2,84 +2,63 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {
-  ArrowDownToLine,
-  ArrowUpFromLine,
-  FileClock,
-  Landmark,
-  LayoutGrid,
-  LogOut,
-  Settings,
-  ShieldCheck,
-  SlidersHorizontal,
-  Sparkles,
-  Sprout,
-  Trophy,
-  Waypoints,
-} from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { PanoplyMark } from '@/components/ui/PanoplyLogo';
+import {
+  AchievementsIcon,
+  AskIcon,
+  BuilderIcon,
+  DepositIcon,
+  FlowsIcon,
+  HistoryIcon,
+  OverviewIcon,
+  SettingsIcon,
+  VaultsIcon,
+  VerifyIcon,
+  WithdrawIcon,
+  YieldIcon,
+} from '@/components/ui/panoply-icons';
 import { TierBadge } from '@/components/dashboard/tier-badge';
 
 /*
  * Nav icons.
  *
- * One library throughout - Lucide, which the other 50-odd files already use.
- * Introducing Phosphor for this one component would create exactly the mixture
- * of unrelated icon families that makes a sidebar look assembled rather than
- * designed, so the fix is to use the existing set deliberately.
+ * Panoply's own set (src/components/ui/panoply-icons), not a stock library.
+ * The logo sits at the top of this column, and a stock family directly under
+ * it read as parts sourced from somewhere else. These are drawn from the
+ * logo's geometry - circles, arcs, a small central aperture - so the column
+ * reads as one piece.
  *
- * Each glyph is chosen to be readable at 18px on its own, because at this size
- * the icon is seen before the label is. Where a glyph was carrying the wrong
- * meaning:
+ * Two carry meaning worth stating, because a stock icon would have said
+ * something else:
  *
- *   Signal Flows had Bot - a robot's face - which is the vocabulary this
- *   product deliberately moved away from. Waypoints draws routed nodes, which
- *   is what a signal flow is.
+ *   Vaults is a lock, not a building or a safe. It says what a vault does for
+ *   the trader - holds capital shut for its term - rather than what one looks
+ *   like.
  *
- *   Ask Panoply had Brain, the stock glyph on every AI feature shipped since
- *   2023. Sparkles is the convention premium tools have settled on for
- *   assisted/generated work.
+ *   Yield is three circles growing in turn: a return compounding.
  *
- *   Vaults had Vault, which is semantically exact and visually poor: at this
- *   size its dial and bolts collapse into a crossed box that reads as an error
- *   state. Landmark keeps the custody meaning with a silhouette that survives
- *   the size.
- *
- *   Yield had Zap, which the metrics grid also uses for something unrelated -
- *   one glyph, two meanings, in a product whose pitch is precision. Sprout is
- *   specific to yield and unused elsewhere.
- *
- *   Overview had LayoutDashboard, whose uneven blocks read as clutter. The
- *   even grid of LayoutGrid is calmer and says the same thing.
- *
- *   Report History had List, which means a list of anything. FileClock carries
- *   both halves of the name.
- *
- *   Achievements had Award; the achievement cards already use Trophy.
- *
- * Kept deliberately: SlidersHorizontal (building an allocation is adjusting
- * weights), ArrowUpFromLine (directional, and leaves ArrowDownToLine free for
- * deposits), ShieldCheck (matches the verification page), and Settings - a
- * gear is the one icon nobody needs to learn.
+ * Sign out stays Lucide on purpose. It is a control rather than a destination,
+ * and keeping it in the stock style keeps it visibly apart from the pages.
  */
 const navItems = [
-  { href: '/dashboard', label: 'Overview', icon: LayoutGrid, exact: true },
-  { href: '/dashboard/ai', label: 'Ask Panoply', icon: Sparkles },
-  { href: '/dashboard/bots', label: 'Signal Flows', icon: Waypoints },
-  { href: '/dashboard/vaults', label: 'Vaults', icon: Landmark },
-  { href: '/dashboard/yield', label: 'Yield', icon: Sprout },
-  { href: '/dashboard/builder', label: 'Portfolio Builder', icon: SlidersHorizontal },
+  { href: '/dashboard', label: 'Overview', icon: OverviewIcon, exact: true },
+  { href: '/dashboard/ai', label: 'Ask Panoply', icon: AskIcon },
+  { href: '/dashboard/bots', label: 'Signal Flows', icon: FlowsIcon },
+  { href: '/dashboard/vaults', label: 'Vaults', icon: VaultsIcon },
+  { href: '/dashboard/yield', label: 'Yield', icon: YieldIcon },
+  { href: '/dashboard/builder', label: 'Portfolio Builder', icon: BuilderIcon },
   // A link to the Overview with the deposit window open, not a page of its
   // own: the window already exists there, and one home for the flow is one
   // thing to keep right. The query string never matches `pathname`, so this
   // entry never shows as active - Overview does, which is where the user is.
-  { href: '/dashboard?deposit=1', label: 'Deposit', icon: ArrowDownToLine },
-  { href: '/dashboard/withdraw', label: 'Withdraw', icon: ArrowUpFromLine },
-  { href: '/dashboard/history', label: 'Report History', icon: FileClock },
-  { href: '/dashboard/kyc', label: 'Verification', icon: ShieldCheck },
-  { href: '/dashboard/achievements', label: 'Achievements', icon: Trophy },
-  { href: '/dashboard/settings', label: 'Settings', icon: Settings },
+  { href: '/dashboard?deposit=1', label: 'Deposit', icon: DepositIcon },
+  { href: '/dashboard/withdraw', label: 'Withdraw', icon: WithdrawIcon },
+  { href: '/dashboard/history', label: 'Report History', icon: HistoryIcon },
+  { href: '/dashboard/kyc', label: 'Verification', icon: VerifyIcon },
+  { href: '/dashboard/achievements', label: 'Achievements', icon: AchievementsIcon },
+  { href: '/dashboard/settings', label: 'Settings', icon: SettingsIcon },
 ];
 
 const KYC_DOT_STYLES: Record<string, string> = {
