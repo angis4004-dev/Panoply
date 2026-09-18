@@ -155,7 +155,9 @@ export default function DashboardPage() {
         <OnboardingChecklistPlaceholder />
       )}
 
-      <div className="grid gap-4 lg:grid-cols-[3fr_2fr] lg:items-start">
+      {/* The first row of the Overview's card grid: same four columns and gap
+          as the metric cards below, so every edge lines up down the page. */}
+      <div className="mb-3 grid grid-cols-1 gap-3 sm:mb-4 sm:gap-4 md:grid-cols-4">
         <PortfolioHero promoteDeposit={promoteDeposit} onDeposit={openDeposit} />
         <IdentityTierCard />
       </div>
