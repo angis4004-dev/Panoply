@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { useAuth, type AuthUser } from '@/context/AuthContext';
 
@@ -117,6 +117,18 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
 
   const { user } = useAuth();
 
+  /*
+   * Whether a flow fetch has ever come back for the signed-in trader.
+   *
+   * This is what decides the skeletons, and it is deliberately not part of
+   * state: it must not itself cause a render, and it has to be readable
+   * inside fetchBots without threading it through a dependency.
+   *
+   * It resets when the trader changes, so a second account signing in gets
+   * skeletons rather than a glimpse of the first one's tiles.
+   */
+  const botsEverLoaded = useRef(false);
+
   useEffect(() => {
     if (user) {
       setState((prev) => ({
@@ -176,12 +188,19 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
 
   // Fetch the logged-in user's bots from the API.
   //
-  // Only flips botsLoading on the *first* load (when there's nothing to show
-  // yet). Consumers - MetricsBentoGrid and the dashboard's signal-flow list -
-  // swap their entire subtree for skeletons whenever botsLoading is true, so
-  // raising it on every refetch made the dashboard visibly blink to grey
-  // blocks and back. Keeping the previous bots on screen while revalidating
-  // means a refetch updates values in place instead of flashing.
+  // Only flips botsLoading until the first fetch has come back. Consumers -
+  // MetricsBentoGrid and the dashboard's signal-flow list - swap their entire
+  // subtree for skeletons whenever botsLoading is true, so raising it on every
+  // refetch made the dashboard visibly blink to grey blocks and back. Keeping
+  // the previous bots on screen while revalidating means a refetch updates
+  // values in place instead of flashing.
+  //
+  // The test used to be 'prev.bots.length === 0', reading an empty list as
+  // 'nothing loaded yet'. For a trader who has flows those coincide after the
+  // first fetch, but for one who has none they never do: the list stays empty,
+  // so the thirty-second poll raised the flag forever and the metrics grid
+  // blinked to skeletons and back for as long as the dashboard was open. An
+  // account with no flows is a loaded account; it just has nothing in it.
   //
   // This also absorbs React Strict Mode's double-invoked effect in dev, which
   // otherwise fired this twice on mount and produced two skeleton flashes
@@ -189,7 +208,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
   const fetchBots = async () => {
     setState((prev) => ({
       ...prev,
-      botsLoading: prev.bots.length === 0,
+      botsLoading: !botsEverLoaded.current,
       botsError: false,
     }));
     try {
@@ -204,6 +223,9 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       }
 
       const botsData: Bot[] = await response.json();
+      // Set only on success: a first fetch that failed has still shown the
+      // trader nothing, so its retry should skeleton rather than sit blank.
+      botsEverLoaded.current = true;
       setState((prev) => ({ ...prev, bots: botsData, botsLoading: false, botsError: false }));
     } catch (err) {
       console.error('Error fetching bots:', err);
@@ -296,6 +318,8 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Fetch reports, bots, vault investments, and wallet balance when user changes
     if (!user) return;
+
+    botsEverLoaded.current = false;
 
     fetchReports();
     fetchBots();
