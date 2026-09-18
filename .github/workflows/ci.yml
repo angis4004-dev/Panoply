@@ -24,6 +24,14 @@ jobs:
       - name: Type check
         run: npm run type-check
 
+      - name: Test
+        run: npm test
+        env:
+          # Same placeholder as the build below, for the same reason: a test
+          # that reaches a module importing session.ts would otherwise fail on
+          # a missing secret rather than on anything it set out to check.
+          SESSION_SECRET: ci-build-placeholder-not-a-real-secret
+
       - name: Build
         run: npm run build
         env:
