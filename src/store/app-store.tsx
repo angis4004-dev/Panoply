@@ -129,6 +129,16 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
    */
   const botsEverLoaded = useRef(false);
 
+  /*
+   * The same, for the balance, which polls every sixty seconds.
+   *
+   * PortfolioHero prints the word 'Loading' in place of the figure while this
+   * is true, and the Overview holds the setup bar back on it, so raising it on
+   * every poll blanked the balance and dropped the bar to its placeholder once
+   * a minute for every trader - funded or not.
+   */
+  const walletEverLoaded = useRef(false);
+
   useEffect(() => {
     if (user) {
       setState((prev) => ({
@@ -275,7 +285,11 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
   };
 
   const fetchWalletBalance = async () => {
-    setState((prev) => ({ ...prev, walletBalanceLoading: true, walletBalanceError: false }));
+    setState((prev) => ({
+      ...prev,
+      walletBalanceLoading: !walletEverLoaded.current,
+      walletBalanceError: false,
+    }));
     try {
       const response = await fetch('/api/wallet');
 
@@ -293,6 +307,8 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       }
 
       const data: { balance: number } = await response.json();
+      // As with the flows: only a fetch that came back counts as loaded.
+      walletEverLoaded.current = true;
       setState((prev) => ({
         ...prev,
         walletBalance: data.balance,
@@ -320,6 +336,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     if (!user) return;
 
     botsEverLoaded.current = false;
+    walletEverLoaded.current = false;
 
     fetchReports();
     fetchBots();
