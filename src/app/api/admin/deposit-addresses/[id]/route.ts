@@ -211,3 +211,56 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     await session.endSession();
   }
 }
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const guard = await requireActiveAdmin(request, 'deposit_address.manage');
+  if (!guard.ok) return guard.response;
+  const { ctx } = guard;
+
+  const { id } = await params;
+  if (!objectId.safeParse(id).success) {
+    return adminJson({ error: 'Invalid address id' }, { status: 400 });
+  }
+
+  const connection = await connectToDatabase();
+  if (!connection) return adminJson({ error: 'Database connection unavailable' }, { status: 503 });
+
+  const existing = await DepositAddressModel.findOne({
+    _id: id,
+    status: 'inactive',
+  }).lean();
+  if (!existing) {
+    return adminJson(
+      { error: 'Only inactive addresses can be permanently deleted.' },
+      { status: 409 }
+    );
+  }
+
+  const deleted = await DepositAddressModel.deleteOne({
+    _id: id,
+    status: 'inactive',
+  });
+  if (deleted.deletedCount !== 1) {
+    return adminJson({ error: 'That address was already deleted.' }, { status: 404 });
+  }
+
+  await recordAdminAction(ctx, {
+    action: 'deposit_address.delete',
+    targetType: 'deposit_address',
+    targetId: id,
+    before: {
+      coin: existing.coin,
+      network: existing.network,
+      address: existing.address,
+      status: existing.status,
+    },
+    after: { status: 'deleted' },
+    reference: existing.address,
+    reason: 'Inactive deposit address permanently deleted.',
+  });
+
+  return adminJson({ address: { id, status: 'deleted' } });
+}

@@ -129,3 +129,49 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
   return adminJson({ network: after });
 }
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const guard = await requireActiveAdmin(request, 'network.manage');
+  if (!guard.ok) return guard.response;
+  const { ctx } = guard;
+
+  const { id } = await params;
+  if (!objectId.safeParse(id).success) {
+    return adminJson({ error: 'Invalid network id' }, { status: 400 });
+  }
+
+  const connection = await connectToDatabase();
+  if (!connection) return adminJson({ error: 'Database connection unavailable' }, { status: 503 });
+
+  const existing = await NetworkModel.findOne({ _id: id, status: 'inactive' }).lean();
+  if (!existing) {
+    return adminJson(
+      { error: 'Only inactive networks can be permanently deleted.' },
+      { status: 409 }
+    );
+  }
+
+  const deleted = await NetworkModel.deleteOne({ _id: id, status: 'inactive' });
+  if (deleted.deletedCount !== 1) {
+    return adminJson({ error: 'That network was already deleted.' }, { status: 404 });
+  }
+
+  await recordAdminAction(ctx, {
+    action: 'network.delete',
+    targetType: 'network',
+    targetId: id,
+    before: {
+      key: existing.key,
+      name: existing.name,
+      status: existing.status,
+    },
+    after: { status: 'deleted' },
+    reference: existing.key,
+    reason: 'Inactive network permanently deleted.',
+  });
+
+  return adminJson({ network: { id, key: existing.key, status: 'deleted' } });
+}

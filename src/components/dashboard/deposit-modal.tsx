@@ -34,7 +34,7 @@ interface PlatformAddress {
   networkName: string;
   networkDescription: string;
   memoRequired: boolean;
-  address: string;
+  address: string | null;
   memoTag: string | null;
 }
 
@@ -127,7 +127,7 @@ export function DepositModal({ onClose }: { onClose: () => void }) {
         setAddresses(list);
         // Preselect when there is nothing to choose between. Making someone
         // click the only option is a step that exists to be skipped.
-        if (list.length === 1) setSelectedId(list[0].id);
+        if (list.length === 1 && list[0].address) setSelectedId(list[0].id);
       } else {
         setAddresses([]);
         setError('Could not load deposit addresses. Try again in a moment.');
@@ -283,7 +283,14 @@ export function DepositModal({ onClose }: { onClose: () => void }) {
                 </div>
               </div>
 
-              {selected && (
+              {selected && !selected.address && (
+                <div className="rounded-lg border border-ds-border bg-ds-surface-raised px-3 py-4 text-sm text-ds-text-muted">
+                  Deposit address unavailable for {selected.coin} on{' '}
+                  {selected.networkName || selected.network}.
+                </div>
+              )}
+
+              {selected?.address && (
                 <div>
                   <span className={LABEL}>2 · Send to this address</span>
                   <div className="rounded-lg border border-ds-border bg-ds-surface-raised p-3">
@@ -316,7 +323,7 @@ export function DepositModal({ onClose }: { onClose: () => void }) {
                       </code>
                       <button
                         type="button"
-                        onClick={() => copy(selected.address, 'address')}
+                        onClick={() => selected.address && copy(selected.address, 'address')}
                         className="inline-flex min-h-[32px] shrink-0 items-center gap-1 rounded border border-ds-border px-2 text-xs font-medium text-ds-text transition-colors duration-fast ease-ds-out hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                       >
                         {copied === 'address' ? (
@@ -395,7 +402,7 @@ export function DepositModal({ onClose }: { onClose: () => void }) {
                 </div>
               )}
 
-              {selected && (
+              {selected?.address && (
                 <form onSubmit={submit} className="space-y-4">
                   <div>
                     <span className={LABEL}>3 · Confirm what you sent</span>

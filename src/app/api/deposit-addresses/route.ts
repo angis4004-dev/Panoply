@@ -30,6 +30,15 @@ export async function GET(request: NextRequest) {
     .sort({ coin: 1, network: 1 })
     .lean();
 
+  const activeNetworks = await NetworkModel.find({
+    status: 'active',
+    depositEnabled: true,
+    coins: { $elemMatch: { $exists: true } },
+  })
+    .select('key name description memoRequired coins')
+    .sort({ sortOrder: 1, key: 1 })
+    .lean();
+
   /*
    * The catalog supplies the display name and the warning copy. Looked up in
    * one query keyed by the networks actually in use rather than per row, and
@@ -38,29 +47,65 @@ export async function GET(request: NextRequest) {
    * cosmetic gap.
    */
   const networks = await NetworkModel.find({
-    key: { $in: [...new Set(addresses.map((entry) => entry.network))] },
+    key: {
+      $in: [
+        ...new Set([
+          ...addresses.map((entry) => entry.network),
+          ...activeNetworks.map((network) => network.key),
+        ]),
+      ],
+    },
   })
     .select('key name description depositEnabled memoRequired')
     .lean();
   const byKey = new Map(networks.map((network) => [network.key, network]));
 
+  const byPair = new Map(addresses.map((entry) => [`${entry.coin}\0${entry.network}`, entry]));
+  const findDepositAddress = (coin: string, network: string) =>
+    byPair.get(`${coin}\0${network}`) ?? null;
+
+  const configuredPairs = activeNetworks.flatMap((network) =>
+    network.coins.map((coin) => {
+      const entry = findDepositAddress(coin, network.key);
+      return {
+        entry,
+        coin,
+        network: network.key,
+        unavailableId: `unavailable:${coin}:${network.key}`,
+      };
+    })
+  );
+
+  const configuredIds = new Set(
+    configuredPairs.filter((pair) => pair.entry).map((pair) => String(pair.entry?._id))
+  );
+
+  const rows = [
+    ...configuredPairs.map(({ entry, coin, network, unavailableId }) => ({
+      entry,
+      coin,
+      network,
+      unavailableId,
+    })),
+    ...addresses
+      .filter((entry) => !configuredIds.has(String(entry._id)))
+      .map((entry) => ({ entry, coin: entry.coin, network: entry.network, unavailableId: null })),
+  ];
+
   return NextResponse.json(
-    addresses
-      // A chain with deposits switched off is not a place to send money. The
-      // address row stays active because funds may still arrive at it; what
-      // stops here is telling anyone else to use it.
-      .filter((entry) => byKey.get(entry.network)?.depositEnabled !== false)
-      .map((entry) => {
-        const network = byKey.get(entry.network);
+    rows
+      .filter(({ network }) => byKey.get(network)?.depositEnabled !== false)
+      .map(({ entry, coin, network: networkKey, unavailableId }) => {
+        const network = byKey.get(networkKey);
         return {
-          id: entry._id.toString(),
-          coin: entry.coin,
-          network: entry.network,
-          networkName: network?.name ?? entry.network,
+          id: entry?._id.toString() ?? unavailableId,
+          coin,
+          network: networkKey,
+          networkName: network?.name ?? networkKey,
           networkDescription: network?.description ?? '',
           memoRequired: network?.memoRequired ?? false,
-          address: entry.address,
-          memoTag: entry.memoTag || null,
+          address: entry?.address ?? null,
+          memoTag: entry?.memoTag || null,
         };
       })
   );

@@ -16,7 +16,7 @@ import {
   statusTone,
   when,
 } from '@/components/admin-console/primitives';
-import { AddressActions, PublishAddress } from './actions';
+import { AddressActions, DeleteAddress, PublishAddress } from './actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -159,6 +159,12 @@ export default async function DepositAddressesPage({
                 <Cell>
                   {canManage && row.status === 'active' && row.scope === 'platform' ? (
                     <AddressActions
+                      addressId={String(row._id)}
+                      coin={row.coin}
+                      network={row.network}
+                    />
+                  ) : canManage && row.status === 'inactive' ? (
+                    <DeleteAddress
                       addressId={String(row._id)}
                       coin={row.coin}
                       network={row.network}

@@ -3,7 +3,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { Plus, X } from 'lucide-react';
+import { Plus, Trash2, X } from 'lucide-react';
 import {
   Note,
   Panel,
@@ -351,5 +351,53 @@ export function AddressActions({
         </div>
       </form>
     </Panel>
+  );
+}
+
+export function DeleteAddress({
+  addressId,
+  coin,
+  network,
+}: {
+  addressId: string;
+  coin: string;
+  network: string;
+}) {
+  const router = useRouter();
+  const [busy, setBusy] = React.useState(false);
+
+  async function remove() {
+    if (!window.confirm(`Permanently delete the inactive ${coin} address on ${network}?`)) return;
+
+    setBusy(true);
+    try {
+      const response = await fetch(`/api/admin/deposit-addresses/${addressId}`, {
+        method: 'DELETE',
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        toast.error(payload.error ?? 'The address was not deleted.');
+        return;
+      }
+      toast.success('Inactive address permanently deleted.');
+      router.refresh();
+    } catch {
+      toast.error('Unable to reach the server.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={remove}
+      disabled={busy}
+      className={buttonClass('danger')}
+      title="Permanently delete inactive address"
+    >
+      <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+      {busy ? 'Deleting…' : 'Delete'}
+    </button>
   );
 }

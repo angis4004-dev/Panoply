@@ -3,7 +3,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { Plus, X } from 'lucide-react';
+import { Plus, Trash2, X } from 'lucide-react';
 import {
   Note,
   Panel,
@@ -585,21 +585,28 @@ export function NetworkActions({ network }: { network: EditableNetwork }) {
         >
           Edit
         </button>
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() =>
-            patch(
-              { status: network.status === 'active' ? 'inactive' : 'active' },
-              network.status === 'active'
-                ? `${network.key} deactivated.`
-                : `${network.key} reactivated.`
-            )
-          }
-          className="rounded-lg px-2 py-1 text-ds-caption font-medium text-ds-text-muted transition-colors duration-fast ease-ds-out hover:bg-ds-surface-inset hover:text-ds-text disabled:opacity-50"
-        >
-          {network.status === 'active' ? 'Deactivate' : 'Reactivate'}
-        </button>
+        {network.status === 'active' ? (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => patch({ status: 'inactive' }, `${network.key} deactivated.`)}
+            className="rounded-lg px-2 py-1 text-ds-caption font-medium text-ds-text-muted transition-colors duration-fast ease-ds-out hover:bg-ds-surface-inset hover:text-ds-text disabled:opacity-50"
+          >
+            Deactivate
+          </button>
+        ) : (
+          <>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => patch({ status: 'active' }, `${network.key} reactivated.`)}
+              className="rounded-lg px-2 py-1 text-ds-caption font-medium text-ds-text-muted transition-colors duration-fast ease-ds-out hover:bg-ds-surface-inset hover:text-ds-text disabled:opacity-50"
+            >
+              Reactivate
+            </button>
+            <DeleteNetwork networkKey={network.key} networkId={network.id} />
+          </>
+        )}
       </div>
     );
   }
@@ -627,5 +634,43 @@ export function NetworkActions({ network }: { network: EditableNetwork }) {
         </div>
       </form>
     </Panel>
+  );
+}
+
+function DeleteNetwork({ networkId, networkKey }: { networkId: string; networkKey: string }) {
+  const router = useRouter();
+  const [busy, setBusy] = React.useState(false);
+
+  async function remove() {
+    if (!window.confirm(`Permanently delete the inactive ${networkKey} network?`)) return;
+
+    setBusy(true);
+    try {
+      const response = await fetch(`/api/admin/networks/${networkId}`, { method: 'DELETE' });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        toast.error(payload.error ?? 'The network was not deleted.');
+        return;
+      }
+      toast.success('Inactive network permanently deleted.');
+      router.refresh();
+    } catch {
+      toast.error('Unable to reach the server.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={remove}
+      disabled={busy}
+      className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-ds-caption font-medium text-ds-value-negative transition-colors duration-fast ease-ds-out hover:bg-ds-value-negative/10 disabled:opacity-50"
+      title="Permanently delete inactive network"
+    >
+      <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+      {busy ? 'Deleting…' : 'Delete'}
+    </button>
   );
 }
