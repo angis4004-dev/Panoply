@@ -32,7 +32,11 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const APPLY = process.argv.includes('--apply');
 
 // The per-trader indexes. Both are keyed on a field platform rows leave null.
-const STALE_INDEXES = ['userId_1_network_1_address_1', 'userId_1_coin_1_network_1'];
+const STALE_INDEXES = [
+  'userId_1_network_1_address_1',
+  'userId_1_coin_1_network_1',
+  'network_1_address_1',
+];
 
 const RETIREMENT_REASON =
   'Retired: deposit addresses are now published platform-wide rather than assigned per trader.';
@@ -131,10 +135,10 @@ async function main() {
   }
 
   await addresses.createIndex(
-    { network: 1, address: 1 },
+    { network: 1, address: 1, coin: 1 },
     { unique: true, partialFilterExpression: { scope: 'platform' } }
   );
-  console.info('  created network_1_address_1 (unique, platform only)');
+  console.info('  created network_1_address_1_coin_1 (unique, platform only)');
 
   await addresses.createIndex(
     { coin: 1, network: 1 },

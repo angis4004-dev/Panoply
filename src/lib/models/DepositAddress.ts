@@ -90,14 +90,16 @@ const DepositAddressSchema = new Schema<IDepositAddress>(
 );
 
 /**
- * One row per address per network.
+ * One row per address per coin and network.
  *
  * Scoped to platform rows so it can be built alongside legacy data: the old
  * per-trader model permitted the same address on two traders' rows, and a
  * global unique index would refuse to build on a database that contains one.
+ * The same custody address can legitimately receive multiple tokens on one
+ * chain, so coin is part of the identity here.
  */
 DepositAddressSchema.index(
-  { network: 1, address: 1 },
+  { network: 1, address: 1, coin: 1 },
   { unique: true, partialFilterExpression: { scope: 'platform' } }
 );
 
