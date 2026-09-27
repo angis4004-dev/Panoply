@@ -185,6 +185,16 @@ export function DepositModal({ onClose }: { onClose: () => void }) {
       // The balance has not moved yet, but the ledger is the only thing that
       // decides that - refetch rather than assume either way.
       void fetchWalletBalance();
+
+      // Back to the dashboard.
+      //
+      // Clearing the fields and leaving the same form on screen reads as
+      // though the submission did nothing: the two things that record it - the
+      // toast, and the setup checklist moving to "waiting on confirmation" -
+      // are both behind the modal. Closing is what shows the trader their
+      // deposit was taken. onClose refetches the journey, so the checklist has
+      // already caught up by the time the card is gone.
+      handleClose();
     } catch {
       setError('Unable to reach the server.');
     } finally {
