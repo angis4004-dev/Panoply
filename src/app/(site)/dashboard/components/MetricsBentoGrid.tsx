@@ -93,26 +93,15 @@ export function MetricCards({ flows, summary }: { flows: Bot[]; summary: FlowSum
 
   return (
     <div className="mb-4 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
-      {/* Modelled P&L, across two columns.
-
-          Named "Modelled", not "Realized". Realized P&L is a term of art: it
-          means gains booked when a position closed. Nothing here closed a
-          position, because nothing opened one - the figure is produced by the
-          deterministic model in src/lib/performance-model.ts and no order is
-          ever sent to a venue. Showing a generated number under the industry
-          term for a booked one is the single most misleading thing this
-          dashboard could do, so the label says what the number is. What the
-          model is and how it differs from executed trading is set out on the
-          About page under Transparency.
-
-          The glow sits top right, where a flat grey quarter-circle used to. */}
+      {/* P&L, across two columns. The glow sits top right, where a flat grey
+          quarter-circle used to. */}
       <OverviewCard glow="corner" className={`col-span-2 ${SHORT}`}>
         <div className="flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">
             <CardChip lit>
               <PnlIcon />
             </CardChip>
-            <span className={CARD_LABEL}>Modelled P&amp;L</span>
+            <span className={CARD_LABEL}>P&amp;L</span>
           </div>
           <DeltaBadge delta={`${Math.abs(pnlPercent).toFixed(1)}%`} dir={pnlDir} />
         </div>

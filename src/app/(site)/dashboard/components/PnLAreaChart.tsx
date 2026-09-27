@@ -12,28 +12,9 @@ import {
   ReferenceLine,
 } from 'recharts';
 import { LoadingState } from '@/components/ui/loader';
-import { SETTLEMENT_INTERVAL_MS } from '@/lib/performance-model';
 import { cn } from '@/lib/utils';
 import { PnlIcon } from '@/components/ui/panoply-icons';
 import { CARD_TITLE, CardChip, OverviewCard } from '@/components/dashboard/overview-card';
-
-/*
- * Read off the model so the copy below cannot drift from what it does.
- *
- * Formatted rather than fixed to one unit: the interval has been six hours
- * and is now five minutes, and a label hardcoded to either reads as nonsense
- * the moment it changes ("every 0 hours").
- */
-function settlementLabel(short: boolean): string {
-  const minutes = Math.round(SETTLEMENT_INTERVAL_MS / 60_000);
-  if (minutes < 60) return short ? `${minutes} min` : `${minutes} minutes`;
-  const hours = Math.round(minutes / 60);
-  if (short) return `${hours}h`;
-  return `${hours} ${hours === 1 ? 'hour' : 'hours'}`;
-}
-
-const SETTLEMENT_LABEL = settlementLabel(false);
-const SETTLEMENT_LABEL_SHORT = settlementLabel(true);
 
 interface ChartDataPoint {
   /** Epoch ms. The x-axis is a real time scale, not a category index. */
@@ -340,6 +321,7 @@ export default function PnLAreaChart() {
    * between them told traders with live positions that they had none.
    */
   const [allocatedCapital, setAllocatedCapital] = useState(0);
+  const [unavailableFlows, setUnavailableFlows] = useState(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -360,14 +342,14 @@ export default function PnLAreaChart() {
         const body: {
           points: { timestamp: string; value: number }[];
           allocatedCapital?: number;
+          unavailableFlows?: number;
         } = await response.json();
         if (!isMounted) return;
 
         setAllocatedCapital(body.allocatedCapital ?? 0);
+        setUnavailableFlows(body.unavailableFlows ?? 0);
 
-        // The series already spans the requested window at an even interval,
-        // so there is nothing to bucket - each point is a value the portfolio
-        // actually held at that moment.
+        // The API returns the strategy's market-priced value at each sample.
         const processed: ChartDataPoint[] = (body.points ?? []).map((p) => {
           const ms = new Date(p.timestamp).getTime();
           return { ts: ms, fullLabel: fullLabel(ms, days), value: p.value };
@@ -529,8 +511,8 @@ export default function PnLAreaChart() {
               between two settlements carries new information, so a reader who
               does not know it will read a step as a stall. */}
           <p className="text-ds-caption text-ds-text-secondary mt-0.5">
-            {rangeDescription[selectedRange]} · signal flows · modelled, settles every{' '}
-            {SETTLEMENT_LABEL_SHORT}
+            {rangeDescription[selectedRange]} · signal flows · market-price-based P&amp;L
+            {selectedRange === '1d' ? ' · 5-minute intervals' : ''}
           </p>
         </div>
         <RangeControl selected={selectedRange} onSelect={setSelectedRange} />
@@ -540,6 +522,12 @@ export default function PnLAreaChart() {
         <div className="mb-3 p-3 bg-ds-value-negative/10 border border-ds-value-negative/30 rounded-lg text-sm">
           {error}
         </div>
+      )}
+      {unavailableFlows > 0 && (
+        <p role="status" className="mb-3 text-ds-caption text-ds-text-muted">
+          {unavailableFlows} {unavailableFlows === 1 ? 'flow is' : 'flows are'} excluded because
+          price history is unavailable or the strategy needs cross-market prices.
+        </p>
       )}
 
       {loading && data.length === 0 ? (
@@ -567,9 +555,8 @@ export default function PnLAreaChart() {
                     maximumFractionDigits: 2,
                   })}
                 </span>{' '}
-                is allocated. Results settle once every {SETTLEMENT_LABEL}, so a flow reads exactly
-                zero until its first one lands — for a flow started just now, that is about{' '}
-                {SETTLEMENT_LABEL} away.
+                is allocated. P&amp;L appears when usable market-price history is available for the
+                selected period.
               </p>
             </>
           ) : (

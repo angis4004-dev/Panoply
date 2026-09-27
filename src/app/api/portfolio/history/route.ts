@@ -3,13 +3,15 @@ import { connectToDatabase } from '@/lib/mongo';
 import { TradingBotModel } from '@/lib/models';
 import { getSessionFromRequest } from '@/lib/session';
 import { requireUnlock } from '@/lib/dashboard-unlock';
-import { modelledPnlSeries } from '@/lib/performance-model';
+import { getMarketChart } from '@/lib/coingecko';
+import { resolveBaseCoinId } from '@/lib/coin-symbols';
+import { marketPnlSeries, type MarketPricePoint } from '@/lib/market-pnl-model';
 
 /**
  * GET /api/portfolio/history?days=N&points=M
  *
- * This user's modelled P&L across the requested window, sampled at an even
- * interval, for the dashboard's "Cumulative P&L" chart.
+ * This user's market-based strategy P&L across the requested window, sampled
+ * at an even interval, for the dashboard's "Cumulative P&L" chart.
  *
  * Previously this read PortfolioSnapshot rows, which are written only when
  * someone loads the dashboard. The x-axis was therefore a record of when the
@@ -17,11 +19,9 @@ import { modelledPnlSeries } from '@/lib/performance-model';
  * getting four hours of it - and there was no value to report between two
  * snapshots hours apart.
  *
- * The series is computed from the deterministic performance model instead
- * (see modelledPnlSeries), a pure function of flow id, allocated capital, and
- * creation time - so the same flows always produce the same series, and an
- * aggregate computed elsewhere from those flows never disagrees with this
- * chart.
+ * Each flow is replayed against the available historical prices for its base
+ * and quote assets. This endpoint is intentionally separate from the income
+ * and wallet-settlement calculations.
  *
  * ## Why allocatedCapital is returned alongside the series
  *
@@ -34,6 +34,41 @@ import { modelledPnlSeries } from '@/lib/performance-model';
 
 const MAX_POINTS = 400;
 
+type PriceRow = [number, number];
+
+function pairCoinIds(pair: string): [string, string] | null {
+  const [base, quote] = pair.split('/');
+  if (!base || !quote) return null;
+  const baseId = resolveBaseCoinId(`${base}/USD`);
+  const quoteId = resolveBaseCoinId(`${quote}/USD`);
+  return baseId && quoteId ? [baseId, quoteId] : null;
+}
+
+function priceAt(rows: PriceRow[], timestamp: number, maxGapMs: number): number | null {
+  if (rows.length === 0) return null;
+  if (timestamp <= rows[0][0]) {
+    return rows[0][0] - timestamp <= maxGapMs ? rows[0][1] : null;
+  }
+  if (timestamp >= rows[rows.length - 1][0]) {
+    return timestamp - rows[rows.length - 1][0] <= maxGapMs ? rows[rows.length - 1][1] : null;
+  }
+
+  let low = 0;
+  let high = rows.length - 1;
+  while (low + 1 < high) {
+    const middle = Math.floor((low + high) / 2);
+    if (rows[middle][0] <= timestamp) low = middle;
+    else high = middle;
+  }
+
+  const before = rows[low];
+  const after = rows[high];
+  const gap = after[0] - before[0];
+  if (gap <= 0 || gap > maxGapMs) return null;
+  const fraction = (timestamp - before[0]) / gap;
+  return before[1] + (after[1] - before[1]) * fraction;
+}
+
 /**
  * Resolution per window.
  *
@@ -43,7 +78,7 @@ const MAX_POINTS = 400;
  * averaged out before it ever reached the client.
  */
 function pointsFor(days: number): number {
-  if (days <= 1) return 288; // every 5 minutes
+  if (days <= 1) return 289; // 288 five-minute intervals across 24 hours
   if (days <= 7) return 336; // every 30 minutes
   if (days <= 30) return 240;
   return 180;
@@ -88,34 +123,86 @@ export async function GET(request: NextRequest) {
       i === points - 1 ? now : Math.round(from + i * step)
     );
 
-    /*
-     * Built from the deterministic performance model - see modelledPnlSeries.
-     * Each flow's curve is a pure function of its id, allocated capital, and
-     * creation time, so replaying the same flows at the same sample times
-     * always folds into the same total.
-     */
     const totals = new Array<number>(points).fill(0);
     let allocatedCapital = 0;
     let fundedFlows = 0;
+    let unavailableFlows = 0;
+
+    const coinIds = new Set<string>();
+    for (const bot of bots) {
+      if ((bot.allocatedAmount ?? 0) <= 0 || bot.type === 'Arbitrage') continue;
+      const ids = pairCoinIds(bot.pair);
+      if (ids) {
+        coinIds.add(ids[0]);
+        coinIds.add(ids[1]);
+      }
+    }
+
+    const histories = new Map<string, PriceRow[]>();
+    await Promise.all(
+      [...coinIds].map(async (coinId) => {
+        const chart = await getMarketChart(coinId, days);
+        histories.set(coinId, chart.prices ?? []);
+      })
+    );
+
+    const maxPriceGapMs = Math.max(step * 2, 10 * 60 * 1000);
 
     for (const bot of bots) {
       const allocated = bot.allocatedAmount ?? 0;
-      // A flow with no capital contributes nothing to either figure, which is
-      // why an admin-created flow does not move this line.
       if (allocated <= 0) continue;
 
       allocatedCapital += allocated;
       fundedFlows += 1;
 
-      const series = modelledPnlSeries({
-        flowId: String(bot._id),
-        allocatedCapital: allocated,
-        createdAt: bot.createdAt,
-        sampleTimes,
-      });
+      const ids = pairCoinIds(bot.pair);
+      if (!ids || bot.type === 'Arbitrage') {
+        unavailableFlows++;
+        continue;
+      }
 
-      for (let i = 0; i < points; i++) {
-        totals[i] += series[i];
+      const baseHistory = histories.get(ids[0]) ?? [];
+      const quoteHistory = histories.get(ids[1]) ?? [];
+      const startAt = Math.max(from, new Date(bot.createdAt).getTime());
+      const firstSample = sampleTimes.findIndex((time) => time >= startAt);
+      if (firstSample < 0) continue;
+
+      const timeline = [
+        startAt,
+        ...sampleTimes.slice(firstSample).filter((time) => time > startAt),
+      ];
+      const marketPrices: MarketPricePoint[] = [];
+      let hasCompletePriceHistory = true;
+
+      for (const timestamp of timeline) {
+        const baseUsd = priceAt(baseHistory, timestamp, maxPriceGapMs);
+        const quoteUsd = priceAt(quoteHistory, timestamp, maxPriceGapMs);
+        if (baseUsd == null || quoteUsd == null) {
+          hasCompletePriceHistory = false;
+          break;
+        }
+        marketPrices.push({ timestamp, baseUsd, quoteUsd });
+      }
+
+      if (!hasCompletePriceHistory) {
+        unavailableFlows++;
+        continue;
+      }
+
+      const series = marketPnlSeries({
+        strategy: bot.type,
+        allocatedCapital: allocated,
+        prices: marketPrices,
+      });
+      if (!series) {
+        unavailableFlows++;
+        continue;
+      }
+
+      const seriesOffset = startAt < sampleTimes[firstSample] ? 1 : 0;
+      for (let chartIndex = firstSample; chartIndex < points; chartIndex++) {
+        const seriesIndex = chartIndex - firstSample + seriesOffset;
+        if (seriesIndex < series.length) totals[chartIndex] += series[seriesIndex];
       }
     }
 
@@ -127,6 +214,7 @@ export async function GET(request: NextRequest) {
       // it from the shape of the series.
       allocatedCapital: Number(allocatedCapital.toFixed(2)),
       fundedFlows,
+      unavailableFlows,
       points: sampleTimes.map((t, i) => ({
         timestamp: new Date(t).toISOString(),
         value: Number(totals[i].toFixed(2)),
