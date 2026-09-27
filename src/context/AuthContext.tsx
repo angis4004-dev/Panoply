@@ -35,9 +35,39 @@ export const AuthContext = createContext<AuthContextValue>({
   logout: () => {},
 });
 
+/**
+ * Whether two session answers describe the same account in the same state.
+ *
+ * /api/auth/session builds a fresh object every time it is parsed, so applying
+ * its answer unconditionally handed every consumer a new `user` reference once
+ * a minute even when not one field had moved. The app store keys its fetch
+ * effect on that reference: it re-ran on every refresh, reset its "has ever
+ * loaded" guards, and the dashboard flashed back to skeletons - the metric
+ * cards, the flow list and the balance all blanking together for as long as
+ * the page stayed open. Comparing the fields means state only moves when the
+ * account actually moved.
+ *
+ * Shallow by design: every field on AuthUser is a primitive.
+ */
+function sameUser(a: AuthUser | null, b: AuthUser | null): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  const keys = new Set([...Object.keys(a), ...Object.keys(b)]) as Set<keyof AuthUser>;
+  for (const key of keys) {
+    if (a[key] !== b[key]) return false;
+  }
+  return true;
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUserState] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Every write goes through here, so an answer identical to what is already
+  // held is dropped rather than published as a new object.
+  const applyUser = useCallback((next: AuthUser | null) => {
+    setUserState((prev) => (sameUser(prev, next) ? prev : next));
+  }, []);
 
   useEffect(() => {
     // Rehydrate the logged-in user from the server-verified session cookie.
@@ -45,10 +75,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // client can know who's signed in after a hard page load/refresh.
     fetch('/api/auth/session')
       .then((res) => (res.ok ? res.json() : { user: null }))
-      .then((data) => setUserState(data.user))
-      .catch(() => setUserState(null))
+      .then((data) => applyUser(data.user))
+      .catch(() => applyUser(null))
       .finally(() => setLoading(false));
-  }, []);
+  }, [applyUser]);
 
   /*
    * Keep the session fresh while a tab is open.
@@ -76,7 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
          * someone out of a working session on one dropped request.
          */
         .then((data) => {
-          if (data) setUserState(data.user);
+          if (data) applyUser(data.user);
         })
         .catch(() => {});
     };
@@ -92,7 +122,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       window.removeEventListener('aegis:notifications-changed', refresh);
       window.removeEventListener('aegis:account-changed', refresh);
     };
-  }, []);
+  }, [applyUser]);
 
   /*
    * Stable identity, deliberately.
@@ -105,9 +135,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    * Auth is carried by an httpOnly cookie, so there is nothing to persist
    * client-side here beyond React state.
    */
-  const setUser = useCallback((u: AuthUser | null) => {
-    setUserState(u);
-  }, []);
+  const setUser = useCallback(
+    (u: AuthUser | null) => {
+      applyUser(u);
+    },
+    [applyUser]
+  );
 
   const logout = useCallback(() => {
     setUser(null);

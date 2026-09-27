@@ -143,6 +143,19 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
    */
   const walletEverLoaded = useRef(false);
 
+  /*
+   * Which account is signed in, rather than which object the session endpoint
+   * last produced.
+   *
+   * The fetch effect below resets both guards above, so it must only run when
+   * the trader actually changes. Keyed on the `user` object it also ran on
+   * every session refresh - a new object each time, identical in content -
+   * which cleared the guards once a minute and put the whole dashboard back to
+   * skeletons. AuthContext no longer publishes those no-op objects; this keeps
+   * the effect immune to it regardless.
+   */
+  const accountKey = user?.email ?? null;
+
   useEffect(() => {
     if (user) {
       setState((prev) => ({
@@ -336,8 +349,9 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
   // only ever changes because the ledger did.
 
   useEffect(() => {
-    // Fetch reports, bots, vault investments, and wallet balance when user changes
-    if (!user) return;
+    // Fetch reports, bots, vault investments, and wallet balance when the
+    // signed-in account changes.
+    if (!accountKey) return;
 
     botsEverLoaded.current = false;
     walletEverLoaded.current = false;
@@ -388,7 +402,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       window.removeEventListener('aegis:notifications-changed', onBalanceRefresh);
       window.removeEventListener('aegis:account-changed', onBalanceRefresh);
     };
-  }, [user]);
+  }, [accountKey]);
 
   const setBotModalOpen = (open: boolean) => {
     setState((prev) => ({ ...prev, botModalOpen: open }));
