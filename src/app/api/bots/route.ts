@@ -7,7 +7,7 @@ import { getCoinPrices } from '@/lib/coingecko';
 import { resolveBaseCoinId } from '@/lib/coin-symbols';
 import { modelledPnlAt } from '@/lib/performance-model';
 import { recordSnapshotIfDue } from '@/lib/portfolio-snapshot';
-import { computeTier, grantAchievement, TIER_SLOT_LIMITS } from '@/lib/achievements/engine';
+import { computeTier, effectiveSlotLimit, grantAchievement } from '@/lib/achievements/engine';
 import { InsufficientFundsError, withLedger } from '@/lib/ledger';
 import { InvalidAmountError, toDollars, toPositiveMinor } from '@/lib/money';
 import { createBotSchema, parseBody } from '@/lib/validation';
@@ -185,13 +185,14 @@ export async function POST(request: NextRequest) {
     // wrongly gate already-verified legacy users as unverified.
     const currentUser = await userModel
       .findById(userId)
-      .select('kycStatus lifetimeDeposited')
+      .select('kycStatus lifetimeDeposited signalFlowSlotGrant')
       .lean();
     const userTier = computeTier(
       currentUser?.kycStatus || 'unverified',
       currentUser?.lifetimeDeposited || 0
     );
-    const slotLimit = TIER_SLOT_LIMITS[userTier];
+    // The tier's allowance, unless this account carries an operator's grant.
+    const slotLimit = effectiveSlotLimit(userTier, currentUser?.signalFlowSlotGrant);
 
     if (slotLimit === 0) {
       return NextResponse.json(

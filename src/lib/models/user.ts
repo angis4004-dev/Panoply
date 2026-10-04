@@ -111,6 +111,14 @@ export interface IUser extends Document {
   walletOwnershipConfirmed: boolean;
   walletOwnershipConfirmedAt?: Date;
   lifetimeDeposited: number;
+  /**
+   * A floor on this account's signal-flow allowance, granted by an operator.
+   *
+   * Absent on almost every user, where the tier's own allowance applies. See
+   * effectiveSlotLimit in src/lib/achievements/engine.ts: it only ever widens,
+   * so it cannot be used to hold an account below the tier it has earned.
+   */
+  signalFlowSlotGrant?: number | null;
   /*
    * Capital commitment, for withdrawals. See src/lib/withdrawal-rules.ts.
    *
@@ -207,6 +215,10 @@ const UserSchema = new Schema<IUser>(
     walletOwnershipConfirmed: { type: Boolean, default: false },
     walletOwnershipConfirmedAt: { type: Date },
     lifetimeDeposited: { type: Number, default: 0, min: 0 },
+    // No default. Null means "no grant", which is not the same as a grant of
+    // zero: a zero would read as a deliberate decision to allow none, and
+    // nothing should be able to express that here (see effectiveSlotLimit).
+    signalFlowSlotGrant: { type: Number, default: null, min: 1 },
     // No default. Undefined means "not chosen yet", which is a real state -
     // an account that has never deposited has no term to serve, and
     // defaulting it to 'short' would silently start a clock nobody set.

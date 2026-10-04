@@ -49,6 +49,30 @@ export function computeTier(kycStatus: string, lifetimeDeposited: number): Tier 
   return 'novice';
 }
 
+/**
+ * How many signal flows an account may run.
+ *
+ * Normally its tier's allowance. `grant` is a per-account floor, for the cases
+ * the tier table cannot express: an operator who wants one particular trader
+ * to run a flow before their identity check completes, say. Set on the user
+ * document, absent on almost every account.
+ *
+ * A floor rather than an override, so it can only ever widen the allowance.
+ * Someone granted one slot while unverified keeps all three when they reach
+ * Amateur, instead of being quietly held at the grant they were given back
+ * when it was a favour. Nothing here can take a slot away.
+ *
+ * Deliberately not folded into computeTier. The tier is a statement about the
+ * account - what it has verified and deposited - and a slot granted by hand is
+ * not evidence of either. Keeping them apart means a grant cannot be mistaken
+ * for progress the trader made, in the UI or anywhere else.
+ */
+export function effectiveSlotLimit(tier: Tier, grant?: number | null): number {
+  const allowance = TIER_SLOT_LIMITS[tier];
+  if (typeof grant !== 'number' || !Number.isFinite(grant) || grant <= 0) return allowance;
+  return Math.max(allowance, grant);
+}
+
 export interface IdentityScoreInput {
   kycStatus: string;
   walletOwnershipConfirmed: boolean;

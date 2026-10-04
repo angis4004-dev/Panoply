@@ -8,7 +8,7 @@ import {
   computeIdentityScore,
   computeTier,
   TIER_DEPOSIT_THRESHOLDS,
-  TIER_SLOT_LIMITS,
+  effectiveSlotLimit,
   type Tier,
 } from '@/lib/achievements/engine';
 
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
   const user = await userModel
     .findById(session.user.id)
     .select(
-      'xp tier kycStatus lifetimeDeposited walletOwnershipConfirmed emailVerified walletAddress profileCompletedAt portfolioReportCount distinctPortfolioAssets distinctBotStrategyTypes visitedSections'
+      'xp tier kycStatus lifetimeDeposited signalFlowSlotGrant walletOwnershipConfirmed emailVerified walletAddress profileCompletedAt portfolioReportCount distinctPortfolioAssets distinctBotStrategyTypes visitedSections'
     )
     .lean();
   if (!user) {
@@ -86,7 +86,12 @@ export async function GET(request: NextRequest) {
 
   // Infinity (vanguard's unlimited slot count) doesn't survive JSON
   // serialization - it becomes null, and the client treats null as unlimited.
-  const slotLimit = TIER_SLOT_LIMITS[tier as Tier];
+  //
+  // Reads the same grant the create endpoint enforces. The modal decides from
+  // this number whether to show the form at all, so a grant missing here would
+  // leave the trader looking at "complete identity verification" for a flow
+  // the server would have accepted.
+  const slotLimit = effectiveSlotLimit(tier as Tier, user.signalFlowSlotGrant);
 
   return NextResponse.json({
     xp: user.xp || 0,
