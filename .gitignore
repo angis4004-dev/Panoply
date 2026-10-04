@@ -73,3 +73,9 @@ out.txt
 .worktrees/
 .vercel
 .gstack/
+
+# Scratch bundles written by scripts/create-trader-account.mjs
+.provision-*/
+
+# Scratch bundles written by scripts/create-trader-account.mjs
+.provision-*/
