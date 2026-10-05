@@ -46,10 +46,11 @@
  */
 
 import crypto from 'node:crypto';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
+import { loadApp, loadEnv, resolveAdmin } from './lib/load-app.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const require = createRequire(join(ROOT, 'package.json'));
@@ -74,90 +75,6 @@ function parseArgs(argv) {
     // console has more than one, since the ledger wants a specific human.
     adminEmail: flag('admin', null),
   };
-}
-
-function loadEnv() {
-  try {
-    for (const line of readFileSync(join(ROOT, '.env'), 'utf8').split('\n')) {
-      const match = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)$/);
-      if (match && !(match[1] in process.env)) {
-        process.env[match[1]] = match[2].trim().replace(/^['"]|['"]$/g, '');
-      }
-    }
-  } catch {
-    // The process environment may already carry MONGODB_URI.
-  }
-}
-
-/**
- * Bundles the pieces of src/ this needs, so the app's own code does the work.
- *
- * The bundle has to land inside the project, not in the OS temp directory.
- * Everything in node_modules stays external - bundling mongoose would be both
- * enormous and wrong - and Node resolves a bare import by walking up from the
- * importing file. From %TEMP% there is no node_modules above it to find, so
- * the bundle loaded and then failed on its first `import mongoose`.
- */
-async function loadApp() {
-  const esbuild = require('esbuild');
-  const dir = mkdtempSync(join(ROOT, '.provision-'));
-  const entry = join(dir, 'entry.ts');
-  const out = join(dir, 'entry.mjs');
-
-  /*
-   * Stand-in for next/server.
-   *
-   * validation.ts imports NextResponse so parseBody can turn a failed schema
-   * into a 422, and that one import pulls Next's whole request runtime into a
-   * command-line script that only wants a zod object. Aliasing it keeps the
-   * real schemas - the point of bundling src/ at all - without the framework.
-   *
-   * It throws rather than returning a stub value: if a future export does
-   * reach for NextResponse, the run should stop and say so, not quietly
-   * produce a response object nobody reads.
-   */
-  const shim = join(dir, 'next-server-shim.js');
-  writeFileSync(
-    shim,
-    `export const NextResponse = new Proxy({}, { get() { throw new Error('next/server is not available in the provisioning script.'); } });\n`
-  );
-
-  writeFileSync(
-    entry,
-    [
-      `export { registerUser } from '@/lib/auth-store';`,
-      `export { hashPin, isWeakPin, isValidPinFormat } from '@/lib/pin';`,
-      `export { setBalanceToTarget, getBalanceMinor } from '@/lib/ledger';`,
-      `export { UserModel } from '@/lib/models/User';`,
-      `export { adminCreateUserSchema } from '@/lib/validation';`,
-    ].join('\n')
-  );
-
-  const cleanup = () => rmSync(dir, { recursive: true, force: true });
-
-  // Its own failures are its own to clean up. The caller only gets `cleanup`
-  // once there is something to clean up after, so a build or an import that
-  // throws here would otherwise leave the directory behind in the project -
-  // which is exactly what the first two runs of this did.
-  try {
-    esbuild.buildSync({
-      entryPoints: [entry],
-      bundle: true,
-      platform: 'node',
-      format: 'esm',
-      target: 'node20',
-      packages: 'external',
-      alias: { '@': join(ROOT, 'src'), 'next/server': shim },
-      outfile: out,
-      logLevel: 'error',
-    });
-
-    const app = await import(pathToFileURL(out).href);
-    return { app, cleanup };
-  } catch (error) {
-    cleanup();
-    throw error;
-  }
 }
 
 /** 20 characters, no lookalikes, so it survives being read aloud or retyped. */
@@ -213,33 +130,6 @@ function resolvePin(requested, isValidPinFormat, isWeakPin) {
   }
 }
 
-/**
- * The admin the balance adjustment is recorded against.
- *
- * Looked up rather than written down. The ledger wants a specific human on
- * every adjustment, and hardcoding one puts an operator's address and database
- * id into a public repository for the sake of saving a flag. With a single
- * active admin there is nothing to choose between; with several, --admin says
- * which, because guessing whose name goes on a financial record is not the
- * script's call to make.
- */
-async function resolveAdmin(db, requestedEmail) {
-  const admins = await db.collection('adminusers').find({ status: 'active' }).toArray();
-  if (admins.length === 0) throw new Error('No active admin to record the adjustment against.');
-
-  if (requestedEmail === null) {
-    if (admins.length > 1) {
-      const list = admins.map((a) => a.email).join(', ');
-      throw new Error(`Several active admins. Name one with --admin: ${list}`);
-    }
-    return admins[0];
-  }
-
-  const match = admins.find((a) => a.email.toLowerCase() === requestedEmail.toLowerCase());
-  if (!match) throw new Error(`No active admin with the address ${requestedEmail}.`);
-  return match;
-}
-
 async function main() {
   const args = parseArgs(process.argv.slice(2));
 
@@ -257,11 +147,17 @@ async function main() {
   }
   const targetMinor = Math.round(args.amount * 100);
 
-  loadEnv();
+  loadEnv(ROOT, readFileSync);
   if (!process.env.MONGODB_URI) throw new Error('MONGODB_URI is required.');
 
   const mongoose = require('mongoose');
-  const { app, cleanup } = await loadApp();
+  const { app, cleanup } = await loadApp(ROOT, {
+    '@/lib/auth-store': ['registerUser'],
+    '@/lib/pin': ['hashPin', 'isWeakPin', 'isValidPinFormat'],
+    '@/lib/ledger': ['setBalanceToTarget', 'getBalanceMinor'],
+    '@/lib/models/user': ['UserModel'],
+    '@/lib/validation': ['adminCreateUserSchema'],
+  });
 
   try {
     await mongoose.connect(process.env.MONGODB_URI, {
