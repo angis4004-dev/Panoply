@@ -25,13 +25,35 @@ export async function sendEmail({
     console.error('RESEND_API_KEY is not defined');
     return false;
   }
+
+  /*
+   * The sandbox sender is reported, loudly, every time it is used.
+   *
+   * Resend's shared onboarding address delivers only to the address that owns
+   * the Resend account and rejects everything else. As a fallback it is worse
+   * than useless in production: the send succeeds from the caller's point of
+   * view - resend.emails.send accepts it - and nobody receives anything. This
+   * deployment ran that way for its whole life. Every verification link,
+   * deposit approval and withdrawal alert was generated, handed to Resend and
+   * refused, and nothing in the logs said so.
+   *
+   * Still a fallback rather than a hard failure, because local development
+   * without an EMAIL_FROM is a reasonable state and should not throw. The
+   * difference is that it now leaves a line in the log naming the cause.
+   */
+  const from = process.env.EMAIL_FROM?.trim() || 'onboarding@resend.dev';
+  if (/@resend\.dev>?\s*$/.test(from)) {
+    console.error(
+      `[email] Sending as ${from}, Resend's shared sandbox address. It delivers only to the ` +
+        `address that owns the Resend account; mail to ${to} will be refused. Set EMAIL_FROM to ` +
+        `an address on a domain verified in Resend.`
+    );
+  }
+
   try {
     const resend = new Resend(process.env.RESEND_API_KEY);
     const { error } = await resend.emails.send({
-      // Resend requires a sender; falling back to its shared onboarding
-      // address keeps a missing EMAIL_FROM from becoming a type error at the
-      // call site and a silent failure at runtime.
-      from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
+      from,
       to: [to],
       /*
        * Replies reach a person.
