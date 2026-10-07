@@ -62,7 +62,7 @@ export async function getWithdrawalStanding(
 ): Promise<WithdrawalStanding | null> {
   const user = await UserModel.findById(userId)
     .select(
-      'walletBalanceMinor kycStatus walletOwnershipConfirmed investmentHorizon tradingStartedAt firstDepositApprovedAt'
+      'walletBalanceMinor kycStatus walletOwnershipConfirmed investmentHorizon tradingStartedAt firstDepositApprovedAt firstCreditedAt'
     )
     .lean();
 
@@ -76,6 +76,7 @@ export async function getWithdrawalStanding(
   const realLock = computeLockStatus(
     {
       firstDepositApprovedAt: user.firstDepositApprovedAt ?? null,
+      firstCreditedAt: user.firstCreditedAt ?? null,
       tradingStartedAt: user.tradingStartedAt ?? null,
     },
     now

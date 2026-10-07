@@ -286,6 +286,28 @@ export async function POST(request: NextRequest) {
           memo: `Allocation to ${body.type} ${pair}`,
         });
 
+        /*
+         * Start the withdrawal clock's trading half.
+         *
+         * Nothing used to write this. The field was declared, computeLockStatus
+         * read it, and no code path ever set it - so every account sat at
+         * 'not_started' forever and no trader on the platform could withdraw,
+         * verified or not.
+         *
+         * $min rather than $set: the clock records when trading first began,
+         * so a second flow must not push it forward and restart the term. It
+         * also makes this safe to run again over an account that already has
+         * a date, which is what the backfill relies on.
+         *
+         * Inside the same transaction as the flow and its allocation, so the
+         * clock cannot disagree with the thing that started it.
+         */
+        await userModel.updateOne(
+          { _id: userId },
+          { $min: { tradingStartedAt: bot.createdAt ?? new Date() } },
+          { session: tx.session }
+        );
+
         return bot;
       });
     } catch (error) {

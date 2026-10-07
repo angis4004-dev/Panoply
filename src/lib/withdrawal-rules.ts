@@ -58,6 +58,16 @@ export function isInvestmentHorizon(value: unknown): value is InvestmentHorizon 
 export interface LockInput {
   /** When an operator approved the trader's first deposit. Null if none yet. */
   firstDepositApprovedAt?: Date | null;
+  /**
+   * When an operator first credited this account directly. Null if never.
+   *
+   * Counted alongside an approved deposit because the term is about capital
+   * being in play, and an operator credit puts it there just as a deposit
+   * does. An account funded that way has never deposited, so a clock keyed on
+   * deposits alone would never start for it - the same reasoning that already
+   * governs hasFundsInPlay in src/lib/onboarding-journey.ts.
+   */
+  firstCreditedAt?: Date | null;
   /** When the trader's first signal flow started running. Null if none yet. */
   tradingStartedAt?: Date | null;
 }
@@ -94,9 +104,23 @@ export function addLockTerm(from: Date): Date {
 }
 
 export function computeLockStatus(input: LockInput, now: Date): LockStatus {
-  const { firstDepositApprovedAt, tradingStartedAt } = input;
+  const { firstDepositApprovedAt, firstCreditedAt, tradingStartedAt } = input;
 
-  const hasDeposit = firstDepositApprovedAt instanceof Date;
+  /*
+   * The first moment capital reached the account, by either route.
+   *
+   * The earliest of the two, not the latest: an account credited by an
+   * operator and later topped up by a deposit has had money in it since the
+   * credit, and the term should run from when it did.
+   */
+  const fundedCandidates = [firstDepositApprovedAt, firstCreditedAt].filter(
+    (value): value is Date => value instanceof Date
+  );
+  const fundedAt = fundedCandidates.length
+    ? new Date(Math.min(...fundedCandidates.map((value) => value.getTime())))
+    : null;
+
+  const hasDeposit = fundedAt !== null;
   const hasTrading = tradingStartedAt instanceof Date;
 
   if (!hasDeposit || !hasTrading) {
@@ -111,9 +135,7 @@ export function computeLockStatus(input: LockInput, now: Date): LockStatus {
 
   // The later of the two. Both conditions must hold before the term runs.
   const clockStartsAt =
-    firstDepositApprovedAt.getTime() >= tradingStartedAt.getTime()
-      ? firstDepositApprovedAt
-      : tradingStartedAt;
+    fundedAt.getTime() >= tradingStartedAt.getTime() ? fundedAt : tradingStartedAt;
 
   const unlocksAt = addLockTerm(clockStartsAt);
 

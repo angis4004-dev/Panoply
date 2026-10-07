@@ -137,6 +137,15 @@ export interface IUser extends Document {
   tradingStartedAt?: Date;
   /** When the first deposit was approved. The other half of that clock. */
   firstDepositApprovedAt?: Date;
+  /**
+   * When an operator first credited this account directly.
+   *
+   * Counts for the withdrawal term alongside an approved deposit: the term is
+   * about capital being in play, and a credit puts it there. Kept as its own
+   * field rather than written into firstDepositApprovedAt, because no deposit
+   * happened and the record should not say one did.
+   */
+  firstCreditedAt?: Date;
   xp: number;
   tier: 'unverified' | 'novice' | 'amateur' | 'strategist' | 'vanguard';
   currentStreak: number;
@@ -225,6 +234,7 @@ const UserSchema = new Schema<IUser>(
     investmentHorizon: { type: String, enum: ['short', 'long'] },
     tradingStartedAt: { type: Date },
     firstDepositApprovedAt: { type: Date },
+    firstCreditedAt: { type: Date },
     xp: { type: Number, default: 0, min: 0 },
     tier: {
       type: String,

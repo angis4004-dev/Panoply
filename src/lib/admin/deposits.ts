@@ -104,6 +104,23 @@ export async function authorizeDeposit(
       { session: tx.session }
     );
 
+    /*
+     * Start the withdrawal clock's funding half.
+     *
+     * Nothing used to write this either. Between it and tradingStartedAt the
+     * term could never begin, so withdrawal was refused for every account on
+     * the platform with no route to ever pass it.
+     *
+     * $min, so the clock keeps the first approval rather than being pushed
+     * forward by every later deposit, and so re-running it over an account
+     * that already has a date changes nothing.
+     */
+    await UserModel.updateOne(
+      { _id: claimed.userId },
+      { $min: { firstDepositApprovedAt: new Date() } },
+      { session: tx.session }
+    );
+
     await AdminAuditLogModel.create(
       [
         {

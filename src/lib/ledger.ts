@@ -223,6 +223,28 @@ export async function setBalanceToTarget(spec: SetBalanceTargetSpec): Promise<Po
     }
 
     const posted = await tx.post({ ...spec, amountMinor });
+
+    /*
+     * An operator credit funds the account, so it starts the withdrawal
+     * clock's funding half the way an approved deposit does.
+     *
+     * Without this an account funded by hand could never withdraw: the clock
+     * waits on firstDepositApprovedAt, and no deposit was ever made. The same
+     * reasoning already governs hasFundsInPlay in onboarding-journey.ts, which
+     * counts a credited balance because a rule keyed on deposits alone leaves
+     * such an account waiting forever.
+     *
+     * Its own field rather than firstDepositApprovedAt, because no deposit
+     * happened and the record should not claim one did. Only on a credit -
+     * taking money out is not funding - and $min, so the first one stands.
+     */
+    if (amountMinor > 0) {
+      await UserModel.updateOne(
+        { _id: spec.userId },
+        { $min: { firstCreditedAt: new Date() } },
+        { session: tx.session }
+      );
+    }
     // Written inside the transaction, not after it. An adjustment that
     // committed with no audit entry is exactly the situation the audit log
     // exists to make impossible, so a failure here rolls the money back too.

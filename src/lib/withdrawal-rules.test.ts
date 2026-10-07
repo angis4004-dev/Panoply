@@ -285,3 +285,61 @@ describe('isInvestmentHorizon', () => {
     expect(isInvestmentHorizon(undefined)).toBe(false);
   });
 });
+
+describe('computeLockStatus - an operator credit funds the clock too', () => {
+  /*
+   * An account funded by hand has never deposited. Before firstCreditedAt was
+   * counted, its clock waited on an approval that was never coming, so the
+   * term could not start and the money could not leave - which is the state
+   * every account on the platform was in while nothing wrote these fields at
+   * all.
+   */
+  it('starts on an operator credit with no deposit', () => {
+    const status = computeLockStatus(
+      {
+        firstDepositApprovedAt: null,
+        firstCreditedAt: d('2026-01-01T00:00:00Z'),
+        tradingStartedAt: d('2026-01-01T00:00:00Z'),
+      },
+      d('2026-01-20T00:00:00Z')
+    );
+    expect(status.reason).toBe('unlocked');
+    expect(status.withdrawable).toBe(true);
+  });
+
+  it('still waits for trading when only credited', () => {
+    const status = computeLockStatus(
+      { firstCreditedAt: d('2026-01-01T00:00:00Z'), tradingStartedAt: null },
+      d('2027-01-01T00:00:00Z')
+    );
+    expect(status.reason).toBe('not_started');
+    expect(status.awaiting).toBe('trading');
+  });
+
+  it('runs the term from the earlier funding, not the later one', () => {
+    // Credited first, deposited later. The money has been in the account
+    // since the credit, so that is when the term began.
+    const status = computeLockStatus(
+      {
+        firstCreditedAt: d('2026-01-01T00:00:00Z'),
+        firstDepositApprovedAt: d('2026-01-10T00:00:00Z'),
+        tradingStartedAt: d('2026-01-01T00:00:00Z'),
+      },
+      d('2026-01-16T00:00:00Z')
+    );
+    expect(status.clockStartsAt?.toISOString()).toBe('2026-01-01T00:00:00.000Z');
+    expect(status.reason).toBe('unlocked');
+  });
+
+  it('still takes the later of funding and trading', () => {
+    const status = computeLockStatus(
+      {
+        firstCreditedAt: d('2026-01-01T00:00:00Z'),
+        tradingStartedAt: d('2026-01-20T00:00:00Z'),
+      },
+      d('2026-01-25T00:00:00Z')
+    );
+    expect(status.clockStartsAt?.toISOString()).toBe('2026-01-20T00:00:00.000Z');
+    expect(status.reason).toBe('locked');
+  });
+});
